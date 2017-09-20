@@ -1,0 +1,14 @@
+.appercu {
+    text-shadow: 0 0 6px rgba(0,0,0,0.5);
+    color: transparent;
+}
+
+.afficher_document {
+    text-shadow: 0 0 6px rgba(0,0,0,0.5);
+    color: transparent;
+}
+
+#id_div_voir_document pre {
+    text-shadow: 0 0 6px rgba(0,0,0,0.5);
+    color: transparent;
+}
