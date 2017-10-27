@@ -66,6 +66,7 @@ if ($_POST['action']=='executer_clustering') {
 	
 	passthru( "php exec_clustering.php \"$tmpresult_num\" \"10\" \"3\" \"0.01\" \"$limite_similarite\" \"2\" \"$process_num\" \"7\" >> upload/log_chargement_clustering_$tmpresult_num.$process_num.txt 2>&1 &");
 	print $process_num;
+	save_log_page($user_num_session,'clustering');
 }
 
 if ($_POST['action']=='verifier_process_fini_executer_clustering') {

@@ -31,76 +31,44 @@ define("LDAP_PASSWD", $GLOBALS['LDAP_PASSWD']);
 define("SUFFIXE_MAIL", $GLOBALS['SUFFIXE_MAIL']);
 
 function valid_login_ldap($login,$passwd) {
-######################################################################################
-#
-# Fonction rvalid_login_ldap : bvalider un login passwd 
-#   Description : verifier le login passwd sur l'active directory
-#   Paramètres : 
-# 		login : nom de connexion
-#		passwd : mot de passe
-# PB ne FONCTIONNE PAS retourne roujours $login !!!
-######################################################################################
-
-
-#	$cLdap = connectLdap();
-#	$sResLdap = bindLdap($cLdap, $login, $passwd);
-#	disconnectLdap($cLdap);
-	
-	$sResLdap='nothing';
+	$cLdap = connectLdap();
+	if ($cLdap!='') {
+		$sResLdap = bindLdap($cLdap, $login, $passwd);
+		disconnectLdap($cLdap);
+	} else {
+		$sResLdap='nothing';
+	}
 	return($sResLdap);
 
-# Fin fonction proc_xx----------------------------------------------------------------
-######################################################################################
-	}	
+}	
 
 function connectLdap(){
-######################################################################################
-## Fonction connectLdap 
-#   Description : fonction permettant de se connecter au serveur ldap
-#
-######################################################################################
-		$conLdap = ldap_connect(LDAP_SERVER)
-		or die(get_translation('CONNEXION_TO_LDAP_IMPOSSIBLE',"Impossible d'établir la connexion avec le serveur ldap"));
+		$conLdap = ldap_connect(LDAP_SERVER) or die(get_translation('CONNEXION_TO_LDAP_IMPOSSIBLE',"Impossible d'établir la connexion avec le serveur ldap"));
 		ldap_set_option($conLdap, LDAP_OPT_PROTOCOL_VERSION, LDAP_PROTOCOLE_VERSION);
 		ldap_set_option($conLdap, LDAP_OPT_REFERRALS, LDAP_REFERRALS);
 		return $conLdap;
-# Fin fonction proc_xx----------------------------------------------------------------
-######################################################################################
 }
 function bindLdapAdmin($conLdap){
-######################################################################################
-## Fonction bindLdap  
-#   Description : Fonction permettant de s'identifier auprès du serveur ldap
-#
-######################################################################################
 	if(!ldap_bind($conLdap,LDAP_USER,LDAP_PASSWD)){
 		die(get_translation('LDAP_AUTH_DENIED','Authentification impossible au serveur ldap'));
 	}
 }
 function bindLdap($conLdap,$sUser,$sPwd){
-######################################################################################
-# Fonction bindLdap  
-#   Description :  verifier un login passwd
-#
-######################################################################################
-$sDnUser = "";
+	$sDnUser = "";
+	if(@ldap_bind($conLdap,utf8_encode($sUser."@".SUFFIXE_MAIL),utf8_encode($sPwd))){
+		return $sUser;
+	}else{
 		if(@ldap_bind($conLdap,utf8_encode($sUser."@".SUFFIXE_MAIL),utf8_encode($sPwd))){
 			return $sUser;
 		}else{
-			if(@ldap_bind($conLdap,utf8_encode($sUser."@".SUFFIXE_MAIL),utf8_encode($sPwd))){
-				return $sUser;
-			}else{
-				return "nothing";
-			}
 			return "nothing";
 		}
-
-# Fin fonction proc_xx----------------------------------------------------------------
-######################################################################################
+		return "nothing";
+	}
 }
 
-function ldap_user_name($sUser,&$res) {
-
+function ldap_user_name($sUser) {
+	$res=array();
 	$conLdap = connectLdap();
 
 	bindLdapAdmin($conLdap);
@@ -115,12 +83,13 @@ function ldap_user_name($sUser,&$res) {
 	 	$res[mail]=$aResult[0]["mail"][0];
 	} else {
 	}
-	return($res[lastname].",".$res[firstname].",".$res[mail]);
+	return($res['lastname'].",".$res['firstname'].",".$res['mail']);
 }
 
 
-function rechercher_ldap_user_name($sUser,&$res,$grp) {
+function rechercher_ldap_user_name($sUser,$grp) {
 	global $liste_login;
+	$res=array();
 	$conLdap = connectLdap();
 	$sUser=trim ($sUser);
 	ldap_bind($conLdap,LDAP_USER,LDAP_PASSWD);
@@ -165,8 +134,9 @@ function rechercher_ldap_user_name($sUser,&$res,$grp) {
 	return $resultat;
 }
 
-function rechercher_ldap_user_name_tableau($sUser,&$res,$grp) {
+function rechercher_ldap_user_name_tableau($sUser,$grp) {
 	global $LDAP_USER,$LDAP_PASSWD,$LDAP_BASE;
+	$res=array();
 	$conLdap = connectLdap();
 	$sUser=trim ($sUser);
 	ldap_bind($conLdap,$LDAP_USER,$LDAP_PASSWD);
@@ -205,14 +175,7 @@ function rechercher_ldap_user_name_tableau($sUser,&$res,$grp) {
 
 
 function disconnectLdap($conLdap){
-######################################################################################
-## Fonction disconnectLdap  
-#   Description : Fonction permettant de terminer la connexion au serveur ldap
-#
-######################################################################################
 	@ldap_close($conLdap);
-# Fin fonction proc_xx----------------------------------------------------------------
-######################################################################################
 }
 
 

@@ -51,7 +51,7 @@ function get_translation (code,libelle_defaut) {
 		return "[" + code + "]" ;
 	}
 	else{
-		return "" + libelle_defaut + "" ;
+		return libelle_defaut;
 	}
 	
 }

@@ -396,6 +396,9 @@ if ($_POST['action']=='rechercher') {
 			<? if ($_SESSION['dwh_droit_admin_datamart0']=='ok') { ?>
 					<li class="color-bullet" id="id_bouton_admin_datamart"><span class="li-content"><img src="images/datamart.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('admin_datamart');return false;"><? print get_translation('DATAMART','Datamart'); ?></a></span></li>
 			<? } ?>
+			<? if ($_SESSION['dwh_droit_export_data']=='ok') { ?>
+			<li class="color-bullet" id="id_bouton_export_data"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('export_data');return false;"><? print"Export" ?></a></span></li>
+			<? } ?>
 			</ul>
 		</div>
 	<?
@@ -619,6 +622,13 @@ if ($_POST['action']=='rechercher') {
 			<div id="id_div_dwh_admin_datamart" style="display:none;" class="div_result">
 				<? print $phrase_nb_patient_total; ?>
 				<? include "include_datamart.php"; ?>
+			</div>
+		<? } ?>
+		
+		<? if ($_SESSION['dwh_droit_export_data']=='ok') { ?>
+			<div id="id_div_dwh_export_data" style="display:none;" class="div_result">
+				<? print $phrase_nb_patient_total; ?>
+				<? include "include_export_data.php"; ?>
 			</div>
 		<? } ?>
 	<? } ?>

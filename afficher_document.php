@@ -21,7 +21,7 @@
     75015 Paris
     France
 */
-    
+
 session_start();
 
 putenv("NLS_LANG=French");

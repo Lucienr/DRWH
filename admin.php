@@ -113,7 +113,7 @@ if ($_GET['action']=='annuaire') {
 		$tableau_document_origin_code[$document_origin_code]=$document_origin_code;
 	}
 	?>
-		<script language="javascript">
+	<script language="javascript">
 		function modifier_droit_profil(user_profile, right) {
 			var action='';
 			if (document.getElementById('id_checkbox_'+user_profile+'_'+right).checked==true) {
@@ -230,7 +230,7 @@ if ($_GET['action']=='annuaire') {
 					oci_execute($sel_var1);
 					while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
 						$user_profile=$r['USER_PROFILE'];
-						print "<tr id=\"id_tr_$user_profile\"><td>$user_profile</td>";
+						print "<tr id=\"id_tr_$user_profile\" class=\"over_color\"><td>$user_profile</td>";
 						
 						foreach ($tableau_user_droit as $right) { 
 							$sel=oci_parse($dbh,"select count(*) as NB from dwh_profile_right where user_profile='$user_profile' and right='$right'");
@@ -271,7 +271,7 @@ if ($_GET['action']=='annuaire') {
 					oci_execute($sel_var1);
 					while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
 						$user_profile=$r['USER_PROFILE'];
-						print "<tr id=\"id_tr_document_origin_code_$user_profile\"><td>$user_profile</td>";
+						print "<tr id=\"id_tr_document_origin_code_$user_profile\" class=\"over_color\"><td>$user_profile</td>";
 						
 						$sel=oci_parse($dbh,"select count(*) as NB from dwh_profile_document_origin where user_profile='$user_profile' and document_origin_code='tout'");
 						oci_execute($sel);
@@ -341,6 +341,7 @@ if ($_GET['action']=='annuaire') {
 		login=document.getElementById('id_ajouter_login_user').value;
 		lastname=document.getElementById('id_ajouter_lastname_user').value;
 		firstname=document.getElementById('id_ajouter_firstname_user').value;
+		expiration_date=document.getElementById('id_ajouter_expiration_date_user').value;
 		mail=document.getElementById('id_ajouter_mail_user').value;
 		liste_profils='';
 		<?
@@ -375,7 +376,7 @@ if ($_GET['action']=='annuaire') {
 			type:"POST",
 			url:"ajax.php",
 			async:true,
-			data: { action:'ajouter_user_admin',login:login,lastname:escape(lastname),firstname:escape(firstname),mail:escape(mail),liste_profils:escape(liste_profils),liste_services:escape(liste_services)},
+			data: { action:'ajouter_user_admin',login:login,lastname:escape(lastname),firstname:escape(firstname),mail:escape(mail),expiration_date:escape(expiration_date),liste_profils:escape(liste_profils),liste_services:escape(liste_services)},
 			beforeSend: function(requester){
 			},
 			success: function(requester){
@@ -386,6 +387,7 @@ if ($_GET['action']=='annuaire') {
 					document.getElementById('id_ajouter_login_user').value='';
 					document.getElementById('id_ajouter_lastname_user').value='';
 					document.getElementById('id_ajouter_firstname_user').value='';
+					document.getElementById('id_ajouter_expiration_date_user').value='';
 					document.getElementById('id_ajouter_mail_user').value='';
 					rafraichir_tableau_users();
 				}
@@ -462,8 +464,8 @@ if ($_GET['action']=='annuaire') {
 				document.getElementById('id_modifier_firstname_user').value=firstname;
 				document.getElementById('id_modifier_mail_user').value=mail;
 				document.getElementById('id_modifier_num_user').value=user_num;
-				recup_profils(login);
-				recup_services(login);
+				recup_profils(user_num);
+				recup_services(user_num);
 				document.getElementById('id_champs_recherche_annuaire_interne').value='';
 				
 				return false;
@@ -471,6 +473,8 @@ if ($_GET['action']=='annuaire') {
 		});
 	});
 	function afficher_modif_user (user_num) {
+					recup_profils(user_num);
+					recup_services(user_num);
 		jQuery.ajax({
 			type:"POST",
 			url:"ajax.php",
@@ -487,13 +491,13 @@ if ($_GET['action']=='annuaire') {
 					firstname=tableau_user[1];
 					mail=tableau_user[2];
 					login=tableau_user[3];
+					expiration_date=tableau_user[4];
 					document.getElementById('id_modifier_login_user').value=login;
 					document.getElementById('id_modifier_lastname_user').value=lastname;
 					document.getElementById('id_modifier_firstname_user').value=firstname;
 					document.getElementById('id_modifier_mail_user').value=mail;
+					document.getElementById('id_modifier_expiration_date_user').value=expiration_date;
 					document.getElementById('id_modifier_num_user').value=user_num;
-					recup_profils(login);
-					recup_services(login);
 				}
 			},
 			complete: function(requester){
@@ -503,12 +507,12 @@ if ($_GET['action']=='annuaire') {
 		});		
 	}
 	
-	function recup_profils(login) {
+	function recup_profils(user_num) {
 		jQuery.ajax({
 			type:"POST",
 			url:"ajax.php",
 			async:true,
-			data: { action:'recup_profils',login:login},
+			data: { action:'recup_profils',user_num:user_num},
 			beforeSend: function(requester){
 			},
 			success: function(requester){
@@ -524,12 +528,12 @@ if ($_GET['action']=='annuaire') {
 			}
 		});		
 	}
-	function recup_services(login) {
+	function recup_services(user_num) {
 		jQuery.ajax({
 			type:"POST",
 			url:"ajax.php",
 			async:true,
-			data: { action:'recup_services',login:login},
+			data: { action:'recup_services',user_num:user_num},
 			beforeSend: function(requester){
 			},
 			success: function(requester){
@@ -555,6 +559,7 @@ if ($_GET['action']=='annuaire') {
 		lastname=document.getElementById('id_modifier_lastname_user').value;
 		firstname=document.getElementById('id_modifier_firstname_user').value;
 		mail=document.getElementById('id_modifier_mail_user').value;
+		expiration_date=document.getElementById('id_modifier_expiration_date_user').value;
 		passwd=document.getElementById('id_modifier_passwd_user').value;
 		liste_profils='';
 		<?
@@ -591,7 +596,7 @@ if ($_GET['action']=='annuaire') {
 			type:"POST",
 			url:"ajax.php",
 			async:true,
-			data: { action:'modifier_user_admin',passwd:passwd,user_num:user_num,login:login,lastname:escape(lastname),firstname:escape(firstname),mail:escape(mail),liste_profils:escape(liste_profils),liste_services:escape(liste_services)},
+			data: { action:'modifier_user_admin',passwd:passwd,user_num:user_num,login:login,lastname:escape(lastname),firstname:escape(firstname),mail:escape(mail),expiration_date:escape(expiration_date),liste_profils:escape(liste_profils),liste_services:escape(liste_services)},
 			beforeSend: function(requester){
 			},
 			success: function(requester){
@@ -603,6 +608,7 @@ if ($_GET['action']=='annuaire') {
 					document.getElementById('id_modifier_lastname_user').value='';
 					document.getElementById('id_modifier_firstname_user').value='';
 					document.getElementById('id_modifier_mail_user').value='';
+					document.getElementById('id_modifier_expiration_date_user').value='';
 					document.getElementById('id_modifier_num_user').value='';
 					document.getElementById('id_modifier_passwd_user').value='';
 					<? print $mise_a_zero_profile; ?>
@@ -719,6 +725,7 @@ if ($_GET['action']=='annuaire') {
 				<tr><td class="question_user"><? print get_translation('LASTNAME','Nom'); ?> : </td><td><input type="text" size="30" id="id_ajouter_lastname_user" class="form"></td></tr>
 				<tr><td class="question_user"><? print get_translation('FIRSTNAME','Prénom'); ?> : </td><td><input type="text" size="30" id="id_ajouter_firstname_user" class="form"></td></tr>
   				<tr><td class="question_user"><? print get_translation('EMAIL','Mail'); ?> : </td><td><input type="text" size="50" id="id_ajouter_mail_user" class="form"></td></tr>
+				<tr><td class="question_user"><? print get_translation('EXPIRATION_DATE','Date expiration'); ?> : </td><td><input type="text" size="11" id="id_ajouter_expiration_date_user" class="form"> (dd/mm/yyyy)</td></tr>
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('PROFILES','Profils'); ?> : </td><td>
 				<?
 					$sel_var1=oci_parse($dbh,"select distinct user_profile from dwh_profile_right  order by user_profile ");
@@ -798,6 +805,7 @@ if ($_GET['action']=='annuaire') {
 				<tr><td class="question_user"><? print get_translation('LASTNAME','Nom'); ?> : </td><td><input type="text" size="30" id="id_modifier_lastname_user" class="form"></td></tr>
 				<tr><td class="question_user"><? print get_translation('FIRSTNAME','Prénom'); ?> : </td><td><input type="text" size="30" id="id_modifier_firstname_user" class="form"></td></tr>
 				<tr><td class="question_user"><? print get_translation('EMAIL','Mail'); ?> : </td><td><input type="text" size="50" id="id_modifier_mail_user" class="form"></td></tr>
+				<tr><td class="question_user"><? print get_translation('EXPIRATION_DATE','Date expiration'); ?> : </td><td><input type="text" size="11" id="id_modifier_expiration_date_user" class="form"> (dd/mm/yyyy)</td></tr>
 				<tr><td class="question_user"><? print get_translation('PASSWORD','Mot de passe'); ?><br><? print get_translation('UNIQUEMENT_SI_VOUS_VOULEZ_LE_MODIFIER','(uniquement si vous voulez le modifier)'); ?> : </td><td><input type="text" size="50" id="id_modifier_passwd_user" class="form"></td></tr>
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('PROFILES','Profils'); ?> : </td><td>
 				<?

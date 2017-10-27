@@ -416,9 +416,7 @@ if ($_POST['action']=='modifier_libelle_service' ) {
 if ($_GET['action']=='autocomplete_rech_rapide_utilisateur') {
 	$term=urldecode($_GET['term']);
 	if ($term!='') {
-		$identite=array();
-		
-		$resultat=rechercher_ldap_user_name_tableau($term,$identite,$grp);
+		$resultat=rechercher_ldap_user_name_tableau($term,$grp);
 		$tableau_res=explode('-separateur-',$resultat);
 		$i=0;
 		foreach ($tableau_res as $k) {
@@ -459,13 +457,70 @@ if ($_POST['action']=='ajouter_user') {
 			} 
 			$login_user=trim($login_user);
 			if ($login_user!='') {
+				$nomfirstname=ldap_user_name($login_user);
+				$ident=preg_split("/,/",$nomfirstname);
+				$lastname=$ident[0];
+				$firstname=$ident[1];
+				$mail=$ident[2];
+			
+				$user_num=ajouter_user ($login_user,$lastname,$firstname,$mail,'',$user_profile,$liste_services,'ok') ;
+								
+			        $sel_var=oci_parse($dbh,"select count(*) from dwh_user_department where department_num=$department_num and  user_num =$user_num ");
+				oci_execute($sel_var);
+				$r=oci_fetch_array($sel_var);
+				$verif=$r[0];
+				if ($verif==0) {
+					$req="insert into dwh_user_department (department_num, user_num ,manager_department) values ($department_num,$user_num,$manager_department)";
+					$sel=oci_parse($dbh,$req);
+					oci_execute($sel) || die("erreur");
+					print "<tr id=\"id_tr_user_".$department_num."_".$user_num."\" style=\"background-color:#B9C2C8;\" onmouseover=\"this.style.backgroundColor='#B9C2C8';\" onmouseout=\"this.style.backgroundColor='#F5F5F5';\"><td>$firstname $lastname <span style=\"color:#990000;font-size:18px;font-weight:bold;\" id=\"id_span_user_".$department_num."_".$user_num."\">$texte_manager_department</span></td><td><a onclick=\"supprimer_user('$user_num','$department_num');return false;\"  href=\"#\">X</a></td></tr>";
+				} else {
+				        $sel_var=oci_parse($dbh,"select manager_department from dwh_user_department where department_num=$department_num and  user_num =$user_num ");
+					oci_execute($sel_var);
+					$r=oci_fetch_array($sel_var);
+					$manager_department_deja=$r[0];
+					if ($manager_department!=$manager_department_deja) {
+						$req="update  dwh_user_department set manager_department=$manager_department where department_num=$department_num and  user_num =$user_num";
+						$sel=oci_parse($dbh,$req);
+						oci_execute($sel) || die("erreur");
+					}
+					
+					print ";MAJ;id_span_user_".$department_num."_".$user_num.",$manager_department;MAJ;";
+				}
+			}
+		}
+	} else {
+		print get_translation('YOU_CANNOT_ADD_USER_TO_GROUP',"Vous n'avez pas le droit d'ajouter un utilisateur dans ce groupe");
+	}
+}
+
+if ($_POST['action']=='ajouter_user_ancien') {
+	$liste_login=urldecode($_POST['liste_login']);
+	$department_num=$_POST['department_num'];
+	$user_profile='medecin';
+	$expiration_date=urldecode($_POST['expiration_date']);
+	
+        $sel_var=oci_parse($dbh,"select manager_department from dwh_user_department where department_num=$department_num and user_num=$user_num_session");
+	oci_execute($sel_var);
+	$r=oci_fetch_array($sel_var);
+	$manager_department_groupe=$r[0];
+	if ($_SESSION['dwh_droit_admin']=='ok' || $manager_department_groupe==1) {
+		$tableau_login=preg_split("/[,;\n]/",$liste_login);
+		foreach ($tableau_login as $login_user) {
+			$login_user=trim($login_user);
+			$manager_department=0;
+			if (preg_match("/\*/",$login_user)) {
+				$manager_department=1;
+				$login_user=str_replace('*','',$login_user);
+			} 
+			$login_user=trim($login_user);
+			if ($login_user!='') {
 			        $sel_var=oci_parse($dbh,"select user_num from dwh_user where login='$login_user'");
 				oci_execute($sel_var);
 				$r=oci_fetch_array($sel_var);
 				$user_num=$r[0];
 				if ($user_num=='') {
-					$ident=array();
-					$nomfirstname=ldap_user_name($login_user,$ident);
+					$nomfirstname=ldap_user_name($login_user);
 					$ident=preg_split("/,/",$nomfirstname);
 					$lastname=$ident[0];
 					$firstname=$ident[1];
@@ -476,7 +531,7 @@ if ($_POST['action']=='ajouter_user') {
 					$r=oci_fetch_array($sel_var);
 					$user_num=$r[0];
 					
-				        $sel_var=oci_parse($dbh,"insert into   dwh_user (user_num,lastname,firstname,mail,login) values ($user_num,'$lastname','$firstname','$mail','$login_user')");
+				        $sel_var=oci_parse($dbh,"insert into   dwh_user (user_num,lastname,firstname,mail,login,creation_date,expiration_date) values ($user_num,'$lastname','$firstname','$mail','$login_user',sysdate,to_date('$expiration_date','DD/MM/YYYY'))");
 					oci_execute($sel_var);
 				} else{
 				        $sel_var=oci_parse($dbh,"select lastname,firstname from dwh_user where user_num=$user_num");
@@ -711,8 +766,7 @@ if ($_POST['action']=='ajouter_nouveau_profil' && $_SESSION['dwh_droit_admin']!=
 if ($_GET['action']=='autocomplete_rech_rapide_utilisateur_ajout') {
 	$term=urldecode($_GET['term']);
 	if ($term!='') {
-		$identite=array();
-		$resultat=rechercher_ldap_user_name_tableau($term,$identite,$grp);
+		$resultat=rechercher_ldap_user_name_tableau($term,$grp);
 		$tableau_res=explode('-separateur-',$resultat);
 		$i=0;
 		foreach ($tableau_res as $k) {
@@ -752,10 +806,11 @@ if ($_POST['action']=='ajouter_user_admin' && $_SESSION['dwh_droit_admin']!='') 
 	$lastname=nettoyer_pour_inserer(trim(urldecode($_POST['lastname'])));
 	$firstname=nettoyer_pour_inserer(trim(urldecode($_POST['firstname'])));
 	$mail=trim(urldecode($_POST['mail']));
+	$expiration_date=trim(urldecode($_POST['expiration_date']));
 	$liste_profils=trim(urldecode($_POST['liste_profils']));
 	$liste_services=trim(urldecode($_POST['liste_services']));
 	if ($login!='') {
-		$res=ajouter_user_admin ($login,$lastname,$firstname,$mail,$liste_profils,$liste_services,'ok') ;
+		$res=ajouter_user ($login,$lastname,$firstname,$mail,$expiration_date,$liste_profils,$liste_services,'ok') ;
 		print $res;
 	}
 }
@@ -775,6 +830,7 @@ if ($_POST['action']=='ajouter_liste_user_admin' && $_SESSION['dwh_droit_admin']
 			$lastname=nettoyer_pour_inserer(trim(urldecode($tableau_user[1])));
 			$firstname=nettoyer_pour_inserer(trim(urldecode($tableau_user[2])));
 			$mail=trim(urldecode($tableau_user[3]));
+			$expiration_date=trim(urldecode($tableau_user[4]));
 			if ($login!='') {
 				
 				$sel_var1=oci_parse($dbh,"select user_num from dwh_user where lower(login)=lower('$login')   ");
@@ -786,8 +842,7 @@ if ($_POST['action']=='ajouter_liste_user_admin' && $_SESSION['dwh_droit_admin']
 				
 				} else {
 					if ($lastname=='') {
-						$ident=array();
-						$ident=ldap_user_name($login,$ident);
+						$ident=ldap_user_name($login);
 						$ident=preg_split("/,/",$ident);
 						$lastname=$ident[0];
 						$firstname=$ident[1];
@@ -799,7 +854,7 @@ if ($_POST['action']=='ajouter_liste_user_admin' && $_SESSION['dwh_droit_admin']
 					$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
 					$user_num=$r['USER_NUM'];
 					
-					$req="insert into dwh_user  (user_num , lastname ,firstname ,mail ,login,passwd) values ($user_num,'$lastname','$firstname','$mail','$login','')";
+					$req="insert into dwh_user  (user_num , lastname ,firstname ,mail ,login,passwd,creation_date,expiration_date) values ($user_num,'$lastname','$firstname','$mail','$login','',sysdate,to_date('$expiration_date','DD/MM/YYYY'))";
 					$sel_var1=oci_parse($dbh,$req);
 					oci_execute($sel_var1) || die ("<strong style=\"color:red\">erreur : $login patient non sauvé</strong><br>");
 					
@@ -851,8 +906,7 @@ if ($_GET['action']=='recherche_annuaire_interne') {
 		}
 		
 		if ($json=='') {
-			$identite=array();
-			$resultat=rechercher_ldap_user_name_tableau($term,$identite,$grp);
+			$resultat=rechercher_ldap_user_name_tableau($term,$grp);
 			$tableau_res=explode('-separateur-',$resultat);
 			$i=0;
 			foreach ($tableau_res as $k) {
@@ -877,7 +931,7 @@ if ($_POST['action']=='afficher_modif_user') {
 	$user_num=$_POST['user_num'];
 	if ($user_num!='') {
 		$i=0;
-		$sel_var1=oci_parse($dbh,"select login,lastname,firstname,mail,dwh_user.user_num from dwh_user where user_num=$user_num");
+		$sel_var1=oci_parse($dbh,"select login,lastname,firstname,mail,dwh_user.user_num,to_char(expiration_date,'DD/MM/YYYY') as expiration_date from dwh_user where user_num=$user_num");
 		oci_execute($sel_var1);
 		$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
 		$login=$r['LOGIN'];
@@ -885,30 +939,35 @@ if ($_POST['action']=='afficher_modif_user') {
 		$firstname=$r['FIRSTNAME'];
 		$mail=$r['MAIL'];
 		$user_num=$r['USER_NUM'];
-		$res="$lastname,$firstname,$mail,$login";
+		$expiration_date=$r['EXPIRATION_DATE'];
+		$res="$lastname,$firstname,$mail,$login,$expiration_date";
 		print "$res";
 	}
 }
 
 if ($_POST['action']=='recup_profils') {
-	$login=$_POST['login'];
-	$sel_var1=oci_parse($dbh,"select user_profile from  dwh_user_profile   ");
+	$user_num=$_POST['user_num'];
+	$sel_var1=oci_parse($dbh,"select distinct user_profile from  dwh_user_profile   ");
 	oci_execute($sel_var1);
 	while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$user_profile=$r['USER_PROFILE'];
-		print "document.getElementById('id_modifier_user_profile_$user_profile').checked=false;";
+		if ($user_profile!='') {
+			print "document.getElementById('id_modifier_user_profile_$user_profile').checked=false;";
+		}
 	}
-	$sel_var1=oci_parse($dbh,"select user_profile from dwh_user, dwh_user_profile where login='$login' and dwh_user.user_num= dwh_user_profile.user_num ");
+	$sel_var1=oci_parse($dbh,"select distinct user_profile from  dwh_user_profile where user_num=$user_num ");
 	oci_execute($sel_var1);
 	while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$user_profile=$r['USER_PROFILE'];
-		print "document.getElementById('id_modifier_user_profile_$user_profile').checked=true;";
+		if ($user_profile!='') {
+			print "document.getElementById('id_modifier_user_profile_$user_profile').checked=true;";
+		}
 	}
 }
 
 if ($_POST['action']=='recup_services') {
-	$login=$_POST['login'];
-	$sel_var1=oci_parse($dbh,"select department_num from  dwh_user_department  ");
+	$user_num=$_POST['user_num'];
+	$sel_var1=oci_parse($dbh,"select distinct department_num from  dwh_user_department  ");
 	oci_execute($sel_var1);
 	while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$department_num=$r['DEPARTMENT_NUM'];
@@ -916,7 +975,7 @@ if ($_POST['action']=='recup_services') {
 			print "document.getElementById('id_modifier_select_department_num_multiple_$department_num').selected=false;";
 		}
 	}
-	$sel_var1=oci_parse($dbh,"select department_num from dwh_user, dwh_user_department where login='$login' and dwh_user.user_num= dwh_user_department.user_num ");
+	$sel_var1=oci_parse($dbh,"select distinct department_num from  dwh_user_department where user_num=$user_num ");
 	oci_execute($sel_var1);
 	while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$department_num=$r['DEPARTMENT_NUM'];
@@ -927,16 +986,17 @@ if ($_POST['action']=='recup_services') {
 }
 
 if ($_POST['action']=='modifier_user_admin' && $_SESSION['dwh_droit_admin']!='') {
-	$login=trim($_POST['login']);
 	$user_num=trim($_POST['user_num']);
+	$login=trim($_POST['login']);
 	$lastname=nettoyer_pour_inserer(trim(urldecode($_POST['lastname'])));
 	$firstname=nettoyer_pour_inserer(trim(urldecode($_POST['firstname'])));
 	$mail=trim(urldecode($_POST['mail']));
+	$expiration_date=trim(urldecode($_POST['expiration_date']));
 	$passwd=trim(urldecode($_POST['passwd']));
 	$liste_profils=trim(urldecode($_POST['liste_profils']));
 	$liste_services=trim(urldecode($_POST['liste_services']));
 	if ($login!='' && $user_num!='') {
-		$req="update   dwh_user set  lastname='$lastname',firstname='$firstname',mail='$mail',login='$login' where user_num=$user_num";
+		$req="update   dwh_user set  lastname='$lastname',firstname='$firstname',mail='$mail',login='$login',expiration_date=to_date('$expiration_date','DD/MM/YYYY') where user_num=$user_num";
 		$sel_var1=oci_parse($dbh,$req);
 		oci_execute($sel_var1) || die ("<strong style=\"color:red\">erreur : $login $lastname $firstname patient non modifié</strong>");
 		
@@ -985,13 +1045,15 @@ if ($_POST['action']=='rafraichir_tableau_users' && $_SESSION['dwh_droit_admin']
 					<th class=\"question_user\">Mail</th>
 					<th class=\"question_user\">Profils</th>
 					<th class=\"question_user\">Departments</th>
+					<th class=\"question_user\">Creation date</th>
+					<th class=\"question_user\">Expiration date</th>
 					<th class=\"question_user\">Modify</th>
 					<th class=\"question_user\">Delete</th>
 				</tr>
 				</thead>
 				
 				 <tbody>";
-		$sel=oci_parse($dbh,"select user_num,lastname ,firstname ,mail ,login from dwh_user order by lastname,firstname ");
+		$sel=oci_parse($dbh,"select user_num,lastname ,firstname ,mail ,login,to_char(creation_date,'DD/MM/YYYY') as creation_date,to_char(expiration_date,'DD/MM/YYYY') as expiration_date from dwh_user order by lastname,firstname ");
 		oci_execute($sel);
 		while ($r_p=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 			$user_num=$r_p['USER_NUM'];
@@ -999,6 +1061,8 @@ if ($_POST['action']=='rafraichir_tableau_users' && $_SESSION['dwh_droit_admin']
 			$firstname=$r_p['FIRSTNAME'];
 			$mail=$r_p['MAIL'];
 			$login=$r_p['LOGIN'];
+			$creation_date=$r_p['CREATION_DATE'];
+			$expiration_date=$r_p['EXPIRATION_DATE'];
 			
 			print "<tr id=\"id_tr_user_$user_num\" onmouseover=\"this.style.backgroundColor='#dcdff5';\" onmouseout=\"this.style.backgroundColor='#ffffff';\">
 				<td>$login</td>
@@ -1027,6 +1091,8 @@ if ($_POST['action']=='rafraichir_tableau_users' && $_SESSION['dwh_droit_admin']
 				print "$department_str <input type=checkbox value=1 id=\"id_manager_department_service_".$department_num."_".$user_num."\" onclick=\"affecter_manager_department_service($department_num,$user_num);\" $checked><br>";
 			}
 			print "</td>";
+			print "<td>$creation_date</td>";
+			print "<td>$expiration_date</td>";
 			print "<td><span style=\"cursor:pointer\" class=\"action\" onclick=\"deplier('id_admin_modifier_user','block');plier('id_admin_ajouter_liste_user');plier('id_admin_ajouter_user');afficher_modif_user($user_num);\">Modifier</span></td>";
 			print "<td><span style=\"cursor:pointer\" class=\"action\" onclick=\"supprimer_user_admin($user_num);\">X</span></td>";
 			print "</tr>";
@@ -2195,6 +2261,7 @@ if ($_GET['action']=='affiche_tableau_data') {
 	$thesaurus_code=$_GET['thesaurus_code'];
 	$json=repartition_data_json ($tmpresult_num,$thesaurus_code);
 	print $json;
+	save_log_page($user_num_session,"affiche_tableau_data $thesaurus_code");
 }
 
 if ($_GET['action']=='affiche_concepts') {
@@ -2384,6 +2451,7 @@ if ($_POST['action']=='rechercher_code_labo') {
 	}
 	
 	rechercher_examen_thesaurus_labo ($requete_texte,$thesaurus_data_father_num,$sans_filtre,$tmpresult_num);
+	save_log_page($user_num_session,"rechercher_code_labo");
 }
 
 if ($_POST['action']=='visualiser_graph_scatterplot') {
@@ -3296,31 +3364,7 @@ if ($_POST['action']=='partager_requete_en_cours') {
 	$liste_num_user_partage=urldecode(trim($_POST['liste_num_user_partage']));
 	$query_num=$_POST['query_num'];
 	partager_requete_en_cours ($user_num_session,$liste_num_user_partage,$notification_text,$query_num);
-	// $sel=oci_parse($dbh,"select xml_query,datamart_num from dwh_query where query_num=$query_num and user_num=$user_num_session");
-	// oci_execute($sel);
-	// $r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
-	// $xml_query=$r['XML_QUERY']->load();
-	// $datamart_num=$r['DATAMART_NUM'];
-
-
-	// $tab_num_user_partage=explode(",",$liste_num_user_partage);
-	// foreach ($tab_num_user_partage as $num_user_partage) {
-	// 	if ($num_user_partage!='') {
-		
-	// 		$sel_var1=oci_parse($dbh,"select dwh_seq.nextval as query_num_insert from dual  ");
-	// 		oci_execute($sel_var1);
-	// 		$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
-	// 		$query_num_insert=$r['QUERY_NUM_INSERT'];
-			
-	// 		$requeteins="insert into dwh_query ( query_num,user_num,xml_query,query_date,datamart_num,query_type,pin) 
-	// 				values ($query_num_insert,$num_user_partage,:xml_query,sysdate,$datamart_num,'temp',0)";
-	// 		$stmtupd = ociparse($dbh,$requeteins);
-	// 		$rowid = ocinewdescriptor($dbh, OCI_D_LOB);
-	// 		ocibindbyname($stmtupd, ":xml_query",$xml_query );
-	// 		$execState = ociexecute($stmtupd);
-	// 		sauver_notification ($user_num_session,$num_user_partage,'requete',$notification_text,$query_num_insert);
-	// 	}
-	// }
+	save_log_page($user_num_session,'partager_requete_en_cours');
 }
 if ($_POST['action']=='crontab_alerte_notification') {
 	
@@ -3433,16 +3477,16 @@ if ($_POST['action']=='update_outil' && $_SESSION['dwh_droit_admin']=='ok') {
 	update_outil($tableau);
 }
 
-
 if ($_POST['action']=='delete_outil' && $_SESSION['dwh_droit_admin']=='ok') {
 	$tool_num=$_POST['tool_num'];
 	delete_outil($tool_num);
 }
 
-
-
 if ($_POST['action']=='afficher_outil' ) {
 	$tool_num=$_POST['tool_num'];
 	afficher_outil($tool_num);
+	save_log_page($user_num_session,"afficher_outil $tool_num");
 }
+
+
 ?>

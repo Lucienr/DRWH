@@ -47,7 +47,7 @@ update_process ($process_num,'0',get_translation('PROCESS_START','debut du proce
 
 $ins= oci_parse($dbh,"delete from dwh_process_patient where process_num='$process_num' " );   
 oci_execute($ins);
-		
+
 if ($requete!='') {
     
 	$sel=oci_parse($dbh," select  patient_num from dwh_text where contains (enrich_text,'$requete')>0 and certainty=1  and context='patient_text' ");

@@ -52,7 +52,6 @@ function ajouter_formulaire_texte_vierge ($num_filtre,$query_type) {
 	        print "<div style=\"position:absolute;left:400px;z-index:22;top:-6;color:grey;cursor:pointer;\" onclick=\"supprimer_formulaire_texte_vierge($num_filtre);\">x</div>";
 	}
 
-
         if ($query_type=='text' || $query_type=='texte' || $query_type=='') {
         	$style_display_texte='inline';
         } else {
@@ -65,20 +64,22 @@ function ajouter_formulaire_texte_vierge ($num_filtre,$query_type) {
 		$style_display_code='none';
 		$style_display_code_recherche='none';
 	}
-
   	print "<textarea onkeypress=\"if(event.keyCode==13) {calcul_nb_resultat_filtre ($num_filtre,true);event.preventDefault();} else {}\" id=\"id_input_filtre_texte_$num_filtre\" name=\"text_$num_filtre\" style=\"display:$style_display_texte\" class=\"filtre_texte input_texte autosizejs\" cols=\"50\" rows=\"2\"></textarea>";
 
 	print "<div id=\"id_div_filtre_texte_structure_$num_filtre\" class=\"filtre_texte_avance\" style=\"display:$style_display_code\">
 			".get_translation('SEARCH_A_CODE','Rechercher un code')." : 
 			<select id=\"id_select_thesaurus_data_$num_filtre\">
-				<option value=\"\">".get_translation('THESAURUS','Thesaurus')."</option>
-				<option value=\"$thesaurus_code_labo\">Biology</option>
-			</select>
-			
+				<option value=\"\">".get_translation('THESAURUS','Thesaurus')."</option>";
+	$sel=oci_parse($dbh,"select distinct thesaurus_code from dwh_thesaurus_data ");
+	oci_execute($sel);
+	while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		$thesaurus_code=$r['THESAURUS_CODE'];
+		print "<option value=\"$thesaurus_code\">$thesaurus_code</option>";
+	}
+	print "</select>			
 			<input type=\"text\" id=\"id_rechercher_code_$num_filtre\" onkeypress=\"if(event.keyCode==13) {rechercher_code($num_filtre);}\"  class=\"filtre_date_document\"><input type=\"button\" value=\"Go\"  class=\"filtre_date_document\" onclick=\"rechercher_code($num_filtre);\"> 
 			<input type=hidden value=\"\" name=\"thesaurus_data_num_$num_filtre\" id=\"id_input_thesaurus_data_num_$num_filtre\">
 			<input type=hidden name=\"chaine_requete_code_$num_filtre\" id=\"id_input_chaine_requete_code_$num_filtre\" value=\"\"> 
-			
                 </div>";
 	print " <span id=\"id_span_nbresult_atomique_$num_filtre\" class=\"filtre_texte_nbresult\" style=\"display:inline;cursor:pointer;\" onclick=\"calcul_nb_resultat_filtre ($num_filtre,true);\">?</span><span id=\"id_span_nbresult_atomique_chargement_$num_filtre\" style=\"display:inline\"></span>";
 
@@ -3773,7 +3774,7 @@ function affiche_mes_services() {
 }
 
 
-function ajouter_user_admin ($login,$lastname,$firstname,$mail,$liste_profils,$liste_services,$log) {
+function ajouter_user ($login,$lastname,$firstname,$mail,$expiration_date,$liste_profils,$liste_services,$log) {
         global $dbh;
         $sel_var1=oci_parse($dbh,"select user_num from dwh_user where lower(login)=lower('$login')   ");
         oci_execute($sel_var1);
@@ -3791,7 +3792,7 @@ function ajouter_user_admin ($login,$lastname,$firstname,$mail,$liste_profils,$l
                         $r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
                         $user_num=$r['USER_NUM'];
                         
-                        $req="insert into dwh_user  (user_num , lastname ,firstname ,mail ,login,passwd) values ($user_num,'$lastname','$firstname','$mail','$login','')";
+                        $req="insert into dwh_user  (user_num , lastname ,firstname ,mail ,login,passwd,creation_date,expiration_date) values ($user_num,'$lastname','$firstname','$mail','$login','',sysdate,to_date('$expiration_date','DD/MM/YYYY'))";
                         $sel_var1=oci_parse($dbh,$req);
                         oci_execute($sel_var1) || die ("<strong style=\"color:red\">".get_translation('ERROR','erreur')." : ".get_translation('PATIENT_NOT_SAVED','patient non sauvÈ')."</strong>");
                         
@@ -4158,7 +4159,7 @@ function afficher_cohorte_ligne_accueil() {
 		}
                 
                 
-                print "<tr id=\"id_tr_cohorte_$cohort_num\" onmouseover=\"this.style.backgroundColor='#dcdff5';\" onmouseout=\"this.style.backgroundColor='#ffffff';\" onclick=\"self.location='mes_cohortes.php?cohort_num_voir=$cohort_num';\" style=\"cursor:pointer;\">
+                print "<tr id=\"id_tr_cohorte_$cohort_num\" class=\"over_color\" onclick=\"self.location='mes_cohortes.php?cohort_num_voir=$cohort_num';\" style=\"cursor:pointer;\">
                         <td>$img</td>
                         <td><strong>$title_cohort</strong></td>
                         <td>$nb_patient_cohorte</td>
@@ -4185,7 +4186,7 @@ function liste_patient_cohorte_encours ($cohort_num,$status) {
 		        oci_execute($sel);
 		        while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		                $patient_num=$r['PATIENT_NUM'];
-		                $res.= "<tr id=\"id_tr_patient_cohorte_$patient_num\" onmouseover=\"this.style.backgroundColor='#dcdff5';\" onmouseout=\"this.style.backgroundColor='#ffffff';\"><td>";
+		                $res.= "<tr id=\"id_tr_patient_cohorte_$patient_num\" class=\"over_color\"><td>";
 		                $res.=afficher_patient($patient_num,'cohorte','',$cohort_num);
 		                $res_cohorte_textarea.=afficher_patient($patient_num,'cohorte_textarea','',$cohort_num);
 		                $res.="</td></tr>";
@@ -4226,70 +4227,67 @@ function affiche_liste_document_patient($patient_num,$requete) {
 			}
 		}
 		$liste_document_origin_code=liste_document_origin_code_tout_compris($patient_num,$user_num_session);
-	        if ($liste_document_origin_code!='') {
-	        	if (!preg_match("/'tout'/i","$liste_document_origin_code")) {
-				$req.="and document_origin_code in ($liste_document_origin_code) ";
-	        	}
-	        } else {
-	              $req.=" and 1=2";
-	        }
-	        $nb_document=0;
+        if ($liste_document_origin_code!='') {
+        	if (!preg_match("/'tout'/i","$liste_document_origin_code")) {
+			$req.="and document_origin_code in ($liste_document_origin_code) ";
+        	}
+        } else {
+              $req.=" and 1=2";
+        }
+        $nb_document=0;
 		$res= "<table class=\"tableau_document\" $cellspacing id=\"id_tableau_liste_document\">";
-	        $sel_doc = oci_parse($dbh,"select document_num,encounter_num, title,author,document_date,document_origin_code,displayed_text,to_char(document_date,'DD/MM/YYYY') as date_document_char from dwh_document where patient_num=$patient_num $req  $req_option order by  document_date desc " );   
-	        oci_execute($sel_doc);
-	        while ($row_doc = oci_fetch_array($sel_doc, OCI_ASSOC)) {
-                $document_num=$row_doc['DOCUMENT_NUM'];
-                $encounter_num=$row_doc['ENCOUNTER_NUM'];
-                $title=$row_doc['TITLE'];
-                $date_document_char=$row_doc['DATE_DOCUMENT_CHAR'];
-                $document_origin_code=$row_doc['DOCUMENT_ORIGIN_CODE'];
-                $author=$row_doc['AUTHOR'];
-                $displayed_text=$row_doc['DISPLAYED_TEXT']->load();
-               
-                if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
-                	$author='[AUTHOR]';
-					$date_document_char='[DATE]';
-                }
-                
-                $nb_document++;
-
-				$res.= "<tr onmouseout=\"this.style.backgroundColor='#ffffff';\" onmouseover=\"this.style.backgroundColor='#B9C2C8';\" onclick=\"afficher_document_patient($document_num);\" style=\"cursor: pointer; background-color:#ffffff;\" id=\"id_document_patient_$document_num\" class=\"tr_document_patient\" sousgroupe=\"text\">";
-				
-				if ($affichage_tableau_expression_regulier=='ok') {
-					$sel_texte = oci_parse($dbh,"select TEXT from dwh_text where document_num=$document_num and certainty=0 and context='text'" );   
-					oci_execute($sel_texte);
-					$row_texte = oci_fetch_array($sel_texte, OCI_ASSOC);
-					if ($row_texte['TEXT']!='') {
-						$text=$row_texte['TEXT']->load();         
-					}
-					$text=preg_replace("/\n/"," ",$text);
-					preg_match_all("/$requete/i","$text",$out, PREG_SET_ORDER);
-					$res.= "<td style=\"border:1px solid black; border-collapse: collapse;\">$date_document_char</td>";
-					foreach ($out[0] as $val) {
-						$res.= "<td style=\"border:1px solid black; border-collapse: collapse;\">".$val."</td>";
-					}
-	            } else {
-					$res.= "
-					<th style=\"text-align:left;\">$document_origin_code</th><th style=\"text-align:left;\"> $title $author</td>
-					<td>$date_document_char</td>";
-					$res.= "</tr>";
-					if ($requete!='') {
-						$appercu=resumer_resultat($displayed_text,$requete,$tableau_liste_synonyme,'patient');
-						$res.= "<tr><td colspan=\"4\" class=\"appercu\"><i>$appercu</i></td><tr>";
-					}
-					$res.= "<tr><td colspan=\"4\"><hr  style=\"height:1px;border-top:0px;padding:0px;margin:0px;\"></td>";
-				}
-				$res.= "</tr>";
+        $sel_doc = oci_parse($dbh,"select document_num,encounter_num, title,author,document_date,document_origin_code,displayed_text,to_char(document_date,'DD/MM/YYYY') as date_document_char from dwh_document where patient_num=$patient_num $req  $req_option order by  document_date desc " );   
+        oci_execute($sel_doc);
+        while ($row_doc = oci_fetch_array($sel_doc, OCI_ASSOC)) {
+			$document_num=$row_doc['DOCUMENT_NUM'];
+			$encounter_num=$row_doc['ENCOUNTER_NUM'];
+			$title=$row_doc['TITLE'];
+			$date_document_char=$row_doc['DATE_DOCUMENT_CHAR'];
+			$document_origin_code=$row_doc['DOCUMENT_ORIGIN_CODE'];
+			$author=$row_doc['AUTHOR'];
+			$displayed_text=$row_doc['DISPLAYED_TEXT']->load();
+			if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
+				$author='[AUTHOR]';
+				$date_document_char='[DATE]';
+			}
 			
-	        }
-	        $res.= "</table>";
-	        
-	        if ($nb_document==0) {
-	        	print get_translation('NO_DOCUMENT_FOUND','aucun document trouvÈ');
-	        } else {
-	        	print "$nb_document ".get_translation('DOCUMENTS_FOUND','documents trouvÈs')." <img border=\"0\" align=\"absmiddle\" style=\"cursor:pointer;width:18px;\" onclick=\"ouvrir_liste_document_print('$patient_num');return false;\" src=\"images/printer.png\"><br><br>";
-	        	print $res;
-	        }
+			$nb_document++;
+			$res.= "<tr onmouseout=\"this.style.backgroundColor='#ffffff';\" onmouseover=\"this.style.backgroundColor='#B9C2C8';\" onclick=\"afficher_document_patient($document_num);\" style=\"cursor: pointer; background-color:#ffffff;\" id=\"id_document_patient_$document_num\" class=\"tr_document_patient\" sousgroupe=\"text\">";
+			
+			if ($affichage_tableau_expression_regulier=='ok') {
+				$sel_texte = oci_parse($dbh,"select TEXT from dwh_text where document_num=$document_num and certainty=0 and context='text'" );   
+				oci_execute($sel_texte);
+				$row_texte = oci_fetch_array($sel_texte, OCI_ASSOC);
+				if ($row_texte['TEXT']!='') {
+					$text=$row_texte['TEXT']->load();         
+				}
+				$text=preg_replace("/\n/"," ",$text);
+				preg_match_all("/$requete/i","$text",$out, PREG_SET_ORDER);
+				$res.= "<td style=\"border:1px solid black; border-collapse: collapse;\">$date_document_char</td>";
+				foreach ($out[0] as $val) {
+					$res.= "<td style=\"border:1px solid black; border-collapse: collapse;\">".$val."</td>";
+				}
+			} else {
+				$res.= "
+				<th style=\"text-align:left;\">$document_origin_code</th><th style=\"text-align:left;\"> $title $author</td>
+				<td>$date_document_char</td>";
+				$res.= "</tr>";
+				if ($requete!='') {
+					$appercu=resumer_resultat($displayed_text,$requete,$tableau_liste_synonyme,'patient');
+					$res.= "<tr><td colspan=\"4\" class=\"appercu\"><i>$appercu</i></td><tr>";
+				}
+				$res.= "<tr><td colspan=\"4\"><hr  style=\"height:1px;border-top:0px;padding:0px;margin:0px;\"></td>";
+			}
+			$res.= "</tr>";
+		}
+		$res.= "</table>";
+		
+		if ($nb_document==0) {
+			print get_translation('NO_DOCUMENT_FOUND','aucun document trouvÈ');
+		} else {
+			print "$nb_document ".get_translation('DOCUMENTS_FOUND','documents trouvÈs')." <img border=\"0\" align=\"absmiddle\" style=\"cursor:pointer;width:18px;\" onclick=\"ouvrir_liste_document_print('$patient_num');return false;\" src=\"images/printer.png\"><br><br>";
+			print $res;
+		}
 	}
 }
 
@@ -4680,18 +4678,19 @@ function nettoyer_accent_timeline ($text) {
 	$text=preg_replace("/&micro;/","micro",$text);
 	$text=preg_replace("/\n/","&lt;br&gt;",$text);
 	
-	$text=preg_replace("/[‚‡]/i","a",$text);
-	$text=preg_replace("/[ÈËÍÎ]/i","e",$text);
-	$text=preg_replace("/[ÓÔ]/i","i",$text);
-	$text=preg_replace("/[Ùˆ]/i","i",$text);
-	$text=preg_replace("/[˘˚]/i","u",$text);
-	$text=preg_replace("/[Á]/i","c",$text);
-	$text=preg_replace("/[¬¿]/i","a",$text);
-	$text=preg_replace("/[…» À]/i","e",$text);
-	$text=preg_replace("/[Œœ]/i","i",$text);
-	$text=preg_replace("/[‘÷]/i","i",$text);
-	$text=preg_replace("/[Ÿ€]/i","u",$text);
-	$text=preg_replace("/[«]/i","c",$text);
+	$text=replace_accent($text);
+#	$text=preg_replace("/[‚‡]/i","a",$text);
+#	$text=preg_replace("/[ÈËÍÎ]/i","e",$text);
+#	$text=preg_replace("/[ÓÔ]/i","i",$text);
+#	$text=preg_replace("/[Ùˆ]/i","i",$text);
+#	$text=preg_replace("/[˘˚]/i","u",$text);
+#	$text=preg_replace("/[Á]/i","c",$text);
+#	$text=preg_replace("/[¬¿]/i","a",$text);
+#	$text=preg_replace("/[…» À]/i","e",$text);
+#	$text=preg_replace("/[Œœ]/i","i",$text);
+#	$text=preg_replace("/[‘÷]/i","i",$text);
+#	$text=preg_replace("/[Ÿ€]/i","u",$text);
+#	$text=preg_replace("/[«]/i","c",$text);
 	$text=preg_replace("/\*/","etoile",$text);
 	$text=preg_replace("//"," ",$text);
 	$text=preg_replace("/\r/"," ",$text);
@@ -4708,6 +4707,12 @@ function nettoyer_accent_timeline ($text) {
 	return $text;
 }
 
+function replace_accent($text) {
+    $accent=  '¿¡¬√ƒ≈‡·‚„‰Â“”‘’÷ÿÚÛÙıˆ¯»… ÀÈËÍÎ«ÁÃÕŒœÏÌÓÔŸ⁄€‹˘˙˚¸ˇ—Ò';
+    $noaccent='AAAAAAaaaaaaOOOOOOooooooEEEEeeeeCcIIIIiiiiUUUUuuuuyNn';
+    $text = strtr($text,$accent,$noaccent);
+    return $text;
+}
 
 function affiche_liste_user_cohorte($cohort_num,$user_num) {
 	global $dbh,$tableau_cohorte_droit;
@@ -8381,10 +8386,24 @@ function afficher_outil ($tool_num) {
 
 
 function get_translation($code,$defaut) {
-	global $JSON_TRANSLATION_FILE;
+	global $JSON_TRANSLATION_FILE,$CHARSET,$user_num_session;
 	if (is_file($JSON_TRANSLATION_FILE)) {
-		$json_translation_file=file_get_contents($JSON_TRANSLATION_FILE);
-		$table_translation=json_decode($json_translation_file,true);
+		$file=file_get_contents($JSON_TRANSLATION_FILE);
+		$table_translation=json_decode($file,true);
+		if (json_last_error()!=0) { // si erreur sur fichier json on essaie de le parser 
+			$file=preg_replace("/[{}\n]/","",$file);
+			$t=explode("\",\"",$file);
+			foreach ($t as $p) {
+				list($c,$l)=explode('":"',$p);
+				$c=str_replace("\"","",$c);
+				$l=str_replace("\"","",$l);
+				$table_translation[$c]=$l;
+			}
+		} else {
+			if (strtoupper($CHARSET)!='UTF8') {
+				$table_translation[$code]=utf8_decode($table_translation[$code]);
+			}
+		}
 		if ($table_translation[$code]!='') {
 			$translation=$table_translation[$code];
 		} else {
@@ -8500,4 +8519,43 @@ function partager_requete_en_cours ($user_num_sent,$liste_num_user_partage,$noti
 }
 
 
+function get_my_export_lists ($user_num) {
+	global $dbh;
+	print "<table border=\"0\" class=\"dataTable\" id=\"id_tableau_liste_concepts\"><thead><tr><td></td><td></td><td></td><td></td></tr></thead><tbody>";
+	$sel_export=oci_parse($dbh,"select EXPORT_DATA_NUM, title,creation_date,share_list from dwh_export_data where user_num=$user_num order by title ");
+        oci_execute($sel_export);
+        while ($r_export=oci_fetch_array($sel_export,OCI_RETURN_NULLS+OCI_ASSOC)) {
+                $export_data_num=$r_export['EXPORT_DATA_NUM'];
+                $title=$r_export['TITLE'];
+                $creation_date=$r_export['CREATION_DATE'];
+                $share_list=$r_export['SHARE_LIST'];
+                if($share_list==0){
+			$share='shared';		
+		}else{
+			$share='not shared';
+		}
+		              
+         	print "<tr>
+	         	<td><img src=\"images/poubelle_moyenne.png\" onclick=\"supprimer_list('$export_data_num,$share_list');\" border=\"0\" style=\"cursor:pointer;vertical-align:middle\" ></td>
+			<td>$title</td>
+	         	<td>$creation_date</td>
+			<td  style=\"cursor:pointer\" onclick=\"change_share($export_data_num,$share_list)\">$share</td>
+         	</tr>";
+        }
+        print "</tbody></table>";
+}
+
+
+function total_patients_per_concept($thesaurus_data_num,$tmpresult_num) {
+	global $dbh;
+	
+	$query="select count(*) as counter from dwh_data where thesaurus_data_num='$thesaurus_data_num'
+	and exists  (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and dwh_data.patient_num=dwh_tmp_result.patient_num)";
+	$sel = oci_parse($dbh,$query); 
+	oci_execute($sel);
+	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+	$counter_concept=$r['COUNTER'];
+	return $counter_concept;
+		
+}
 ?>

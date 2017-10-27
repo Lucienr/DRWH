@@ -62,6 +62,10 @@ $date_today_unique=date("dmYHis");
 	<script src="DataTables/extensions/FixedColumns/js/dataTables.fixedColumns.js" language="javascript" type="text/javascript"></script>
 	<script src="moment/moment.min.js" language="javascript" type="text/javascript"></script>
 	<script src="moment/datetime-moment.js" language="javascript" type="text/javascript"></script>
+	
+	<script type="text/javascript" language="javascript" src="select2/js/select2.full.js"></script>
+	<script type="text/javascript" language="javascript" src="select2/js/i18n/fr.js" charset="UTF-8"></script>
+	<link rel="stylesheet" href="select2/css/select2.css">
 
 
 	<link rel="stylesheet" href="introjs/introjs.css" />
