@@ -98,6 +98,7 @@ if ($_POST['action']=='calcul_nb_resultat_filtre_passthru') {
 	$hospital_department_list=urldecode(trim($_POST['hospital_department_list']));
 	$context=urldecode(trim($_POST['context']));
 	$certainty=urldecode(trim($_POST['certainty']));
+	$title_document=urldecode(trim($_POST['title_document']));
 	$date_deb_document=urldecode(trim($_POST['date_deb_document']));
 	$date_fin_document=urldecode(trim($_POST['date_fin_document']));
 	$periode_document=urldecode(trim($_POST['periode_document']));
@@ -137,6 +138,7 @@ if ($_POST['action']=='calcul_nb_resultat_filtre_passthru') {
 <thesaurus_data_num>$thesaurus_data_num</thesaurus_data_num>
 <str_structured_query>$chaine_requete_code</str_structured_query>
 <query_type>$query_type</query_type>
+<title_document>$title_document</title_document>
 <document_date_start>$date_deb_document</document_date_start>
 <document_date_end>$date_fin_document</document_date_end>
 <period_document>$periode_document</period_document>
@@ -198,6 +200,7 @@ if ($_POST['action']=='calcul_nb_resultat_filtre') {
 	$hospital_department_list=urldecode(trim($_POST['hospital_department_list']));
 	$context=urldecode(trim($_POST['context']));
 	$certainty=urldecode(trim($_POST['certainty']));
+	$title_document=urldecode(trim($_POST['title_document']));
 	$date_deb_document=urldecode(trim($_POST['date_deb_document']));
 	$date_fin_document=urldecode(trim($_POST['date_fin_document']));
 	$periode_document=urldecode(trim($_POST['periode_document']));
@@ -237,6 +240,7 @@ if ($_POST['action']=='calcul_nb_resultat_filtre') {
 <thesaurus_data_num>$thesaurus_data_num</thesaurus_data_num>
 <str_structured_query>$chaine_requete_code</str_structured_query>
 <query_type>$query_type</query_type>
+<title_document>$title_document</title_document>
 <document_date_start>$date_deb_document</document_date_start>
 <document_date_end>$date_fin_document</document_date_end>
 <period_document>$periode_document</period_document>
@@ -326,8 +330,12 @@ if ($_POST['action']=='afficher_document_patient_popup') {
 
 if ($_POST['action']=='charger_moteur_recherche') {
 	$query_num=$_POST['query_num'];
-	
-	$sel = oci_parse($dbh, "select QUERY_NUM,xml_query , to_char(QUERY_DATE,'DD/MM/YYYY HH24:MI') as DATE_REQUETE_CHAR, QUERY_DATE from dwh_query where query_num=$query_num and user_num=$user_num_session");   
+	if ($_SESSION['dwh_droit_admin']=='ok') {
+		$filtre="";
+	} else {
+		$filtre="and user_num=$user_num_session";
+	}
+	$sel = oci_parse($dbh, "select QUERY_NUM,xml_query , to_char(QUERY_DATE,'DD/MM/YYYY HH24:MI') as DATE_REQUETE_CHAR, QUERY_DATE from dwh_query where query_num=$query_num $filtre");   
 	oci_execute($sel);
 	$r = oci_fetch_array($sel, OCI_ASSOC);
 	$query_date=$r['DATE_REQUETE_CHAR'];
@@ -341,8 +349,12 @@ if ($_POST['action']=='charger_moteur_recherche') {
 
 if ($_POST['action']=='peupler_moteur_recherche') {
 	$query_num=$_POST['query_num'];
-	
-	$sel = oci_parse($dbh, "select QUERY_NUM,xml_query , to_char(QUERY_DATE,'DD/MM/YYYY HH24:MI') as DATE_REQUETE_CHAR, QUERY_DATE,datamart_num from dwh_query where query_num=$query_num and user_num=$user_num_session");   
+	if ($_SESSION['dwh_droit_admin']=='ok') {
+		$filtre="";
+	} else {
+		$filtre="and user_num=$user_num_session";
+	}
+	$sel = oci_parse($dbh, "select QUERY_NUM,xml_query , to_char(QUERY_DATE,'DD/MM/YYYY HH24:MI') as DATE_REQUETE_CHAR, QUERY_DATE,datamart_num from dwh_query where query_num=$query_num ");   
 	oci_execute($sel);
 	$r = oci_fetch_array($sel, OCI_ASSOC);
 	$query_date=$r['DATE_REQUETE_CHAR'];
@@ -350,12 +362,12 @@ if ($_POST['action']=='peupler_moteur_recherche') {
 	$num_datamart_requete=$r['DATAMART_NUM'];
 	if ($r['XML_QUERY']) {
 		$xml_query=$r['XML_QUERY']->load();
+	       	$max_num_filtre=0;
+		peupler_filtre_texte($xml_query);
+		peupler_contrainte_temporelle($xml_query);
+		peupler_filtre_patient($xml_query);
+	       	print "document.getElementById('id_input_max_num_filtre').value=\"$max_num_filtre\";";
 	}
-       	$max_num_filtre=0;
-	peupler_filtre_texte($xml_query);
-	peupler_contrainte_temporelle($xml_query);
-	peupler_filtre_patient($xml_query);
-       	print "document.getElementById('id_input_max_num_filtre').value=\"$max_num_filtre\";";
 }
 
 
@@ -631,7 +643,7 @@ if ($_POST['action']=='supprimer_service'  && $_SESSION['dwh_droit_admin']=='ok'
 if ($_POST['action']=='ajouter_uf' && $_SESSION['dwh_droit_admin']=='ok') {
 	$unit_str=nettoyer_pour_inserer(urldecode($_POST['unit_str']));
 	$unit_code=urldecode($_POST['unit_code']);
-	$date_start_unit=trim(urldecode($_POST['date_start_unit']));
+	$unit_start_date=trim(urldecode($_POST['unit_start_date']));
 	$unit_end_date=trim(urldecode($_POST['unit_end_date']));
 	$department_num=$_POST['department_num'];
 
@@ -640,8 +652,8 @@ if ($_POST['action']=='ajouter_uf' && $_SESSION['dwh_droit_admin']=='ok') {
 	$r=oci_fetch_array($sel_var);
 	$manager_department_groupe=$r[0];
 	if ($_SESSION['dwh_droit_admin']=='ok' || $manager_department_groupe==1) {
-		if ($unit_code!='' && $date_start_unit!='' && $unit_end_date!='') {
-		        $sel_var=oci_parse($dbh,"select unit_num from dwh_thesaurus_unit where unit_code='$unit_code' and date_start_unit=to_date('$date_start_unit','DD/MM/YYYY') and unit_end_date=to_date('$unit_end_date','DD/MM/YYYY') ");
+		if ($unit_code!='' && $unit_start_date!='' && $unit_end_date!='') {
+		        $sel_var=oci_parse($dbh,"select unit_num from dwh_thesaurus_unit where unit_code='$unit_code' and unit_start_date=to_date('$unit_start_date','DD/MM/YYYY') and unit_end_date=to_date('$unit_end_date','DD/MM/YYYY') ");
 			oci_execute($sel_var);
 			$r=oci_fetch_array($sel_var);
 			$unit_num=$r[0];
@@ -650,12 +662,12 @@ if ($_POST['action']=='ajouter_uf' && $_SESSION['dwh_droit_admin']=='ok') {
 				oci_execute($sel_var);
 				$r=oci_fetch_array($sel_var);
 				$unit_num=$r[0];
-			        $sel_var=oci_parse($dbh,"insert into   dwh_thesaurus_unit (unit_num,unit_code, unit_str, department_num,date_start_unit,unit_end_date) values ($unit_num,'$unit_code','$unit_str',$department_num,to_date('$date_start_unit','DD/MM/YYYY'),to_date('$unit_end_date','DD/MM/YYYY') )");
+			        $sel_var=oci_parse($dbh,"insert into   dwh_thesaurus_unit (unit_num,unit_code, unit_str, department_num,unit_start_date,unit_end_date) values ($unit_num,'$unit_code','$unit_str',$department_num,to_date('$unit_start_date','DD/MM/YYYY'),to_date('$unit_end_date','DD/MM/YYYY') )");
 				oci_execute($sel_var);
 			
 				print "<tr id=\"id_tr_uf_".$department_num."_".$unit_num."\" style=\"background-color:#B9C2C8;\" onmouseover=\"this.style.backgroundColor='#B9C2C8';\" onmouseout=\"this.style.backgroundColor='#F5F5F5';\" class=\"admin_texte\">
 					<td>$unit_code ".ucfirst(strtolower($unit_str))." </td>
-					<td>$date_start_unit</td>
+					<td>$unit_start_date</td>
 					<td>$unit_end_date</td>";
 				
 				if ($_SESSION['dwh_droit_admin']=='ok' || $verif_manager_department==1) {
@@ -809,9 +821,19 @@ if ($_POST['action']=='ajouter_user_admin' && $_SESSION['dwh_droit_admin']!='') 
 	$expiration_date=trim(urldecode($_POST['expiration_date']));
 	$liste_profils=trim(urldecode($_POST['liste_profils']));
 	$liste_services=trim(urldecode($_POST['liste_services']));
+	$passwd=trim(urldecode($_POST['passwd']));
+
 	if ($login!='') {
-		$res=ajouter_user ($login,$lastname,$firstname,$mail,$expiration_date,$liste_profils,$liste_services,'ok') ;
-		print $res;
+		$user_num=ajouter_user ($login,$lastname,$firstname,$mail,$expiration_date,$liste_profils,$liste_services,'ok') ;
+		ajouter_query_demo($user_num);
+
+		if ($passwd!='') {
+			$req="update dwh_user set  passwd='".md5($passwd)."'  where user_num=$user_num";
+			$sel=oci_parse($dbh,$req);
+			oci_execute($sel) || die ("");
+		}
+
+		print $user_num;
 	}
 }
 
@@ -996,18 +1018,18 @@ if ($_POST['action']=='modifier_user_admin' && $_SESSION['dwh_droit_admin']!='')
 	$liste_profils=trim(urldecode($_POST['liste_profils']));
 	$liste_services=trim(urldecode($_POST['liste_services']));
 	if ($login!='' && $user_num!='') {
-		$req="update   dwh_user set  lastname='$lastname',firstname='$firstname',mail='$mail',login='$login',expiration_date=to_date('$expiration_date','DD/MM/YYYY') where user_num=$user_num";
+		$req="update dwh_user set  lastname='$lastname',firstname='$firstname',mail='$mail',login='$login',expiration_date=to_date('$expiration_date','DD/MM/YYYY') where user_num=$user_num";
 		$sel_var1=oci_parse($dbh,$req);
 		oci_execute($sel_var1) || die ("<strong style=\"color:red\">erreur : $login $lastname $firstname patient non modifié</strong>");
 		
 		if ($passwd!='') {
 			update_user_attempt('',$user_num,'reinit');
-			$req="update   dwh_user set  passwd='".md5($passwd)."'  where user_num=$user_num";
+			$req="update dwh_user set  passwd='".md5($passwd)."'  where user_num=$user_num";
 			$sel_var1=oci_parse($dbh,$req);
 			oci_execute($sel_var1) || die ("<strong style=\"color:red\">erreur : $login $lastname $firstname patient non modifié</strong>");
 		}
 		
-		$req="delete from   dwh_user_profile   where user_num=$user_num";
+		$req="delete from dwh_user_profile   where user_num=$user_num";
 		$sel_var1=oci_parse($dbh,$req);
 		oci_execute($sel_var1) ||die ("<strong style=\"color:red\">erreur : profils non sauvés</strong>");
 				
@@ -1020,7 +1042,7 @@ if ($_POST['action']=='modifier_user_admin' && $_SESSION['dwh_droit_admin']!='')
 			}
 		}
 		
-		$req="delete from   dwh_user_department   where user_num=$user_num";
+		$req="delete from dwh_user_department   where user_num=$user_num";
 		$sel_var1=oci_parse($dbh,$req);
 		oci_execute($sel_var1) ||die ("<strong style=\"color:red\">erreur : profils non sauvés</strong>");
 		
@@ -1522,6 +1544,7 @@ if ($_POST['action']=='inclure_patient_cohorte') {
 	$cohort_num_encours=$_POST['cohort_num_encours'];
 	$patient_num=$_POST['patient_num'];
 	$status=$_POST['status'];
+	$query_num=$_POST['query_num'];
 	$autorisation_cohorte_ajouter_patient=autorisation_cohorte_ajouter_patient ($cohort_num_encours,$user_num_session);
 	if ($autorisation_cohorte_ajouter_patient=='ok') {
 	
@@ -1531,11 +1554,11 @@ if ($_POST['action']=='inclure_patient_cohorte') {
 		$verif_deja_inclu=$r['VERIF_DEJA_INCLU'];
 		
 		if ($verif_deja_inclu==0 ) {
-			$req="insert into dwh_cohort_result  (cohort_num , patient_num ,status,add_date,user_num_add) values ($cohort_num_encours,'$patient_num',$status,sysdate,$user_num_session)";
+			$req="insert into dwh_cohort_result  (cohort_num , patient_num ,status,add_date,user_num_add,query_num) values ($cohort_num_encours,'$patient_num',$status,sysdate,$user_num_session,'$query_num')";
 			$sel_var1=oci_parse($dbh,$req);
 			oci_execute($sel_var1) || die ("<strong style=\"color:red\">erreur : patient non ajouté à la cohorte</strong><br>");
 		} else {
-			$req="update dwh_cohort_result set status=$status,add_date=sysdate,user_num_add=$user_num_session where  cohort_num=$cohort_num_encours and patient_num=$patient_num ";
+			$req="update dwh_cohort_result set status=$status,add_date=sysdate,user_num_add=$user_num_session,query_num='$query_num' where  cohort_num=$cohort_num_encours and patient_num=$patient_num ";
 			$sel_var1=oci_parse($dbh,$req);
 			oci_execute($sel_var1) || die ("<strong style=\"color:red\">erreur : patient non ajouté à la cohorte</strong><br>");
 		}
@@ -1586,6 +1609,7 @@ if ($_POST['action']=='tout_inclure_exclure') {
 	$cohort_num_encours=$_POST['cohort_num_encours'];
 	$tmpresult_num=$_POST['tmpresult_num'];
 	$status=$_POST['status'];
+	$query_num=$_POST['query_num'];
 	$val_exclure_cohorte_resultat=$_POST['val_exclure_cohorte_resultat'];
 	
 	$autorisation_cohorte_ajouter_patient=autorisation_cohorte_ajouter_patient ($cohort_num_encours,$user_num_session);
@@ -1625,11 +1649,11 @@ if ($_POST['action']=='tout_inclure_exclure') {
 			$verif_deja_inclu=$r['VERIF_DEJA_INCLU'];
 			
 			if ($verif_deja_inclu==0 ) {
-				$req="insert into dwh_cohort_result  (cohort_num , patient_num ,status,add_date,user_num_add) values ($cohort_num_encours,'$patient_num',$status,sysdate,$user_num_session)";
+				$req="insert into dwh_cohort_result  (cohort_num , patient_num ,status,add_date,user_num_add,query_num) values ($cohort_num_encours,'$patient_num',$status,sysdate,$user_num_session,'$query_num')";
 				$ins=oci_parse($dbh,$req);
 				oci_execute($ins) || die ("<strong style=\"color:red\">erreur : patient non ajouté à la cohorte</strong><br>");
 			} else {
-				$req="update dwh_cohort_result set status=$status,add_date=sysdate,user_num_add=$user_num_session where  cohort_num=$cohort_num_encours and patient_num=$patient_num ";
+				$req="update dwh_cohort_result set status=$status,add_date=sysdate,user_num_add=$user_num_session,query_num='$query_num' where  cohort_num=$cohort_num_encours and patient_num=$patient_num ";
 				$upd=oci_parse($dbh,$req);
 				oci_execute($upd) || die ("<strong style=\"color:red\">erreur : patient non ajouté à la cohorte</strong><br>");
 			}
@@ -1717,7 +1741,7 @@ if ($_POST['action']=='afficher_document_patient') {
 
 if ($_POST['action']=='filtre_patient_texte') {
 	$patient_num=$_POST['patient_num'];
-	$requete=trim(nettoyer_pour_requete(urldecode($_POST['requete'])));
+	$requete=trim(nettoyer_pour_requete_patient(urldecode($_POST['requete'])));
 	affiche_liste_document_patient($patient_num,$requete);
 	save_log_query($user_num_session,'patient',$requete);
 		
@@ -1802,6 +1826,35 @@ if ($_POST['action']=='modifier_requete') {
 	get_my_queries($user_num_session);
 }
 
+if ($_POST['action']=='display_patients_all_queries') {
+	$list_num_query=$_POST['list_num_query'];
+	$list_num_cohort=$_POST['list_num_cohort'];
+	
+	$list_num_query=preg_replace("/^,/","",$list_num_query);
+	$list_num_cohort=preg_replace("/^,/","",$list_num_cohort);
+	
+	print "<table id=\"id_tableau_patient_requete\" style=\"border: 0px solid black;\">";
+	
+	$sel = oci_parse($dbh,"select distinct patient_num from dwh_query_result 
+						where 
+						QUERY_NUM in (select QUERY_NUM from dwh_query where user_num=$user_num_session and query_type='sauve' and query_num in ($list_num_query) ) 
+						and 
+						patient_num not in (select patient_num from dwh_cohort_result where 
+						(cohort_num in (select cohort_num from dwh_cohort where user_num=$user_num_session) 
+						or cohort_num in (select cohort_num from dwh_cohort_user_right where user_num=$user_num_session  )  
+						) and cohort_num in ($list_num_cohort)
+						)
+		");
+	oci_execute($sel);
+	while ($r = oci_fetch_array($sel, OCI_ASSOC)) {
+		$patient_num=$r['PATIENT_NUM'];
+		$patient= afficher_patient($patient_num,'requete','','');
+		if ($patient!='') {
+			print "<tr id=\"id_tr_patient_cohorte_$patient_num\"  style=\"border: 0px solid black;\" onmouseover=\"this.style.backgroundColor='#dcdff5';\" onmouseout=\"this.style.backgroundColor='#ffffff';\"><td  style=\"border: 0px solid black;\">$patient</td></tr>";
+	        }
+	}
+	print "</table>";
+}
 
 
 if ($_POST['action']=='calcul_nb_patient_resultat') {
@@ -1889,7 +1942,7 @@ if ($_POST['action']=='afficher_cohorte_nb_patient_statut') {
 }
 
 if ($_POST['action']=='importer_patient_cohorte') {
-	$liste_hospital_patient_id=$_POST['liste_hospital_patient_id'];
+	$liste_hospital_patient_id=urldecode($_POST['liste_hospital_patient_id']);
 	$cohort_num=$_POST['cohort_num'];
 	$option=$_POST['option'];
 	if ($option=='importer') {
@@ -1912,8 +1965,15 @@ if ($_POST['action']=='importer_patient_cohorte') {
   		$birth_date=trim($tab[3]);
   		if ($hospital_patient_id!='') {
 			$patient_num=get_patient_num ($hospital_patient_id);
-		} else if ($lastname!='' && $firstname!='' && $birth_date!='') {
-			$sel_var1=oci_parse($dbh,"select patient_num from dwh_patient where upper(lastname)=upper('$lastname') and upper(firstname)=upper('$firstname') and birth_date=to_date('$birth_date','DD/MM/YYYY')");
+		} 
+		if ($patient_num=='' && $lastname!='' && $firstname!='' && $birth_date!='') {
+			$sel_var1=oci_parse($dbh,"select patient_num from dwh_patient where 
+			regexp_replace(upper( CONVERT(lastname, 'US7ASCII') ),'[^A-Z]','') =regexp_replace(upper( CONVERT('$lastname', 'US7ASCII') ),'[^A-Z]','') and 
+			regexp_replace(upper( CONVERT(firstname, 'US7ASCII') ),'[^A-Z]','') =regexp_replace(upper( CONVERT('$firstname', 'US7ASCII') ),'[^A-Z]','') and
+			lastname is not null and 
+			firstname is not null and
+			birth_date is not null and
+			birth_date=to_date('$birth_date','DD/MM/YYYY')");
 			oci_execute($sel_var1);
 			$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
 			$patient_num=$r['PATIENT_NUM'];
@@ -1991,8 +2051,7 @@ if ($_GET['action']=='patient_quick_access') {
 					}
 				}
 			}
-		}
-		if (preg_match("/[0-9]/i",$term)) {
+		} else {
 			$patient_num=get_patient_num ($term);
 			if ($patient_num!='') {
 				$sel=oci_parse($dbh,"select  patient_num,lastname,firstname, to_char(birth_date,'DD/MM/YYYY') as birth_date  from dwh_patient where patient_num =$patient_num");
@@ -2154,7 +2213,7 @@ if ($_POST['action']=='exclure_concepts' && $_SESSION['dwh_droit_admin']=='ok') 
 	$liste_val=supprimer_apost(trim(urldecode($_POST['liste_val'])));
 	$process_num=uniqid();
 	create_process ($process_num,$user_num_session,0,get_translation('PROCESS_ONGOING','process en cours'),'',"sysdate + 20");
-	passthru( "php $CHEMIN_GLOBAL/exec_admin_exclure_enrsem.php \"$liste_val\"  \"$process_num\" \"$user_num_session\">> $CHEMIN_GLOBAL/upload/log_exec_admin_exclure_enrsem.txt 2>&1 &");
+	passthru( "php $CHEMIN_GLOBAL/exec_admin_exclure_enrsem.php \"$liste_val\"  \"$process_num\" \"$user_num_session\">> $CHEMIN_GLOBAL_LOG/log_exec_admin_exclure_enrsem.txt 2>&1 &");
 	print "$process_num";
 }
 
@@ -2270,7 +2329,9 @@ if ($_GET['action']=='affiche_concepts') {
 	$donnees_reelles_ou_pref=$_GET['donnees_reelles_ou_pref'];
 	$type=$_GET['type'];
 	$distance=$_GET['distance'];
-	$json=repartition_concepts_general_json ($tmpresult_num,$phenotype_genotype,1,1,1,$donnees_reelles_ou_pref,$type,$distance);
+	$age_concept_min=$_GET['age_concept_min'];
+	$age_concept_max=$_GET['age_concept_max'];
+	$json=repartition_concepts_general_json ($tmpresult_num,$phenotype_genotype,1,1,1,$donnees_reelles_ou_pref,$type,$distance,$age_concept_min,$age_concept_max);
 	print $json;
 	save_log_page($user_num_session,'engine_concepts');
 }
@@ -2518,6 +2579,17 @@ if ($_POST['action']=='nb_nouveau_patients_service_hors_mespatients') {
 	$tmpresult_num=$_POST['tmpresult_num'];
 	$id_div=$_POST['id_div'];
 	nb_nouveau_patients_service_hors_mespatients ($tmpresult_num,$id_div);
+}
+
+
+if ($_POST['action']=='nb_consult_per_unit_per_year_tableau') {
+	$tmpresult_num=$_POST['tmpresult_num'];
+	nb_consult_per_unit_per_year_tableau ($tmpresult_num);
+}
+
+if ($_POST['action']=='nb_hospit_per_unit_per_year_tableau') {
+	$tmpresult_num=$_POST['tmpresult_num'];
+	nb_hospit_per_unit_per_year_tableau ($tmpresult_num);
 }
 
 if ($_POST['action']=='calcul_max_concepts') {
@@ -3086,8 +3158,8 @@ if ($_POST['action']=='afficher_repartition_par_pays') {
 		$birth_country=$res['BIRTH_COUNTRY'];
 		$nb_patient=$res['NB_PATIENT'];
 		
-		$birth_country=preg_replace("/'/","''",$birth_country);
-		$req_dwh="select round(100*$nb_patient/count(*),2) POURC_PATIENT_DWH from  dwh_patient where birth_country='$birth_country' ";
+		$birth_country_query=preg_replace("/'/","''",$birth_country);
+		$req_dwh="select round(100*$nb_patient/count(*),2) POURC_PATIENT_DWH from  dwh_patient where birth_country='$birth_country_query' ";
 		$sel_dwh=oci_parse($dbh,$req_dwh);
 		oci_execute($sel_dwh) ;
 		$res_dwh=oci_fetch_array($sel_dwh,OCI_RETURN_NULLS+OCI_ASSOC);
@@ -3106,8 +3178,8 @@ if ($_POST['action']=='afficher_repartition_par_pays') {
 		$residence_country=$res['RESIDENCE_COUNTRY'];
 		$nb_patient=$res['NB_PATIENT'];
 		
-		
-		$req_dwh="select round(100*$nb_patient/count(*),2) POURC_PATIENT_DWH from  dwh_patient where residence_country='$residence_country' ";
+		$residence_country_query=preg_replace("/'/","''",$residence_country);
+		$req_dwh="select round(100*$nb_patient/count(*),2) POURC_PATIENT_DWH from  dwh_patient where residence_country='$residence_country_query' ";
 		$sel_dwh=oci_parse($dbh,$req_dwh);
 		oci_execute($sel_dwh) ;
 		$res_dwh=oci_fetch_array($sel_dwh,OCI_RETURN_NULLS+OCI_ASSOC);
@@ -3486,6 +3558,16 @@ if ($_POST['action']=='afficher_outil' ) {
 	$tool_num=$_POST['tool_num'];
 	afficher_outil($tool_num);
 	save_log_page($user_num_session,"afficher_outil $tool_num");
+}
+
+
+if ($_GET['action']=='load_file' ) {
+	$file_num=$_GET['file_num'];
+	$load_file=load_file($file_num,$_GET['preview']);
+	
+	header("Pragma: public");
+	header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+	print "$load_file";
 }
 
 

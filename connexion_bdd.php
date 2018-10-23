@@ -31,4 +31,5 @@ if (!$dbh) {
 
 $set=oci_parse($dbh,"alter session set NLS_NUMERIC_CHARACTERS = ', '"); // parameter for float number, separator is comma. and space for thousands
 oci_execute($set);
+
 ?>

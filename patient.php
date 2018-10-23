@@ -813,40 +813,40 @@ include "fonctions_patient.php";
 	<br>
 	<script language=javascript>
 	function ouvrir_tableau_biologie() {
-	
-
 		if ( $.fn.dataTable.isDataTable( '#id_tableau_bilan_biologie' ) ) {
 		} else {
 			var widthwindow= $(window).width()-20;
 			var widthdiv=$('#id_tableau_bilan_biologie').width()+40;
+			height=$(window).height()-80;
+
 			if ($('#id_tableau_bilan_biologie').width() < widthwindow) {
 				$('#id_div_patient_biologie_tableau').width(widthdiv);
+				 var oTable = $('#id_tableau_bilan_biologie').DataTable( {
+				        "scrollY": height+"px",
+						"scrollX":  false,
+				        "scrollCollapse": false,
+				        "paging": false,
+					  	"bSort": false
+				        
+				    } );
 			} else {
 				$('#id_div_patient_biologie_tableau').width(widthwindow);
-			}
-			//if ($(window).height()<700) {
-			//	height=700;
-			//} else {
-				height=$(window).height()-80;
-			//}
-			
-			var widthcol_examen=$('#id_colonne_examen').width();
-			$('#id_colonne_examen').css('width',widthcol_examen);
-			$('.class_libelle_examen').css('width',widthcol_examen);
-			
-			 var oTable = $('#id_tableau_bilan_biologie').DataTable( {
-			        "scrollY": height+"px",
-				"scrollX":        true,
-			        "scrollCollapse": true,
-			        "paging": false,
-				  "bSort": false
-			        
-			    } );
+				 var oTable = $('#id_tableau_bilan_biologie').DataTable( {
+				        "scrollY": height+"px",
+						"scrollX":  scrollX,
+				        "scrollCollapse": true,
+				        "paging": false,
+					  	"bSort": false
+				        
+				    } );
 			    new $.fn.dataTable.FixedColumns( oTable , { leftColumns: 1} );
 				$(".DTFC_LeftBodyLiner").css("overflow","hidden");
 				//$( ".dataTables_scrollBody" ).scrollLeft( $('#id_tableau_bilan_biologie').width() );
 				//jQuery('.dataTable').wrap('<div class="dataTables_scroll" />');
-				
+				var widthcol_examen=$('.class_libelle_examen').width()+20;
+				$('#id_colonne_examen').css('width',widthcol_examen);
+				$('.class_libelle_examen').css('width',widthcol_examen);
+			}
 		}
 	} 
 </script>

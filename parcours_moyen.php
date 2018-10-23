@@ -29,7 +29,6 @@ putenv("NLS_LANG=FRENCH");
 putenv("NLS_LANGUAGE=FRENCH_FRANCE.WE8MSWIN1252");
 error_reporting(E_ALL ^ E_NOTICE);
 
-
 include_once("parametrage.php");
 include_once("connexion_bdd.php");
 include_once("ldap.php");
@@ -55,19 +54,49 @@ if ($unit_or_department=='department') {
 } else {
 	$coef_limite='2';
 }
-if ($patient_num_encounter_num=='') {
-	$req=oci_parse($dbh,"select round(count(distinct encounter_num)*$coef_limite/100) nb_encounter_num_total from dwh_tmp_result where tmpresult_num=$tmpresult_num and encounter_num is not null ");
-} else {
-	$req=oci_parse($dbh,"select round(count(distinct encounter_num)*$coef_limite/100) nb_encounter_num_total from dwh_patient_stay where patient_num in (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and patient_num is not null ) and out_date is not null ");
-}
-oci_execute($req) ;
-$res=oci_fetch_array($req,OCI_ASSOC);
-$nb_encounter_num_total=$res['NB_ENCOUNTER_NUM_TOTAL'];
 
-if ($_GET['nb_mini']=='') {
-	$nb_mini=$nb_encounter_num_total;
-} else {
+
+$max_nb_mvt_patient_num=$_GET['max_nb_mvt_patient_num'];
+$max_nb_mvt_encounter_num=$_GET['max_nb_mvt_encounter_num'];
+
+$max_nb_mvt=$_GET['max_nb_mvt_'.$patient_num_encounter_num];
+
+if ($max_nb_mvt=='') {
+	$requete="select max(NB) as MAX_NB_MVT from (select a.department_num,b.department_num, count(*)  nb  from dwh_patient_mvt a,dwh_patient_mvt b where
+				exists ( select * from dwh_tmp_result where tmpresult_num=$tmpresult_num and dwh_tmp_result.$patient_num_encounter_num= a.$patient_num_encounter_num and dwh_tmp_result.encounter_num is not null) and
+                a.patient_num=b.patient_num  and
+                a.encounter_num=b.encounter_num and
+                a.mvt_order=b.mvt_order-1
+                and b.out_date is not null
+                and a.out_date is not null
+                and a.encounter_num is not null 
+                and b.encounter_num is not null 
+                and a.type_mvt='H' 
+                and b.type_mvt='H' 
+                group by a.department_num,b.department_num )";
+	$req=oci_parse($dbh,$requete);
+	oci_execute($req) ;
+	$res=oci_fetch_array($req,OCI_ASSOC);
+	$max_nb_mvt=$res['MAX_NB_MVT'];
+	if ($patient_num_encounter_num=='encounter_num') {
+		$max_nb_mvt_encounter_num=$max_nb_mvt;
+	}
+	if ($patient_num_encounter_num=='patient_num') {
+		$max_nb_mvt_patient_num=$max_nb_mvt;
+	}
+}
+
+if ($_GET['nb_mini']!='') {
 	$nb_mini=$_GET['nb_mini'];
+	if ($max_nb_mvt<$nb_mini) {
+		$nb_mini=$max_nb_mvt;
+	}
+} else {
+	$req=oci_parse($dbh,"select round($max_nb_mvt/2) nb_encounter_num_total from dual ");
+	oci_execute($req) ;
+	$res=oci_fetch_array($req,OCI_ASSOC);
+	$nb_encounter_num_total=$res['NB_ENCOUNTER_NUM_TOTAL'];
+	$nb_mini=$nb_encounter_num_total;
 }
 
 if ($tmpresult_num!='') {
@@ -99,19 +128,26 @@ if ($tmpresult_num!='') {
 		</select>
 		<input type=\"submit\">
 		<input type=\"hidden\" name=\"tmpresult_num\" value=\"$tmpresult_num\">
+		<input type=\"hidden\" name=\"max_nb_mvt_encounter_num\" value=\"$max_nb_mvt_encounter_num\">
+		<input type=\"hidden\" name=\"max_nb_mvt_patient_num\" value=\"$max_nb_mvt_patient_num\">
+
 	</form>";
 }
 
-if ($tmpresult_num!='' && $unit_or_department=='unit') {
-	parcours_sejour_uf ($tmpresult_num,'','',$patient_num_encounter_num,$nb_mini);
-	print "<img src=\"upload/tmp_graphviz_parcours_sejour_uf_$tmpresult_num.png?".uniqid()."\">";
-}
+if ($nb_mini!='') {
+	if ($tmpresult_num!='' && $unit_or_department=='unit') {
+		parcours_sejour_uf ($tmpresult_num,'','',$patient_num_encounter_num,$nb_mini);
+		print "<img src=\"$URL_UPLOAD/tmp_graphviz_parcours_sejour_uf_$tmpresult_num.png?".uniqid()."\">";
+	}
 
 
-if ($tmpresult_num!='' && $unit_or_department=='department') {
-	parcours_sejour_service ($tmpresult_num,'','',$patient_num_encounter_num,$nb_mini);
-	parcours_sejour_service_json ($tmpresult_num, '','', $patient_num_encounter_num, $nb_mini);
-	print "<img src=\"upload/tmp_graphviz_parcours_sejour_service_$tmpresult_num.png?".uniqid()."\">";
+	if ($tmpresult_num!='' && $unit_or_department=='department') {
+		parcours_sejour_service ($tmpresult_num,'','',$patient_num_encounter_num,$nb_mini);
+	//	parcours_sejour_service_json ($tmpresult_num, '','', $patient_num_encounter_num, $nb_mini);
+		print "<img src=\"$URL_UPLOAD/tmp_graphviz_parcours_sejour_service_$tmpresult_num.png?".uniqid()."\">";
+	}
+} else {
+	print "Pas de séjours trouvés";
 }
 
 

@@ -23,6 +23,7 @@
 */
 include "head.php";
 include "menu.php";
+include "javascript_requete.php";
 session_write_close();
 ?>
 
@@ -47,7 +48,6 @@ session_write_close();
 				$query_num_voir=$_GET['query_num_voir'];
 				$autorisation_requete_voir=autorisation_requete_voir ($query_num_voir,$user_num_session);
 				if ($autorisation_requete_voir=='ok') {
-					include "javascript_requete.php";
 					
 					$sel_vardroit=oci_parse($dbh,"select title_query,user_num,datamart_num,XML_QUERY,crontab_query,crontab_periode from dwh_query where user_num=$user_num_session  and query_num=$query_num_voir");
 				        oci_execute($sel_vardroit);
@@ -125,11 +125,43 @@ session_write_close();
 				}
 			} 
 			
+			if ($_GET['action'] =='all_queries') { 
+				print "<h2>".get_translation('MY_QUERIES','Mes requêtes')."</h2><div>";
+				$sel=oci_parse($dbh,"select QUERY_NUM ,title_query,  QUERY_DATE from dwh_query where user_num=$user_num_session and query_type='sauve' order by query_date desc");
+			        oci_execute($sel);
+			        while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+			                $title_query=$r['TITLE_QUERY'];
+			                $query_num=$r['QUERY_NUM'];
+			         	print "<input type=checkbox value=\"$query_num\" id=\"id_checkbox_query_$query_num\" name=\"checkbox_query\" checked > <label for=\"id_checkbox_query_$query_num\">$title_query</label> ";
+			         	
+			        }
+			        print "</div>";
+				print "<h2>".get_translation('MY_COHORTS_EXCLUDED','Mes cohortes exclues')."</h2><div>";
+				$sel=oci_parse($dbh,"select cohort_num ,title_cohort  from dwh_cohort where user_num=$user_num_session  
+				or cohort_num in (select cohort_num from dwh_cohort_user_right where user_num=$user_num_session  ) 
+				order by title_cohort desc");
+			        oci_execute($sel);
+			        while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+			                $cohort_num=$r['COHORT_NUM'];
+			                $title_cohort=$r['TITLE_COHORT'];
+			         	print "<input type=checkbox value=\"$cohort_num\" id=\"id_checkbox_cohort_$cohort_num\" name=\"checkbox_cohort\" checked > <label for=\"id_checkbox_cohort_$cohort_num\">$title_cohort</label> ";
+			         	
+			        }
+			        print "</div>";
+			        print "<input type=\"button\" onclick=\"display_patients_all_queries();\" value=\"Refresh\">";
+			        print "<h2> Patients </h2>";
+			        print "<div id=\"id_div_all_queries_patients\"><div>";
+			        
+			        
+				print "<script language=\"javascript\">jQuery(document).ready(function() { 
+					display_patients_all_queries () ;
+				});
+				</script>";
+			}
 			?>
 		</div>
 	</td>
 </tr>
 </table>
-
 <? save_log_page($user_num_session,'my_queries'); ?>
 <? include "foot.php"; ?>

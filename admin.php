@@ -339,6 +339,7 @@ if ($_GET['action']=='annuaire') {
 		document.getElementById('id_div_resultat_ajouter_user').innerHTML='';
 		
 		login=document.getElementById('id_ajouter_login_user').value;
+		passwd=document.getElementById('id_ajouter_passwd_user').value;
 		lastname=document.getElementById('id_ajouter_lastname_user').value;
 		firstname=document.getElementById('id_ajouter_firstname_user').value;
 		expiration_date=document.getElementById('id_ajouter_expiration_date_user').value;
@@ -376,7 +377,7 @@ if ($_GET['action']=='annuaire') {
 			type:"POST",
 			url:"ajax.php",
 			async:true,
-			data: { action:'ajouter_user_admin',login:login,lastname:escape(lastname),firstname:escape(firstname),mail:escape(mail),expiration_date:escape(expiration_date),liste_profils:escape(liste_profils),liste_services:escape(liste_services)},
+			data: { action:'ajouter_user_admin',login:login,passwd:escape(passwd),lastname:escape(lastname),firstname:escape(firstname),mail:escape(mail),expiration_date:escape(expiration_date),liste_profils:escape(liste_profils),liste_services:escape(liste_services)},
 			beforeSend: function(requester){
 			},
 			success: function(requester){
@@ -389,6 +390,7 @@ if ($_GET['action']=='annuaire') {
 					document.getElementById('id_ajouter_firstname_user').value='';
 					document.getElementById('id_ajouter_expiration_date_user').value='';
 					document.getElementById('id_ajouter_mail_user').value='';
+					document.getElementById('id_ajouter_passwd_user').value='';
 					rafraichir_tableau_users();
 				}
 			},
@@ -726,6 +728,7 @@ if ($_GET['action']=='annuaire') {
 				<tr><td class="question_user"><? print get_translation('FIRSTNAME','Prénom'); ?> : </td><td><input type="text" size="30" id="id_ajouter_firstname_user" class="form"></td></tr>
   				<tr><td class="question_user"><? print get_translation('EMAIL','Mail'); ?> : </td><td><input type="text" size="50" id="id_ajouter_mail_user" class="form"></td></tr>
 				<tr><td class="question_user"><? print get_translation('EXPIRATION_DATE','Date expiration'); ?> : </td><td><input type="text" size="11" id="id_ajouter_expiration_date_user" class="form"> (dd/mm/yyyy)</td></tr>
+				<tr><td class="question_user"><? print get_translation('PASSWORD','Mot de passe'); ?><br><? print get_translation('UNIQUEMENT_SI_VOUS_VOULEZ_LE_MODIFIER','(uniquement si vous voulez le modifier)'); ?> : </td><td><input type="text" size="50" id="id_ajouter_passwd_user" class="form"></td></tr>
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('PROFILES','Profils'); ?> : </td><td>
 				<?
 					$sel_var1=oci_parse($dbh,"select distinct user_profile from dwh_profile_right  order by user_profile ");
@@ -923,7 +926,7 @@ if ($_GET['action']=='admin_etl') {
 		$tableau_script[$script]='ok';
 	}
 	
-	$sel_var1=oci_parse($dbh,"select to_char(min(last_execution_date),'DD/MM/YYYY') as min_char_last_execution_date from dwh_etl_script");
+	$sel_var1=oci_parse($dbh,"select to_char(max(last_execution_date)-365,'DD/MM/YYYY') as min_char_last_execution_date from dwh_etl_script");
 	oci_execute($sel_var1);
 	$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
 	$min_char_last_execution_date=$r['MIN_CHAR_LAST_EXECUTION_DATE'];
@@ -1023,15 +1026,19 @@ if ($_GET['action']=='analyse_requete') {
 					<? print get_translation('USERS','Utilisateurs'); ?>
 				</th>
 				<th>
+					<? print get_translation('EXECUTE_QUERY','Executer la requête'); ?>
+				</th>
+				<th>
 					<? print get_translation('SUMMARY_SEARCH_QUERY','Requete en clair'); ?>
 				</th>
 			</thead>
 			<tbody>
 			<?
-				$req="select user_num, title_query, query_type,  xml_query,to_char(query_date,'DD/MM/YYYY HH24:MI') as char_date_requete  from dwh_query where user_num !=1 and query_date>sysdate-200 order by query_date desc ";
+				$req="select query_num, user_num, title_query, query_type,  xml_query,to_char(query_date,'DD/MM/YYYY HH24:MI') as char_date_requete  from dwh_query where user_num !=1 and query_date>sysdate-200 order by query_date desc ";
 				$sel = oci_parse($dbh,$req);
 				oci_execute($sel);
 				while ($ligne = oci_fetch_array($sel)) {
+					$query_num = $ligne['QUERY_NUM'];
 					$user_num = $ligne['USER_NUM'];
 					$title_query = $ligne['TITLE_QUERY'];
 					$query_type = $ligne['QUERY_TYPE'];
@@ -1041,12 +1048,12 @@ if ($_GET['action']=='analyse_requete') {
 					$readable_query=readable_query ($xml_query) ;
 					$tableau_user=array();
 					$tableau_user_info=get_user_info ($user_num) ;
-					
 					print "<tr>";
 					print "<td>$char_date_requete</td>";
 					print "<td>".$tableau_user_info['liste_libelle_service']."</td>";
 					print "<td>".$tableau_user_info['liste_user_profile']."</td>";
 					print "<td>".$tableau_user_info['lastname']." ".$tableau_user_info['firstname']."</td>";
+					print "<td><a href=\"moteur.php?action=preremplir_requete&query_num=$query_num\" target=\"_blank\"> <img src=\"images/search.png\" style=\"cursor:pointer;vertical-align:middle\" border=\"0\"></a>";
 					print "<td>$readable_query</td>";
 				}
 			?>

@@ -36,6 +36,9 @@ include_once("fonctions_dwh.php");
 include_once("fonctions_droit.php");
 include_once("verif_droit.php");
 include_once("fonctions_stat.php");
+
+$dwh_droit_all_departments=$_SESSION['dwh_droit_all_departments'.$datamart_num];
+
 session_write_close();
 
 $date_today=date("dmYHi");
@@ -48,6 +51,8 @@ $cohort_num=$_GET['cohort_num'];
 $status=$_GET['status'];
 $request_access_num=$_GET['request_access_num'];
 $process_num=$_GET['process_num'];
+$option=$_GET['option'];
+$tmpresult_num=$_GET['tmpresult_num'];
 
 print "<style>
 .num {
@@ -73,12 +78,15 @@ if ( $cohort_num!='' && $status!='') {
 	        <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
 	        <th>".get_translation('INCLUSION_DATE',"Date d'inclusion")."</th>
 	        <th>".get_translation('INVESTIGATOR','Investigateur')."</th>
+	        <th>".get_translation('COMMENT','Commentaire')."</th>
 	        </tr>";
 	        $sel=oci_parse($dbh,"select distinct patient_num from dwh_cohort_result where cohort_num=$cohort_num and status=$status");
 	        oci_execute($sel);
 	        while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
-	                $patient_num=$r['PATIENT_NUM'];
-	               print afficher_patient($patient_num,'cohorte_excel','',$cohort_num);
+			$patient_num=$r['PATIENT_NUM'];
+			$comment=lister_commentaire_patient_cohorte ($cohort_num,$patient_num,'excel');
+			$patient=afficher_patient($patient_num,'cohorte_excel','',$cohort_num);
+			print "<tr>$patient<td>$comment</td></tr>";
 	        }
 	        print "</table>";
 	}
@@ -109,12 +117,11 @@ if ( $request_access_num!='') {
 	}
 }
 	
-$tmpresult_num=$_GET['tmpresult_num'];
 
-if ( $tmpresult_num!='' ) {
+if ( $tmpresult_num!='' && $option=='patient') {
      
         //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
-        if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='') {
+        if ($dwh_droit_all_departments=='') {
                 if ($liste_uf_session!='') {
                         $filtre_sql.=" and exists ( select patient_num from dwh_patient_department where department_num in ($liste_service_session) and  dwh_tmp_result.patient_num=dwh_patient_department.patient_num ) ";
                 } else {
@@ -142,16 +149,128 @@ if ( $tmpresult_num!='' ) {
         <th>".get_translation('DEATH','Décés')."</th>
         <th>".get_translation('ZIP_CODE','Code postal')."</th>
         <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
+        <th>".get_translation('INCLUSION_DATE',"Date d'inclusion")."</th>
+        <th>".get_translation('INVESTIGATOR','Investigateur')."</th>
         </tr>";
         $sel=oci_parse($dbh,"select distinct patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and user_num=$user_num_session $filtre_sql  $filtre_sql_document_origin_code");
         oci_execute($sel);
         while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
                 $patient_num=$r['PATIENT_NUM'];
-               print afficher_patient($patient_num,'cohorte_excel','','');
+		print "<tr>";
+		print afficher_patient($patient_num,'cohorte_excel','','');
+		print "</tr>";
+        }
+        print "</table>";
+}
+
+if ( $tmpresult_num!='' && $option=='encounter_result') {
+     
+        //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
+        if ($dwh_droit_all_departments=='') {
+                if ($liste_uf_session!='') {
+                        $filtre_sql.=" and exists ( select patient_num from dwh_patient_department where department_num in ($liste_service_session) and  dwh_tmp_result.patient_num=dwh_patient_department.patient_num ) ";
+                } else {
+                        $filtre_sql.=" and 1=2";
+                }
+        }
+	$filtre_sql_document_origin_code='';
+        if ($liste_document_origin_code_session!='') {
+        	if (!preg_match("/'tout'/i","$liste_document_origin_code_session")) {
+                        $filtre_sql_document_origin_code.=" and document_origin_code in ($liste_document_origin_code_session) ";
+        	}
+        } else {
+                $filtre_sql_document_origin_code.=" and 1=2"; 
+        }
+
+        print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
+        print "<tr>
+        <th>PATIENT_NUM</th>
+        <th>".get_translation('INITIALS','Initials')."</th>
+        <th>".get_translation('LASTNAME','Lastname')."</th>
+        <th>".get_translation('FIRSTNAME','Prénom')."</th>
+        <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
+        <th>".get_translation('DEATH','Décés')."</th>
+        <th>".get_translation('ZIP_CODE','Code postal')."</th>
+        <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
+        <th>".get_translation('ENCOUTER_ID','Séjour')."</th>
+        <th>".get_translation('ENTRY_DATE','Date entrée')."</th>
+        <th>".get_translation('OUT_DATE','Date sortie')."</th>
+        </tr>";
+        $sel=oci_parse($dbh,"select distinct patient_num,encounter_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and user_num=$user_num_session $filtre_sql  $filtre_sql_document_origin_code");
+        oci_execute($sel);
+        while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+                $patient_num=$r['PATIENT_NUM'];
+                $encounter_num=$r['ENCOUNTER_NUM'];
+		print "<tr>";
+		print afficher_patient($patient_num,'result_excel','','');
+		list($entry_date,$out_date,$entry_mode,$out_mode)=get_encounter_info ($encounter_num);
+		print "<td class=\"text\">$encounter_num</td><td class=\"text\">$entry_date</td><td class=\"text\">$out_date</td>";
+		print "</tr>";
         }
         print "</table>";
 }
 	
+if ( $tmpresult_num!='' && $option=='encounter_all') {
+     
+        //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
+        if ($dwh_droit_all_departments=='') {
+                if ($liste_uf_session!='') {
+                        $filtre_sql.=" and exists ( select dwh_patient_department.patient_num from dwh_patient_department where department_num in ($liste_service_session) and  dwh_tmp_result.patient_num=dwh_patient_department.patient_num ) ";
+                } else {
+                        $filtre_sql.=" and 1=2";
+                }
+        }
+	$filtre_sql_document_origin_code='';
+        if ($liste_document_origin_code_session!='') {
+        	if (!preg_match("/'tout'/i","$liste_document_origin_code_session")) {
+                        $filtre_sql_document_origin_code.=" and document_origin_code in ($liste_document_origin_code_session) ";
+        	}
+        } else {
+                $filtre_sql_document_origin_code.=" and 1=2"; 
+        }
+
+        print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
+        print "<tr>
+        <th>PATIENT_NUM</th>
+        <th>".get_translation('INITIALS','Initials')."</th>
+        <th>".get_translation('LASTNAME','Lastname')."</th>
+        <th>".get_translation('FIRSTNAME','Prénom')."</th>
+        <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
+        <th>".get_translation('DEATH','Décés')."</th>
+        <th>".get_translation('ZIP_CODE','Code postal')."</th>
+        <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
+        <th>".get_translation('ENCOUTER_ID','Séjour')."</th>
+        <th>".get_translation('ENTRY_DATE','Date entrée')."</th>
+        <th>".get_translation('OUT_DATE','Date sortie')."</th>
+        </tr>";
+        $sel=oci_parse($dbh,"	select distinct 
+				        dwh_tmp_result.patient_num,
+				        dwh_patient_stay.encounter_num,
+		        		to_char(entry_date,'DD/MM/YYYY HH24:MI ') entry_date,
+					to_char(out_date,'DD/MM/YYYY HH24:MI ') out_date  ,
+					entry_mode,
+					out_mode
+				from dwh_tmp_result, dwh_patient_stay  
+				where tmpresult_num=$tmpresult_num and user_num=$user_num_session and dwh_tmp_result.patient_num=dwh_patient_stay.patient_num(+) $filtre_sql  $filtre_sql_document_origin_code");
+        oci_execute($sel);
+        while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+                $patient_num=$r['PATIENT_NUM'];
+                $encounter_num=$r['ENCOUNTER_NUM'];
+                $entry_date=$r['ENTRY_DATE'];
+                $out_date=$r['OUT_DATE'];
+		print "<tr>";
+		print afficher_patient($patient_num,'result_excel','','');
+		print "<td class=\"text\">$encounter_num</td><td class=\"text\">$entry_date</td><td class=\"text\">$out_date</td>";
+		print "</tr>";
+        }
+        print "</table>";
+}
+	
+	
+if ( $tmpresult_num!='' && $option=='stat_movment') {
+	nb_consult_per_unit_per_year_tableau ($tmpresult_num);
+	nb_hospit_per_unit_per_year_tableau ($tmpresult_num);
+}
 
 if ( $process_num!='' ) {
 	    

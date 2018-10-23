@@ -50,7 +50,7 @@ oci_execute($ins);
 
 if ($requete!='') {
     
-	$sel=oci_parse($dbh," select  patient_num from dwh_text where contains (enrich_text,'$requete')>0 and certainty=1  and context='patient_text' ");
+	$sel=oci_parse($dbh," select  patient_num from dwh_text where contains (enrich_text,'$requete')>0 and context='patient_text' and certainty=1  ");
 	oci_execute($sel) || die ("erreur");
 	while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$patient_num=$r['PATIENT_NUM'];
@@ -61,7 +61,7 @@ if ($requete!='') {
 		}
 	}
 	if ($requete_exclure!='') {
-		$sel=oci_parse($dbh," select  patient_num from dwh_text where contains (enrich_text,'$requete_exclure')>0 and certainty=1  and context='patient_text' ");
+		$sel=oci_parse($dbh," select  patient_num from dwh_text where contains (enrich_text,'$requete_exclure')>0 and context='patient_text' and certainty=1  ");
 		oci_execute($sel) || die ("erreur");
 		while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 			$patient_num=$r['PATIENT_NUM'];

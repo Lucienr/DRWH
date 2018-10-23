@@ -167,8 +167,10 @@ function graph_pmsi_json ($tmpresult_num,$thesaurus_data_father_num,$thesaurus_c
 	
 	if ($type=='sejour') {
 		$req_type="  exists  ( select encounter_num from dwh_tmp_result where dwh_data.encounter_num=dwh_tmp_result.encounter_num and tmpresult_num=$tmpresult_num and encounter_num is not null)  and encounter_num is not null ";
+		$req_type="  dwh_data.encounter_num in  ( select encounter_num from dwh_tmp_result where  tmpresult_num=$tmpresult_num and encounter_num is not null)  and encounter_num is not null ";
 	} else {
 		$req_type="  exists  ( select patient_num from dwh_tmp_result where dwh_data.patient_num=dwh_tmp_result.patient_num and tmpresult_num=$tmpresult_num and patient_num is not null)  ";
+		$req_type="  dwh_data.patient_num in  ( select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num  )  ";
 	}
 	
 	$req="select list_values from  dwh_thesaurus_data  where  thesaurus_code='$thesaurus_code' ";

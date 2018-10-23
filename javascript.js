@@ -124,6 +124,7 @@ function calcul_nb_resultat_filtre(num_filtre,val_async) {
 			} else {
 				document_origin_code=tab_document_origin_code.join( "," );
 			}
+			title_document=document.getElementById('id_input_filtre_title_document_'+num_filtre).value;
 			date_deb_document=document.getElementById('id_input_filtre_date_deb_document_'+num_filtre).value;
 			date_fin_document=document.getElementById('id_input_filtre_date_fin_document_'+num_filtre).value;
 			periode_document=document.getElementById('id_input_filtre_periode_document_'+num_filtre).value;
@@ -154,7 +155,7 @@ function calcul_nb_resultat_filtre(num_filtre,val_async) {
 				url:"ajax.php",
 				async:val_async,
 				encoding: 'latin1',
-				data:{ action:'calcul_nb_resultat_filtre_passthru',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,id_query_type:id_query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure},
+				data:{ action:'calcul_nb_resultat_filtre_passthru',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,id_query_type:id_query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document)},
 				beforeSend: function(requester){
 					document.getElementById('id_span_nbresult_atomique_chargement_'+num_filtre).innerHTML='<img src="images/chargement_mac.gif" width="10px">';
 					document.getElementById('id_span_nbresult_atomique_'+num_filtre).style.color='red';
@@ -379,6 +380,7 @@ function calcul_nb_resultat_filtre_notpassthru(num_filtre,val_async) {
 			} else {
 				document_origin_code=tab_document_origin_code.join( "," );
 			}
+			title_document=document.getElementById('id_input_filtre_title_document_'+num_filtre).value;
 			date_deb_document=document.getElementById('id_input_filtre_date_deb_document_'+num_filtre).value;
 			date_fin_document=document.getElementById('id_input_filtre_date_fin_document_'+num_filtre).value;
 			periode_document=document.getElementById('id_input_filtre_periode_document_'+num_filtre).value;
@@ -408,7 +410,7 @@ function calcul_nb_resultat_filtre_notpassthru(num_filtre,val_async) {
 				url:"ajax.php",
 				async:val_async,
 				encoding: 'latin1',
-				data:{ action:'calcul_nb_resultat_filtre',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,id_query_type:id_query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure},
+				data:{ action:'calcul_nb_resultat_filtre',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,id_query_type:id_query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document)},
 				beforeSend: function(requester){
 					document.getElementById('id_span_nbresult_atomique_chargement_'+num_filtre).innerHTML='<img src="images/chargement_mac.gif" width="10px">';
 				},
@@ -492,6 +494,9 @@ function ajouter_contrainte_temporelle () {
 	duree_contrainte='';
 	unite_contrainte='';
 	type_contrainte='';
+	if (document.getElementById('id_contrainte_type_contrainte_stay').checked) {
+		type_contrainte='stay';
+	}
 	if (document.getElementById('id_contrainte_type_contrainte_simultaneous').checked) {
 		type_contrainte='simultaneous';
 	}
@@ -1484,13 +1489,13 @@ function supprimer_service(department_num) {
 function ajouter_uf(department_num) {
 	unit_code=document.getElementById('id_input_unit_code_'+department_num).value;
 	unit_str=document.getElementById('id_input_unit_str_'+department_num).value;
-	date_start_unit=document.getElementById('id_input_date_deb_uf_'+department_num).value;
+	unit_start_date=document.getElementById('id_input_date_deb_uf_'+department_num).value;
 	unit_end_date=document.getElementById('id_input_date_fin_uf_'+department_num).value;
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax.php",
 		async:true,
-		data: { action:'ajouter_uf',unit_str:escape(unit_str),unit_code:escape(unit_code),department_num:department_num,date_start_unit:escape(date_start_unit),unit_end_date:escape(unit_end_date)},
+		data: { action:'ajouter_uf',unit_str:escape(unit_str),unit_code:escape(unit_code),department_num:department_num,unit_start_date:escape(unit_start_date),unit_end_date:escape(unit_end_date)},
 		beforeSend: function(requester){
 		},
 		success: function(requester){
@@ -1833,11 +1838,13 @@ function visualiser_ct (id_ct) {
 	});
 }
 
+var clic_on_tab='';
 function voir_detail_dwh (onglet) {
 	$(".div_result").css("display","none");
 	$(".color-bullet").removeClass("current");
 	$("#id_div_dwh_"+onglet).css("display",'block');
-	$("#id_bouton_"+onglet).addClass("current")
+	$("#id_bouton_"+onglet).addClass("current");
+	clic_on_tab='ok';
 }
 
 function fnSelect(objId) {
@@ -1963,6 +1970,40 @@ function demande_acces_patient (department_num,tmpresult_num,num_user_manager_de
 	});
 }
 
+function search_engine_sub_menu (id) {
+	test_ouvrir='';
+	if (jQuery("#"+id).css('display')=='none') {
+		test_ouvrir='ok';
+	}
+	plier('id_div_alimenter_cohorte');
+	plier('id_div_sauver_requete');
+	plier('id_div_export_excel');
+	plier('id_div_filtre_resultat_texte');
+	plier('id_div_partager_requete');
+	jQuery("#button_id_div_alimenter_cohorte").css('backgroundColor','grey');
+	jQuery("#button_id_div_sauver_requete").css('backgroundColor','grey');
+	jQuery("#button_id_div_export_excel").css('backgroundColor','grey');
+	jQuery("#button_id_div_filtre_resultat_texte").css('backgroundColor','grey');
+	jQuery("#button_id_div_partager_requete").css('backgroundColor','grey');
+	
+	if (test_ouvrir=='ok') {
+		plier_deplier(id);
+		jQuery("#button_"+id).css('backgroundColor','#00b2d7');
+	} 
+}
+
+function search_engine_sub_menu_hover (id) {
+	if (jQuery("#"+id).css('display')=='none') {
+		jQuery("#button_"+id).css('backgroundColor','#00b2d7');
+	}
+}
+
+function search_engine_sub_menu_out (id) {
+	if (jQuery("#"+id).css('display')=='none') {
+		jQuery("#button_"+id).css('backgroundColor','grey');
+	}
+}
+
 
 function partager_requete_en_cours (query_num) {
 	notification_text=document.getElementById('id_notification_text').value;
@@ -1990,10 +2031,9 @@ function partager_requete_en_cours (query_num) {
 				if (contenu=='erreur') {
 					alert(get_translation('JS_UNE_ERREUR_EST_SURVENUE','Une erreur est survenue'));
 				} else {
-					setTimeout("plier('id_div_partager_requete');",1000);
+					setTimeout("search_engine_sub_menu ('id_div_partager_requete');",1000);
 					$('#id_span_action_partager_requete_en_cours').html(get_translation('REQUETE_PARTAGEE_AVEC_SUCCES','Requête partagée avec succès'));
 					setTimeout("$('#id_span_action_partager_requete_en_cours').html('');",3000);
-					
 				}
 			}
 		},

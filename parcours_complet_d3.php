@@ -94,10 +94,9 @@ if ($_GET['nb_mini']=='') {
 }
 
 
-
 if ($tmpresult_num!='') {
-	parcours_complet_json($tmpresult_num,'','',$unit_or_department,$nb_mini);
-	$json_file_name = "upload/tmp_d3_complet_json_$tmpresult_num.json";
+	parcours_complet("json",$tmpresult_num,'','',$unit_or_department,$nb_mini);
+	$json_file_name = "$URL_UPLOAD/tmp_d3_complet_json_$tmpresult_num$unit_or_department$nb_mini.json?".uniqid();
 }
 
 
@@ -128,7 +127,7 @@ if ($tmpresult_num!='') {
 ?>
 
 <?
-print "<a href=\"upload/tmp_d3_complet_json_$tmpresult_num.json\" target=_blank>fichier json</a>";
+print "<a href=\"$URL_UPLOAD/tmp_d3_complet_json_$tmpresult_num.json\" target=_blank>fichier json</a>";
 print "<div id=\"chart\">";
 print "</div>";
 

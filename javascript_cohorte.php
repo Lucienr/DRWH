@@ -86,7 +86,7 @@
 				}
 			});
 		} else {
-			fermer_cohorte_encours();
+			//fermer_cohorte_encours();
 		}
 	}
 	function fermer_cohorte_encours() {
@@ -262,12 +262,13 @@
 	}
 	function inclure_patient_cohorte(patient_num,status) {
 		cohort_num_encours=$('#id_cohort_num_encours').val();
+		query_num=$('#query_num_sauver').val();
 		if (cohort_num_encours!='') {
 			jQuery.ajax({
 				type:"POST",
 				url:"ajax.php",
 				async:true,
-				data: { action:'inclure_patient_cohorte',patient_num:patient_num,cohort_num_encours:cohort_num_encours,status:status,datamart_num:<? print $datamart_num; ?>},
+				data: { action:'inclure_patient_cohorte',patient_num:patient_num,cohort_num_encours:cohort_num_encours,query_num:query_num,status:status,datamart_num:<? print $datamart_num; ?>},
 				beforeSend: function(requester){
 				},
 				success: function(requester){
@@ -384,7 +385,7 @@
 					type:"POST",
 					url:"ajax.php",
 					async:true,
-					data: { action:'supprimer_commentaire_cohorte',cohort_result_comment_num:cohort_num_resultat_comment,patient_num:patient_num,cohort_num:cohort_num},
+					data: { action:'supprimer_commentaire_cohorte',cohort_result_comment_num:cohort_result_comment_num,patient_num:patient_num,cohort_num:cohort_num},
 					beforeSend: function(requester){
 					},
 					success: function(requester){
@@ -445,7 +446,7 @@
 			url:"ajax.php",
 			async:true,
 			encoding: 'latin1',
-			data:{ action:'importer_patient_cohorte',cohort_num:cohort_num,liste_hospital_patient_id:liste_hospital_patient_id,option:option},
+			data:{ action:'importer_patient_cohorte',cohort_num:cohort_num,liste_hospital_patient_id:escape(liste_hospital_patient_id),option:option},
 			beforeSend: function(requester){
 					jQuery("#id_journal_import_patient").html("<img src='images/chargement_mac.gif'>"); 
 			},
@@ -514,15 +515,16 @@
 	
 	function tout_inclure_exclure(status,phrase) {
 		if (confirm ('Etes vous sûr de vouloir mettre tous ces patients dans les '+phrase+' ? ')) {
-			cohort_num_encours=document.getElementById('id_cohort_num_encours').value;
-			tmpresult_num=document.getElementById('id_num_temp').value;
-			val_exclure_cohorte_resultat=document.getElementById('id_exclure_cohorte_resultat').value;
+			query_num=$('#query_num_sauver').val();
+			cohort_num_encours=$('#id_cohort_num_encours').val();
+			tmpresult_num=$('#id_num_temp').val();
+			val_exclure_cohorte_resultat=$('#id_exclure_cohorte_resultat').val();
 			if (cohort_num_encours!='') {
 				jQuery.ajax({
 					type:"POST",
 					url:"ajax.php",
 					async:true,
-					data: { action:'tout_inclure_exclure',cohort_num_encours:cohort_num_encours,tmpresult_num:tmpresult_num,status:status,val_exclure_cohorte_resultat:val_exclure_cohorte_resultat,datamart_num:<? print $datamart_num; ?>},
+					data: { action:'tout_inclure_exclure',cohort_num_encours:cohort_num_encours,tmpresult_num:tmpresult_num,query_num:query_num,status:status,val_exclure_cohorte_resultat:val_exclure_cohorte_resultat,datamart_num:<? print $datamart_num; ?>},
 					beforeSend: function(requester){
 					},
 					success: function(requester){
@@ -557,8 +559,8 @@
 	
 	
 	function ajouter_user_cohorte() {
-		user_num_cohort=document.getElementById('id_ajouter_select_user').value;
-		cohort_num=document.getElementById('id_cohort_num_voir').value;
+		user_num_cohort=$('#id_ajouter_select_user').val();
+		cohort_num=$('#id_cohort_num_voir').val();
 		
 		jQuery.ajax({
 			type:"POST",
@@ -663,7 +665,7 @@
 		}
 	}
 	function modifier_titre_cohorte(cohort_num) {
-		title_cohort=document.getElementById('id_input_titre_cohorte').value;
+		title_cohort=$('#id_input_titre_cohorte').val();
 		jQuery.ajax({
 			type:"POST",
 			url:"ajax.php",

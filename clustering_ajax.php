@@ -64,7 +64,7 @@ if ($_POST['action']=='executer_clustering') {
 	
 	create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','début du process'),'','sysdate+7');
 	
-	passthru( "php exec_clustering.php \"$tmpresult_num\" \"10\" \"3\" \"0.01\" \"$limite_similarite\" \"2\" \"$process_num\" \"7\" >> upload/log_chargement_clustering_$tmpresult_num.$process_num.txt 2>&1 &");
+	passthru( "php exec_clustering.php \"$tmpresult_num\" \"10\" \"3\" \"0.01\" \"$limite_similarite\" \"2\" \"$process_num\" \"7\" >> $CHEMIN_GLOBAL_LOG/log_chargement_clustering_$tmpresult_num.$process_num.txt 2>&1 &");
 	print $process_num;
 	save_log_page($user_num_session,'clustering');
 }
@@ -95,10 +95,10 @@ if ($_POST['action']=='afficher_resultat_clustering') {
 	$process_num=$_POST['process_num'];
 	$tmpresult_num=$_POST['tmpresult_num'];
 	if ($process_num!='') {
-		print "<img src=\"upload/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.png?$process_num\" usemap=\"#cluster_patient\" border=0>";
-		$map=join('',file("$CHEMIN_GLOBAL/upload/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.map"));
+		print "<img src=\"$URL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.png?$process_num\" usemap=\"#cluster_patient\" border=0>";
+		$map=join('',file("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.map"));
 		print $map;
-		$tableau_html_liste_clusters = join('',file("$CHEMIN_GLOBAL/upload/tableau_html_liste_clusters_$tmpresult_num.$process_num.html")); 
+		$tableau_html_liste_clusters = join('',file("$URL_UPLOAD/tableau_html_liste_clusters_$tmpresult_num.$process_num.html")); 
 		print $tableau_html_liste_clusters;
 	}
 }

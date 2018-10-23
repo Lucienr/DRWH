@@ -78,13 +78,15 @@ if ($_GET['nb_mini']=='') {
 
 
 if ($tmpresult_num!='' && $unit_or_department=='unit') {
+	parcours_complet('dot',$tmpresult_num,'','',$unit_or_department,$nb_mini);
+	parcours_complet('json',$tmpresult_num,'','',$unit_or_department,$nb_mini);
 }
 
 
 
 if ($tmpresult_num!='' && $unit_or_department=='department') {
-	parcours_complet($tmpresult_num,'','',$unit_or_department,$nb_mini);
-	parcours_complet_json($tmpresult_num,'','',$unit_or_department,$nb_mini);
+	parcours_complet('dot',$tmpresult_num,'','',$unit_or_department,$nb_mini);
+	parcours_complet('json',$tmpresult_num,'','',$unit_or_department,$nb_mini);
 }
 
 
@@ -108,9 +110,9 @@ if ($tmpresult_num!='') {
 	</form>";
 }
 
-print "<a href=\"upload/tmp_d3_complet_json_$tmpresult_num.json\" target=_blank>fichier json</a>";
+print "<a href=\"$URL_UPLOAD/tmp_d3_complet_json_$tmpresult_num$unit_or_department$nb_mini.json\" target=_blank>fichier json</a>";
 
-print "<img src=\"upload/tmp_graphviz_parcours_complet_$tmpresult_num.png\">";
+print "<img src=\"$URL_UPLOAD/tmp_graphviz_parcours_complet_$tmpresult_num$unit_or_department$nb_mini.png\">";
 
 
 ?>

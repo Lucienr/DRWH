@@ -46,12 +46,16 @@ function affiche_onglet_concepts (tmpresult_num,type,distance) {
 	document.getElementById("id_div_distance_concepts").innerHTML=distance;
 	
 	if (type=='document') {
-		$('#id_bouton_concepts_document').children('a').css('color','#e00adb');
-		$('#id_bouton_concepts_patient').children('a').css('color','#036ba5');
+		jQuery('#id_bouton_concepts_document').children('a').css('color','#e00adb');
+		jQuery('#id_bouton_concepts_patient').children('a').css('color','#036ba5');
+		jQuery('#id_radio_concepts_document').prop('checked',true);
+		jQuery('#id_radio_concepts_patient').prop('checked',false);
 	}
 	if (type=='patient') {
-		$('#id_bouton_concepts_document').children('a').css('color','#036ba5');
-		$('#id_bouton_concepts_patient').children('a').css('color','#e00adb');
+		jQuery('#id_bouton_concepts_document').children('a').css('color','#036ba5');
+		jQuery('#id_bouton_concepts_patient').children('a').css('color','#e00adb');
+		jQuery('#id_radio_concepts_document').prop('checked',false);
+		jQuery('#id_radio_concepts_patient').prop('checked',true);
 	}
 	
 	affiche_concepts(tmpresult_num,"phenotype","pref",type,distance);
@@ -61,14 +65,67 @@ function affiche_onglet_concepts (tmpresult_num,type,distance) {
 //	affiche_graph_concepts ('id_concepts_signes',tmpresult_num,filtre_type_semantic_pheno,"pref",type,distance);
 //	affiche_heatmap_concepts ('id_div_heatmap_concept',tmpresult_num,"and semantic_type in ('Sign or Symptom','Physiologic Function','Finding','Disease or Syndrome','Pathologic Function','Congenital Abnormality','Anatomical Abnormality','Neoplastic Process','Acquired Abnormality')","pref",type,distance);
 }
+
+
+
+function concepts_sub_menu (id) {
+	test_ouvrir='';
+	if (jQuery("#"+id).css('display')=='none') {
+		test_ouvrir='ok';
+	}
+	plier('id_div_filter_the_concepts');
+	plier('id_div_export_concepts_below');
+	jQuery("#button_id_div_filter_the_concepts").css('backgroundColor','grey');
+	jQuery("#button_id_div_export_concepts_below").css('backgroundColor','grey');
+	
+	if (test_ouvrir=='ok') {
+		plier_deplier(id);
+		jQuery("#button_"+id).css('backgroundColor','#00b2d7');
+	} 
+}
+
+function concepts_sub_menu_hover (id) {
+	if (jQuery("#"+id).css('display')=='none') {
+		jQuery("#button_"+id).css('backgroundColor','#00b2d7');
+	}
+}
+
+function concepts_sub_menu_out (id) {
+	if (jQuery("#"+id).css('display')=='none') {
+		jQuery("#button_"+id).css('backgroundColor','grey');
+	}
+}
+
+
 var table_concepts=new Array();
 var tableau_table_cree=new Array();
 var tableau_table_cree_type=new Array();
 
+function filter_concept_by_age(tmpresult_num) {	
+	affiche_concepts (tmpresult_num,"phenotype","pref","","");
+}
+
+function reset_filter_concept_by_age(tmpresult_num) {
+	jQuery('#id_age_concept_min').val("");
+	jQuery('#id_age_concept_max').val("");
+	filter_concept_by_age(tmpresult_num);
+}
 
 function affiche_concepts (tmpresult_num,phenotype_genotype,donnees_reelles_ou_pref,type,distance) {
-	if (tableau_table_cree_type['general']!=type+distance) {
-		tableau_table_cree_type['general']=type+distance;
+	if (type=='' && type_en_cours_concepts!='') {
+		type=type_en_cours_concepts;
+	}
+	if (distance=='' && distance_en_cours_concepts!='') {
+		distance=distance_en_cours_concepts;
+	} 
+	age_concept_min='';
+	age_concept_max='';
+	
+	age_concept_min=jQuery('#id_age_concept_min').val();
+	age_concept_max=jQuery('#id_age_concept_max').val();
+	
+	if (tableau_table_cree_type['general']!=type+distance+age_concept_min+age_concept_max) {
+		tableau_table_cree_type['general']=type+distance+age_concept_min+age_concept_max;
 		jQuery.ajax({
 			type:"GET",
 			url:"ajax.php",
@@ -76,7 +133,7 @@ function affiche_concepts (tmpresult_num,phenotype_genotype,donnees_reelles_ou_p
 			async:true,
 			contentType: 'application/x-www-form-urlencoded',
 			encoding: 'latin1',
-			data: {action:'affiche_concepts',tmpresult_num:tmpresult_num,phenotype_genotype:phenotype_genotype,donnees_reelles_ou_pref:donnees_reelles_ou_pref,type:type,distance:distance},
+			data: {action:'affiche_concepts',tmpresult_num:tmpresult_num,phenotype_genotype:phenotype_genotype,donnees_reelles_ou_pref:donnees_reelles_ou_pref,type:type,distance:distance,age_concept_min:age_concept_min,age_concept_max:age_concept_max},
 			beforeSend: function(requester){
 				document.getElementById('id_div_nuage_signes').innerHTML="<img src=\"images/chargement_mac.gif\">";
 				document.getElementById('gauche_id_concepts_signes').innerHTML="<img src=\"images/chargement_mac.gif\">";
@@ -112,6 +169,21 @@ function affiche_concepts (tmpresult_num,phenotype_genotype,donnees_reelles_ou_p
 	}
 }
 
+function export_concepts (tmpresult_num) {
+	type=type_en_cours_concepts;
+	distance=distance_en_cours_concepts;
+	age_concept_min='';
+	age_concept_max='';
+	age_concept_min=jQuery('#id_age_concept_min').val();
+	age_concept_max=jQuery('#id_age_concept_max').val();
+	window.open("export_concepts.php?type_export=agregated_concept&tmpresult_num="+tmpresult_num+"&phenotype_genotype=phenotype&donnees_reelles_ou_pref=pref&type="+type+"&distance="+distance+"&age_concept_min="+age_concept_min+"&age_concept_max="+age_concept_max+"",'width=710,height=555,left=160,top=170');
+}
+
+function export_concepts_patient (tmpresult_num) {
+	type=type_en_cours_concepts;
+	distance=distance_en_cours_concepts;
+	window.open("export_concepts.php?type_export=detail_patient_concept&tmpresult_num="+tmpresult_num+"&phenotype_genotype=phenotype&donnees_reelles_ou_pref=pref&type="+type+"&distance="+distance+"",'width=710,height=555,left=160,top=170');
+}
 
 function actualiser_graph_concepts (distance) {
 	if (distance==distance_origine_concepts) {
@@ -122,23 +194,25 @@ function affiche_nuage_concepts_direct (id,data) {
 	var liste_mot=data;
 	document.getElementById(id).innerHTML='';
 	eval ("var liste_mot=["+liste_mot+"]");
-	$("#"+id).jQCloud(liste_mot, {removeOverflowing :true});
+	jQuery("#"+id).jQCloud(liste_mot, {removeOverflowing :true});
 }
 //<br>100*nbfois_ce_code_dans_le_res/nbcode_non_distinct_dans_res*log(nb_patient_total/nb_patient_concept_global
 // <br>100*nb patient avec ce code dans le res/nb patient dans le res*log(nb_patient_total/nb_patient_concept_global
 function affiche_tableau_concepts_direct (id,data) {
 	tableau_table_cree['general']='ok';
 	eval ("var dataSet=["+data+"]");
-	 table_concepts[id]=$("#"+id).DataTable({
+	 table_concepts[id]=jQuery("#"+id).DataTable({
         		"data": dataSet,
 		        columns: [
 				{ title: get_translation('JS_ORDRE','Order') ,"orderSequence": [] },
 				{ title: get_translation('JS_CONCEPTS','Concepts') },
-				{ title: "# "+ get_translation('JS_PATIENTS','patients'),"orderSequence": [ "desc" ]  },
-				{ title: "FreqRes" ,"orderSequence": [ "desc" ] },
-				{ title: "TF-IDF","orderSequence": [ "desc" ]  },
-				{ title: "PSS" ,"orderSequence": [ "desc" ] },
-				{ title: "Case-Weighted PSS","orderSequence": [ "desc" ]  }
+				{ title: "# "+ get_translation('JS_PATIENTS','patients'),"orderSequence": [ "desc","asc" ]  },
+				{ title: "See" ,"orderSequence": [] },
+				{ title: "FreqRes" ,"orderSequence": [ "desc","asc" ] },
+				{ title: "TF-IDF","orderSequence": [ "desc","asc" ]  },
+				{ title: "PSS" ,"orderSequence": [ "desc","asc" ] },
+				{ title: "Case-Weighted PSS","orderSequence": [ "desc","asc" ]  },
+				{ title: "Median age","orderSequence": [ "desc","asc" ]  }
 		        ] ,
 		         "columnDefs": [ {
 			            "searchable": false,
@@ -167,10 +241,10 @@ function affiche_graph_concepts_direct (id,data) {
 	eval("var liste_entrepot=["+tableau_data[2]+"]");
 	eval("var liste_pourc_res_entrepot=["+tableau_data[3]+"]");
 	var hauteur=tableau_data[4];
-	$('#gauche_'+id).css('height',hauteur);
-	$('#droite_'+id).css('height',hauteur);
+	jQuery('#gauche_'+id).css('height',hauteur);
+	jQuery('#droite_'+id).css('height',hauteur);
 		
-	 $('#gauche_'+id).highcharts({
+	 jQuery('#gauche_'+id).highcharts({
             chart: {
                 type: 'bar'
             },
@@ -228,7 +302,7 @@ function affiche_graph_concepts_direct (id,data) {
                 ]
 	});
 	
-	 $('#droite_'+id).highcharts({
+	 jQuery('#droite_'+id).highcharts({
 	            chart: {
 	                type: 'bar'
 	            },
@@ -302,7 +376,7 @@ function affiche_nuage_concepts (id,tmpresult_num,phenotype_genotype,donnees_ree
 					var liste_mot=requester;
 					document.getElementById(id).innerHTML='';
 					eval ("var liste_mot=["+liste_mot+"]");
-					$("#"+id).jQCloud(liste_mot, {removeOverflowing :true});
+					jQuery("#"+id).jQCloud(liste_mot, {removeOverflowing :true});
 				}
 			},
 			error: function(){}
@@ -319,7 +393,7 @@ function affiche_tableau_concepts (id,tmpresult_num,phenotype_genotype,donnees_r
 		}
 		tableau_table_cree_type[id]=type+distance;
 		tableau_table_cree[id]='ok';
-		table_concepts[id]=$("#"+id).dataTable({
+		table_concepts[id]=jQuery("#"+id).dataTable({
 	        		"ajax": "ajax.php?action=affiche_tableau_concepts&distance="+distance+"&type="+type+"&tmpresult_num="+tmpresult_num+"&phenotype_genotype="+phenotype_genotype+"&donnees_reelles_ou_pref="+donnees_reelles_ou_pref+""
 	    		
 	    		, "order": [[ 1, "desc" ]]
@@ -333,7 +407,7 @@ function affiche_tableau_data (id,tmpresult_num,thesaurus_code) {
 		}
 		tableau_table_cree_type[id]=id+tmpresult_num;
 		tableau_table_cree[id]='ok';
-		table_concepts[id]=$("#"+id).dataTable({
+		table_concepts[id]=jQuery("#"+id).dataTable({
 	        		"ajax": "ajax.php?action=affiche_tableau_data&tmpresult_num="+tmpresult_num+"&thesaurus_code="+thesaurus_code+""
 	    		, "order": [[ 1, "desc" ]]
 	    		});
@@ -368,10 +442,10 @@ function affiche_graph_concepts (id,tmpresult_num,phenotype_genotype,donnees_ree
 					eval("var liste_entrepot=["+tableau_data[2]+"]");
 					eval("var liste_pourc_res_entrepot=["+tableau_data[3]+"]");
 					var hauteur=tableau_data[4];
-					$('#gauche_'+id).css('height',hauteur);
-					$('#droite_'+id).css('height',hauteur);
+					jQuery('#gauche_'+id).css('height',hauteur);
+					jQuery('#droite_'+id).css('height',hauteur);
 						
-					 $('#gauche_'+id).highcharts({
+					 jQuery('#gauche_'+id).highcharts({
 				            chart: {
 				                type: 'bar'
 				            },
@@ -433,7 +507,7 @@ function affiche_graph_concepts (id,tmpresult_num,phenotype_genotype,donnees_ree
 					
 					
 					
-					 $('#droite_'+id).highcharts({
+					 jQuery('#droite_'+id).highcharts({
 					            chart: {
 					                type: 'bar'
 					            },
@@ -499,7 +573,7 @@ function affiche_onglet_genes (tmpresult_num) {
 function affiche_tableau_go (id,tmpresult_num,type) {
 	if (!tableau_table_cree[id]) {
 		tableau_table_cree[id]='ok';
-		$("#"+id).dataTable({
+		jQuery("#"+id).dataTable({
 	        		"ajax": "ajax.php?action=affiche_tableau_go&tmpresult_num="+tmpresult_num+"&type="+type+"", "order": [[ 3, "desc" ]]} );
 	}
 }
@@ -507,7 +581,7 @@ function affiche_tableau_go (id,tmpresult_num,type) {
 function affiche_tableau_go_data (id,tmpresult_num) {
 	if (!tableau_table_cree[id]) {
 		tableau_table_cree[id]='ok';
-		$("#"+id).dataTable({
+		jQuery("#"+id).dataTable({
 	        		"ajax": "ajax.php?action=affiche_tableau_go_data&tmpresult_num="+tmpresult_num+"", "order": [[ 3, "desc" ]]} );
 	}
 }

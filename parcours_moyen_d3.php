@@ -161,7 +161,7 @@ if ($tmpresult_num!='' && $unit_or_department=='unit') {
 	//parcours_sejour_uf ($tmpresult_num,'',$patient_num_encounter_num,$nb_mini);
 	parcours_sejour_uf_json ($tmpresult_num,'', '', $patient_num_encounter_num, $nb_mini);
 
-	$json_file_name = "upload/tmp_d3_uf_json_$tmpresult_num.json";
+	$json_file_name = "$URL_UPLOAD/tmp_d3_uf_json_$tmpresult_num.json?".uniqid();
 
 	print "<a href=\"$json_file_name\" target=_blank>fichier json</a>";
 }
@@ -171,7 +171,7 @@ if ($tmpresult_num!='' && $unit_or_department=='department') {
 	//parcours_sejour_service ($tmpresult_num,'',$patient_num_encounter_num,$nb_mini);
 	parcours_sejour_service_json ($tmpresult_num, '','', $patient_num_encounter_num, $nb_mini);
 
-	$json_file_name = "upload/tmp_d3_service_json_$tmpresult_num.json";
+	$json_file_name = "$URL_UPLOAD/tmp_d3_service_json_$tmpresult_num.json?".uniqid();
 
 	 print "<a href=\"$json_file_name\" target=_blank>fichier json</a>";
 	// print "<img src=\"upload/tmp_graphviz_parcours_sejour_service_$tmpresult_num.png\">";

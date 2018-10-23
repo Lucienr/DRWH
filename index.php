@@ -31,14 +31,20 @@ session_write_close();
 <!-- Mon profil -->
 <div class="div_accueil">
 	<h1><img src="images/health7.png" style="vertical-align: middle"> <? print get_translation('MY_PROFILE','Mon profile'); ?></h1>
+		<? last_connexion (); ?>
+		
 		<? afficher_mes_droits (); ?>
+		
 	<h1><? print get_translation('USER_GUIDE','Guide utilisateur'); ?></h1>
 	<a href="users_guide.pdf" target="_blank"><? print get_translation('DOWNLOAD_USER_GUIDE','Télécharger le guide utilisateur en cliquant ici'); ?></a>
-	<h1><? print get_translation('TO_CITE_FOR_PUBLICATION','A citer pour une publication'); ?></h1>
-	Garcelon N, Neuraz A, Benoit V, Salomon R, Burgun A. Improving a full-text search engine: the importance of negation detection and family history context to identify cases in a biomedical data warehouse. 
-	J Am Med Inform Assoc. 2016 Oct 20. doi: 10.1093/jamia/ocw144. [Epub ahead of print] PubMed PMID: 28339516. <a href="https://doi.org/10.1093/jamia/ocw144" target="_blank">https://doi.org/10.1093/jamia/ocw144</a> <a href="https://www.ncbi.nlm.nih.gov/pubmed/28339516" target="_blank">pubmed</a>.<br><br>
 	
-	Nicolas Garcelon, Antoine Neuraz, Vincent Benoit, Rémi Salomon, Sven Kracker, Felipe Suarez, Nadia Bahi-Buisson, Smail Hadj-Rabia, Alain Fischer, Arnold Munnich, Anita Burgun. Finding patients using similarity measures in a rare diseases-oriented clinical data warehouse: Dr. Warehouse and the needle in the needle stack, Journal of Biomedical Informatics, Volume 73, 2017, Pages 51-61, ISSN 1532-0464 <a href="http://dx.doi.org/10.1016/j.jbi.2017.07.016" target="_blank">http://dx.doi.org/10.1016/j.jbi.2017.07.016</a>.
+	<h1><? print get_translation('TO_CITE_FOR_PUBLICATION','A citer pour une publication'); ?></h1>
+	<i>Garcelon N, Neuraz A, Salomon R, Faour H, Benoit V, Delapalme A, Munnich A, Burgun A, Rance B.</i> 
+	A clinician friendly data warehouse oriented toward narrative reports: Dr. Warehouse. J Biomed Inform. 2018 Apr;80:52-63. doi: 10.1016/j.jbi.2018.02.019. Epub 2018 Mar 1. PubMed PMID: 29501921
+	<a href="https://doi.org/10.1016/j.jbi.2018.02.019" target="_blank">https://doi.org/10.1016/j.jbi.2018.02.019</a> <a href="https://www.ncbi.nlm.nih.gov/pubmed/29501921" target="_blank">pubmed</a>.<br><br>
+	
+	<i>Nicolas Garcelon, Antoine Neuraz, Vincent Benoit, Rémi Salomon, Sven Kracker, Felipe Suarez, Nadia Bahi-Buisson, Smail Hadj-Rabia, Alain Fischer, Arnold Munnich, Anita Burgun.</i> 
+	Finding patients using similarity measures in a rare diseases-oriented clinical data warehouse: Dr. Warehouse and the needle in the needle stack, Journal of Biomedical Informatics, Volume 73, 2017, Pages 51-61, ISSN 1532-0464 <a href="http://dx.doi.org/10.1016/j.jbi.2017.07.016" target="_blank">http://dx.doi.org/10.1016/j.jbi.2017.07.016</a>.
 	<h1><? print get_translation('LAST_DATA_LOAD','Dernier chargement'); ?></h1>
 	<? afficher_etat_entrepot('last_chargement','600px','','',''); ?>
 </div>

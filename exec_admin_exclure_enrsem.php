@@ -60,6 +60,8 @@ if ($argv[1]!='') {
 				$sel=oci_parse($dbh,$req);
 				oci_execute($sel) || die("erreur $req\n");
 				update_process ($process_num,0,get_translation('PROCESS_DELETE_CONCEPTS_UPD_ENRTEXTE','Suppression des concepts et mise à jour des textes enrichis'),'');
+				
+
 				$sel=oci_parse($dbh,"select document_num,context,certainty from dwh_enrsem where concept_code='$concept_code'  and  lower( concept_str_found)=lower('$concept_str')");
 				oci_execute($sel) || die("erreur select document_num,context,certainty from dwh_enrsem where concept_code='$concept_code'  and  lower( concept_str_found)=lower('$concept_str') \n");
 				while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
@@ -79,7 +81,7 @@ if ($argv[1]!='') {
 					//oci_execute($selreq_doc) || die("erreur $req_doc\n");
 					update_column_enrich_text($document_num,$context,$certainty);
 				}			
-				
+
 				update_process ($process_num,0,get_translation('PROCESS_UPDATE_THESAURUS','mise à jour du thesaurus'),'');
 				print "update_preferred_term ($concept_code);<br>";
 				update_preferred_term ($concept_code);
@@ -88,6 +90,6 @@ if ($argv[1]!='') {
 	}
 	update_process ($process_num,0,get_translation('PROCESS_UPDATE_INDEX','mise à jour des index'),'');
 	update_process ($process_num,1,'end','');
-	$cridx=oci_parse($dbh,"begin ctx_ddl.sync_index('DWH_TEXT_ENRICHI_IDX', '200M'); end;");
+	$cridx=oci_parse($dbh,"begin ctx_ddl.sync_index('DWH_TEXT_ENRICH_IDX', '200M'); end;");
 	oci_execute($cridx);
 }

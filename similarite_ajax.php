@@ -119,7 +119,7 @@ if ($_POST['action']=='precalcul_nb_patient_similarite_patient') {
 		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
 	}
 	
-	passthru( "php exec_precalcul_nb_patient_similarite_patient.php $patient_num_principal $process_num \"$requete\" \"$requete_exclure\">> upload/log_chargement_similarite_patient_$patient_num_principal"."_$process_num".".txt 2>&1 &");
+	passthru( "php exec_precalcul_nb_patient_similarite_patient.php $patient_num_principal $process_num \"$requete\" \"$requete_exclure\">> $CHEMIN_GLOBAL_LOG/log_chargement_similarite_patient_$patient_num_principal"."_$process_num".".txt 2>&1 &");
 	print $process_num;
 }
 
@@ -191,7 +191,7 @@ if ($_POST['action']=='calculer_similarite_patient') {
 	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
 	$nb_patient=$r['NB_PATIENT'];
 
-	passthru( "php exec_similarite_patient.php \"$patient_num_principal\" \"$distance\" \"$limite_count_concept_par_patient_num\" \"$limite_min_nb_patient_par_code\" \"$process_num\" \"$negation\" \"$codes_exclus\" \"$context_famille\" \"$anonyme\" \"$nbpatient_limite\" \"$cohort_num_exclure\" \"$requete_exclure\" \"$exclusion_date\"> upload/log_chargement_similarite_patient_$patient_num_principal.$process_num.txt 2>&1 &");
+	passthru( "php exec_similarite_patient.php \"$patient_num_principal\" \"$distance\" \"$limite_count_concept_par_patient_num\" \"$limite_min_nb_patient_par_code\" \"$process_num\" \"$negation\" \"$codes_exclus\" \"$context_famille\" \"$anonyme\" \"$nbpatient_limite\" \"$cohort_num_exclure\" \"$requete_exclure\" \"$exclusion_date\"> $CHEMIN_GLOBAL_LOG/log_chargement_similarite_patient_$patient_num_principal.$process_num.txt 2>&1 &");
 
 	print "process_num;$process_num;$nb_patient";
 }
@@ -227,13 +227,13 @@ if ($_POST['action']=='afficher_resultat_similarite') {
 	$patient_num=$_POST['patient_num'];
 	if ($process_num!='') {
 		$aleatoire=uniqid();
-		print "<img src=\"upload/tmp_graphviz_similarite_tfidf_$patient_num.$process_num.png?$process_num.$aleatoire\" usemap=\"#cluster_patient\">";
-		$map=join('',file("$CHEMIN_GLOBAL/upload/tmp_graphviz_similarite_tfidf_$patient_num.$process_num.map"));
+		print "<img src=\"$URL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num.$process_num.png?$process_num.$aleatoire\" usemap=\"#cluster_patient\">";
+		$map=join('',file("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num.$process_num.map"));
 		print $map;
-		$tableau_html_liste_patients = join('',file("$CHEMIN_GLOBAL/upload/tableau_html_liste_patients_$patient_num.$process_num.html")); 
+		$tableau_html_liste_patients = join('',file("$CHEMIN_GLOBAL_UPLOAD/tableau_html_liste_patients_$patient_num.$process_num.html")); 
 		print $tableau_html_liste_patients;
 		
-		$tableau_html_liste_concepts_patient_similaire = join('',file("$CHEMIN_GLOBAL/upload/tableau_html_liste_concepts_patient_similaire_$patient_num.$process_num.html")); 
+		$tableau_html_liste_concepts_patient_similaire = join('',file("$CHEMIN_GLOBAL_UPLOAD/tableau_html_liste_concepts_patient_similaire_$patient_num.$process_num.html")); 
 		print $tableau_html_liste_concepts_patient_similaire;
 	}
 }
@@ -419,7 +419,6 @@ if ($_POST['action']=='affiche_intersect') {
 		$tableau_code_nb_concept[$concept_code]=$tf+$tableau_code_nb_concept[$concept_code];
 		
 	}
-	$tableau_final=array();
 	$intersect = array_intersect_assoc($tableau_patient_num_2,$tableau_patient_num_1);
 	
 	
@@ -447,6 +446,7 @@ if ($_POST['action']=='affiche_intersect') {
 		}
 	}
 	
+	$tableau_final=array();
 	
 	foreach ($intersect as $concept_code => $ok) {	;
 		$score=$tableau_code_score[$concept_code];
@@ -459,15 +459,20 @@ if ($_POST['action']=='affiche_intersect') {
 		$tableau_code_score_normalise[$concept_code]=$score_normalise;
 	}
 	
-	ksort($tableau_final);
+	arsort($tableau_code_score);
 	print "<table width=\"100%\">
 	<tr><td style=\"text-align:right;font-weight:bold;cursor:pointer;\" onclick=\"document.getElementById('id_affiche_intersect').style.display='none';\">x</td></tr>
 	<tr><td style=\"text-align:right;font-weight:bold;cursor:pointer;\"><a href=\"outils.php?action=comparateur&patient_num_1=$patient_num_1&patient_num_2=$patient_num_2\" target=\"_blank\">Afficher le comparateur</a></td></tr>";
-	foreach ($tableau_final as $concept_str => $concept_code) {
-		$score=round($tableau_code_score[$concept_code]);
+	foreach ($tableau_code_score as $concept_code => $score) {
+		$concept_str=$tableau_code_libelle[$concept_code];
 		$score_normalise=$tableau_code_score_normalise[$concept_code];
 		print "<tr><td style=\"font-size:".$score_normalise."em\">$concept_str#$score</td></tr>";
-	}
+	}	
+	// foreach ($tableau_final as $concept_str => $concept_code) {
+	// 	$score=round($tableau_code_score[$concept_code]);
+	// 	$score_normalise=$tableau_code_score_normalise[$concept_code];
+	// 	print "<tr><td style=\"font-size:".$score_normalise."em\">$concept_str#$score</td></tr>";
+	// }
 	print "</table>";
 }
 

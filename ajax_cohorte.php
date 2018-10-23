@@ -83,7 +83,7 @@ if ($_POST['action']=='precalcul_nb_patient_similarite_cohorte') {
 		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
 	}
 	
-	passthru( "php exec_precalcul_nb_patient_similarite_cohorte.php $cohort_num $process_num \"$requete\">> upload/log_chargement_similarite_patient_$cohort_num.txt 2>&1 &");
+	passthru( "php exec_precalcul_nb_patient_similarite_cohorte.php $cohort_num $process_num \"$requete\">> $CHEMIN_GLOBAL_LOG/log_chargement_similarite_patient_$cohort_num.txt 2>&1 &");
 	print $process_num;
 }
 
@@ -123,7 +123,7 @@ if ($_POST['action']=='calculer_similarite_cohorte') {
 		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
 	}
 	
-	passthru( "php exec_similarite_cohorte.php \"$cohort_num\" \"$process_num\" \"$nbpatient_limite\" \"$limite_count_concept_par_patient_num\" \"$cohorte_exclue\" \"$patients_importes\" > upload/log_chargement_similarite_cohorte_$cohort_num.$process_num.txt 2>&1 &");
+	passthru( "php exec_similarite_cohorte.php \"$cohort_num\" \"$process_num\" \"$nbpatient_limite\" \"$limite_count_concept_par_patient_num\" \"$cohorte_exclue\" \"$patients_importes\" > $CHEMIN_GLOBAL_LOG/log_chargement_similarite_cohorte_$cohort_num.$process_num.txt 2>&1 &");
 	print "process;"."get_translation('PROCESS_TIME_WARNING','Debut du process, cela peut prendre plusieurs minutes')";
 	save_log_page($user_num_session,'calculer_similarite_cohorte');
 }

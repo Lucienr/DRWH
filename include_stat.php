@@ -200,7 +200,63 @@
 							eval(graph);
 						} else {
 							document.getElementById('id_nb_nouveau_patients_service_hors_mespatients').innerHTML="";
+							document.getElementById('id_nb_nouveau_patients_service_hors_mespatients').style.display='none';
 						}
+					}
+				},
+				error: function(){
+				}
+			});
+			
+			
+			jQuery.ajax({
+				type:"POST",
+				url:"ajax.php",
+				method: 'post',
+				async:true,
+				contentType: 'application/x-www-form-urlencoded',
+				encoding: 'latin1',
+				data: {action:'nb_consult_per_unit_per_year_tableau',tmpresult_num:tmpresult_num},
+				beforeSend: function(requester){
+						document.getElementById('id_nb_consult_per_unit_per_year_tableau').innerHTML="<img src=\"images/chargement_mac.gif\">";
+				},
+				success: function(requester){
+					var data=requester;
+					if (data=='deconnexion') {
+						afficher_stat_deja=0;
+						afficher_connexion("affiche_onglet_stat("+tmpresult_num+")");
+					} else {
+						document.getElementById('id_nb_consult_per_unit_per_year_tableau').innerHTML=data;
+						$("#id_table_nb_consult_per_unit_per_year_tableau").dataTable( {  "columnDefs": [ {"targets": 'no-sort',"orderable": false}],"order": [[ 0, "asc" ]],"paging": false});
+						$("#id_table_nb_consult_per_department_per_year_tableau").dataTable( {  "columnDefs": [ {"targets": 'no-sort',"orderable": false}], "order": [[ 0, "asc" ]],"paging": false});
+					}
+				},
+				error: function(){
+				}
+			});
+			
+			
+			
+			jQuery.ajax({
+				type:"POST",
+				url:"ajax.php",
+				method: 'post',
+				async:true,
+				contentType: 'application/x-www-form-urlencoded',
+				encoding: 'latin1',
+				data: {action:'nb_hospit_per_unit_per_year_tableau',tmpresult_num:tmpresult_num},
+				beforeSend: function(requester){
+						document.getElementById('id_nb_hospit_per_unit_per_year_tableau').innerHTML="<img src=\"images/chargement_mac.gif\">";
+				},
+				success: function(requester){
+					var data=requester;
+					if (data=='deconnexion') {
+						afficher_stat_deja=0;
+						afficher_connexion("affiche_onglet_stat("+tmpresult_num+")");
+					} else {
+						document.getElementById('id_nb_hospit_per_unit_per_year_tableau').innerHTML=data;
+						$("#id_table_nb_hospit_per_unit_per_year_tableau").dataTable( {  "columnDefs": [ {"targets": 'no-sort',"orderable": false}],"order": [[ 0, "asc" ]],  "paging": false});
+						$("#id_table_nb_hospit_per_department_per_year_tableau").dataTable( {  "columnDefs": [ {"targets": 'no-sort',"orderable": false}], "order": [[ 0, "asc" ]],"paging": false});
 					}
 				},
 				error: function(){
@@ -214,6 +270,8 @@
 
 	/// PYRAMIDE  DES AGES //////
 	print "
+	<h1>Statistiques basées sur les documents retrouvés</h1>
+	
 	<a href=\"parcours_moyen_d3.php?tmpresult_num=$tmpresult_num\" target=\"_blank\">".get_translation('DISPLAY_AVERAGE_JOURNEY_HOSPIT','Afficher le parcours moyen (hospitalisations) des patients')."</a><br>
 	<a href=\"parcours_complet_d3.php?tmpresult_num=$tmpresult_num\" target=\"_blank\">".get_translation('DISPLAY_AVERAGE_JOURNEY_HOSPIT_CONSULT','Afficher le parcours moyen complet (hospitalisations et consultations) des patients')."</a><br>
 	<div id=\"id_pyramide_age_document\" style=\"float:left;width: 600px; height: 400px;\"></div>
@@ -229,11 +287,16 @@
 	print "<div id=\"id_nb_nouveaux_patient_graph\" style=\"float:left; width:900px;height:400px;\"></div>";
 	print "<div id=\"id_nb_nouveaux_patient_tableau\" style=\"float:left; \"></div>";
 	
-	print "<br>";
-	print "<br>";
 	
 	print "<div id=\"id_nb_nouveau_patients_service\" style=\"float:left; width:900px;height:800px;\"></div>";
 	print "<div id=\"id_nb_nouveau_patients_service_hors_mespatients\" style=\"float:left; width:900px;height:800px;\"></div>";
+	
+	print "<h1  style=\"clear: left;padding-top:20px;\">Statistiques basées sur les passages des patients retrouvés  <a href=\"export_excel.php?tmpresult_num=$tmpresult_num&option=stat_movment\"><img src=\"images/excel_noir.png\" border=\"0\"></a></h1>";
+	print "<div id=\"id_nb_consult_per_unit_per_year_tableau\" style=\"float:left; \"></div>";
+	
+	print "<div id=\"id_nb_hospit_per_unit_per_year_tableau\" style=\"float:left; \"></div>";
+	
+	print "<div id=\"id_nb_stay_per_unit_per_year_tableau\" style=\"float:left; \"></div>";
 	
 	
 	

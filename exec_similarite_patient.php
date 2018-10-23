@@ -110,7 +110,7 @@ if ($cohort_num_exclure!='.' && $cohort_num_exclure!='') {
 }
 
 if ($requete_exclure!='.' && $requete_exclure!='') {
-	$requete_sous_population.="and c.patient_num not in (select patient_num from dwh_text where contains(text,'$requete_exclure')>0 and certainty=1 and context='patient_text') ";
+	$requete_sous_population.="and c.patient_num not in (select patient_num from dwh_text where contains(text,'$requete_exclure')>0 and context='patient_text' and certainty=1) ";
 }
 
 if ($negation=='oui') {
@@ -202,21 +202,21 @@ if ($patient_num_principal!='') {
 
 	calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_num,$limite_longueur_vecteur,$limite_valeur_similarite,$limite_min_nb_patient_par_code,$requete_sous_population,$patient_num_principal);
 	
-	$inF = fopen("$CHEMIN_GLOBAL/upload/tmp_graphviz_similarite_tfidf_$patient_num_principal.$process_num.dot","w");
+	$inF = fopen("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num_principal.$process_num.dot","w");
 	fputs( $inF,"$fichier_dot");
 	fclose($inF);
 	
-	$inF = fopen("$CHEMIN_GLOBAL/upload/tableau_html_liste_patients_$patient_num_principal.$process_num.html","w");
+	$inF = fopen("$CHEMIN_GLOBAL_UPLOAD/tableau_html_liste_patients_$patient_num_principal.$process_num.html","w");
 	fputs( $inF,"$tableau_html_liste_patients");
 	fclose($inF);
 	
-	$inF = fopen("$CHEMIN_GLOBAL/upload/tableau_html_liste_concepts_patient_similaire_$patient_num_principal.$process_num.html","w");
+	$inF = fopen("$CHEMIN_GLOBAL_UPLOAD/tableau_html_liste_concepts_patient_similaire_$patient_num_principal.$process_num.html","w");
 	fputs( $inF,"$tableau_html_liste_concepts_patient_similaire");
 	fclose($inF);
 	
 	update_process ($process_num,'0',get_translation('PROCESS_GRAPH_CREATION','Création du graph'),'');
 	
-	exec("/usr/bin/twopi \"$CHEMIN_GLOBAL/upload/tmp_graphviz_similarite_tfidf_$patient_num_principal.$process_num.dot\" -Gcharset=latin1 -Tcmapx -o \"$CHEMIN_GLOBAL/upload/tmp_graphviz_similarite_tfidf_$patient_num_principal.$process_num.map\"  -Tpng -o  \"$CHEMIN_GLOBAL/upload/tmp_graphviz_similarite_tfidf_$patient_num_principal.$process_num.png\"");
+	exec("/usr/bin/twopi \"$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num_principal.$process_num.dot\" -Gcharset=latin1 -Tcmapx -o \"$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num_principal.$process_num.map\"  -Tpng -o  \"$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num_principal.$process_num.png\"");
 	
 	
 	update_process ($process_num,'1',get_translation('PROCESS_END','process fini'),'');

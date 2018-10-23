@@ -250,7 +250,6 @@ function calcul_similarite_tfidf_simplifie ($cohort_num,$process_num,$patient_nu
 	$r=oci_fetch_array($sel,OCI_ASSOC+OCI_RETURN_NULLS);
 	$nb_pat_total_entrepot=$r['COUNT_PATIENT'];
 	
-	$memory_get_usage=memory_get_usage();
 	print "debut  calcul_similarite_tfidf_simplifie memory_get_usage $memory_get_usage\n";
 	
 	print "\n\n".benchmark ( 'debut 1' )."\n\n";
@@ -287,7 +286,7 @@ function calcul_similarite_tfidf_simplifie ($cohort_num,$process_num,$patient_nu
 			$tableau_code_nb_pat[$concept_code]++;
 			$tableau_patient_num_code_nb_concept[$patient_num][$concept_code]=$tf;
 			$tableau_patient_num_nb_concept_total[$patient_num]+=$tf;
-			$tableau_patient_num[$patient_num]='ok';
+			//$tableau_patient_num[$patient_num]='ok';
 			if ($certainty==1) {
 				$tableau_patient_num_nb_concept_distinct_non_negatif[$patient_num]++; 
 			} 
@@ -297,7 +296,7 @@ function calcul_similarite_tfidf_simplifie ($cohort_num,$process_num,$patient_nu
 			update_process ($process_num,'0',get_translation('PATIENT','patient')."  $nb_patient_principal - ".get_translation('PROCESS_EXTRACTION_CONCEPTS_FROM_ALL_PATIENTS','Extraction tous les patients et concepts')." : $i / $nb_a_traiter",'');
 		}
 	}
-	$nb_pat_total=count($tableau_patient_num);
+	$nb_pat_total=count($tableau_patient_num_nb_concept_total);
 	print "nb_pat_total : $nb_pat_total<br>";
 	print "\n\n".benchmark ( 'debut 2' )."\n\n";
 	
@@ -307,11 +306,11 @@ function calcul_similarite_tfidf_simplifie ($cohort_num,$process_num,$patient_nu
 	$tableau_longueur_vecteur=array();
 	
 	print "avant unset memory_get_usage $memory_get_usage\n";
-	foreach ($tableau_patient_num as $patient_num => $ok) {
+	foreach ($tableau_patient_num_nb_concept_total as $patient_num => $ok) {
 		if ($tableau_patient_num_nb_concept_distinct_non_negatif[$patient_num] < $limite_count_concept_par_patient_num && $patient_num!=$patient_num_principal) {
 			unset($tableau_patient_num_code_nb_concept[$patient_num]);
 			unset($tableau_patient_num_nb_concept_total[$patient_num]);
-			unset($tableau_patient_num[$patient_num]);
+			//unset($tableau_patient_num[$patient_num]);
 			unset($tableau_patient_num_nb_concept_distinct_non_negatif[$patient_num]);
 		}
 	}	
@@ -321,7 +320,7 @@ function calcul_similarite_tfidf_simplifie ($cohort_num,$process_num,$patient_nu
 	update_process ($process_num,'0',get_translation('PATIENT','patient')." $nb_patient_principal - ".get_translation('PROCESS_PATIENTS_VECTORISATION','Vectorisation des patients'),'');
 
 	///creation des vecteurs et calcul des longueurs de vecteur 
-	foreach ($tableau_patient_num as $patient_num => $ok) {
+	foreach ($tableau_patient_num_nb_concept_total as $patient_num => $ok) {
 		//if ($tableau_patient_num_nb_concept_distinct_non_negatif[$patient_num]  >= $limite_count_concept_par_patient_num || $patient_num==$patient_num_principal) { 
 			$i=0;
 			$longueur_vecteur=0;

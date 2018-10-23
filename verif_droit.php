@@ -145,7 +145,10 @@ if ($_GET['action']=='rechercher_dans_resultat') {
 	$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
 	$num_datamart_insert=$r['DATAMART_NUM'];
 	
-	insert_datamart ($num_datamart_insert,'Affiner le résultat précédent','Affiner le résultat','sysdate','sysdate','sysdate+1',1,$datamart_num);
+        if ($_GET['concept_code']!='') {
+        	$titre_datamart=" sur le concept ".$_GET['concept_code'];
+        }
+	insert_datamart ($num_datamart_insert,"Affiner le résultat précédent $titre_datamart","Affiner le résultat $titre_datamart",'sysdate','sysdate','sysdate+1',1,$datamart_num);
 	if ($datamart_num!=0) {
 		$sel_vardroit=oci_parse($dbh,"select right from dwh_datamart_user_right where user_num='$user_num_session' and datamart_num=$datamart_num");
 		oci_execute($sel_vardroit);
@@ -196,10 +199,40 @@ if ($_GET['action']=='rechercher_dans_resultat') {
                         $filtre_sql_resultat.=" and 1=2";
                 }
         }
+        if ($_GET['concept_code']!='' && $_GET['type']=='patient') {
+        	$concept_code=$_GET['concept_code'];
+		//$filtre_sql_resultat.=" and patient_num in (select patient_num from dwh_enrsem where concept_code='$concept_code' and certainty=1 and context='patient_text' and patient_num in (select  patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)) ";
+		$filtre_sql_resultat.="   AND exists 
+			                 (SELECT document_num
+			                    FROM dwh_enrsem
+			                   WHERE     concept_code = '$concept_code'
+			                         AND certainty = 1
+			                         AND context = 'patient_text'
+			                         AND patient_num= dwh_tmp_result.patient_num) ";
+        }
+        if ($_GET['concept_code']!='' && $_GET['type']=='document') {
+        	$concept_code=$_GET['concept_code'];
+		//$filtre_sql_resultat.=" and document_num in (select document_num from dwh_enrsem where concept_code='$concept_code' and certainty=1 and context='patient_text' and patient_num in (select  patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)) ";
+		$filtre_sql_resultat.="   AND exists 
+			                 (SELECT document_num
+			                    FROM dwh_enrsem
+			                   WHERE     concept_code = '$concept_code'
+			                         AND certainty = 1
+			                         AND context = 'patient_text'
+			                         AND patient_num= dwh_tmp_result.patient_num
+			                         AND document_num= dwh_tmp_result.document_num) ";
+        }
         
 	insert_datamart_resultat ("select distinct $num_datamart_insert,patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num $filtre_sql_resultat");
 	$_POST['datamart_num']=$num_datamart_insert;
 	$_GET['datamart_num']=$num_datamart_insert;
+	
+	$sel_var1=oci_parse($dbh,"select dwh_temp_seq.nextval tmpresult_num from dual  ");
+	oci_execute($sel_var1);
+	$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
+	$tmpresult_num=$r['TMPRESULT_NUM'];
+	$_POST['tmpresult_num']=$tmpresult_num;
+	$_GET['tmpresult_num']=$tmpresult_num;
 }
 
 /// Accéder au contenu d'une requete sauvegardee sur une date particuliere de resultat

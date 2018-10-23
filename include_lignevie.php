@@ -145,6 +145,10 @@ $sysdatean=$res['SYSDATEAN'];
 $sysdateheure='00:00:00 GMT';
 $sysdate="$sysdatemois $sysdatejour $sysdatean $sysdateheure";
 
+if ($last_date=='') {
+	$last_date=$sysdate;
+}
+
 $selval=oci_parse($dbh,"select 
 	patient_num,encounter_num, 
 	to_char (entry_date,  'yyyy') as an_deb,
@@ -166,14 +170,14 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 	$an_deb=$res['AN_DEB'];
 	$heure_deb=$res['HEURE_DEB'];
 	//$date_deb="$mois_deb $jour_deb $an_deb $heure_deb:00 GMT";
-	$date_deb="$mois_deb $jour_deb $an_deb 00:00:00 GMT";
+	$date_deb="$mois_deb $jour_deb $an_deb $heure_deb:00 GMT";
 	
 	$mois_sortie=mois_en_3lettre($res['MOIS_SORTIE']);
 	$jour_sortie=$res['JOUR_SORTIE'];
 	$an_sortie=$res['AN_SORTIE'];
 	$heure_sortie=$res['HEURE_SORTIE'];
 	//$out_date="$mois_sortie $jour_sortie $an_sortie $heure_sortie:00 GMT";
-	$out_date="$mois_sortie $jour_sortie $an_sortie 00:00:00 GMT";
+	$out_date="$mois_sortie $jour_sortie $an_sortie $heure_sortie:00 GMT";
 	
 
 	$entry_mode=nettoyer_accent_timeline ($res['ENTRY_MODE']);
@@ -282,7 +286,7 @@ function onLoad() {
 	var bandInfosPatient = createBandInfosPatient(eventSource2);
 	timelines[0] = Timeline.create(document.getElementById("timeline_patient"), bandInfosPatient);
 	
-	Timeline.loadXML("./timeline/xml/<? print $patient_num."_timeline.xml"; ?>",
+	Timeline.loadXML("./timeline/xml/<? print $patient_num."_timeline.xml?v=$date_today_unique"; ?>",
 	function(xml, url) { eventSource2.loadXML(xml, url); });
 }
 
@@ -308,7 +312,7 @@ function onResize() {
 	var bandInfosPatient = createBandInfosPatient(eventSource2);
 	timelines[0] = Timeline.create(document.getElementById("timeline_patient"), bandInfosPatient);
 	
-	Timeline.loadXML("timeline/xml/<? print $patient_num."_timeline.xml?v2"; ?>",
+	Timeline.loadXML("timeline/xml/<? print $patient_num."_timeline.xml?v=$date_today_unique"; ?>",
 	function(xml, url) { eventSource2.loadXML(xml, url); });
 }
 

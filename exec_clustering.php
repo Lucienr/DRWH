@@ -87,24 +87,24 @@ if ($argv[1]!='') {
 	
 	calcul_clustering ($distance,$nb_concept_commun,$limite_count_concept_par_patient_num,$limite_longueur_vecteur,$limite_valeur_similarite,$limite_min_nb_patient_par_code,"and patient_num in ( select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)");
 	
-	$inF = fopen("$CHEMIN_GLOBAL/upload/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.dot","w");
+	$inF = fopen("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.dot","w");
 	fputs( $inF,"$fichier_dot");
 	fclose($inF);
 	
-	$inF = fopen("$CHEMIN_GLOBAL/upload/tableau_html_liste_patients_$tmpresult_num.$process_num.html","w");
+	$inF = fopen("$CHEMIN_GLOBAL_UPLOAD/tableau_html_liste_patients_$tmpresult_num.$process_num.html","w");
 	fputs( $inF,"$tableau_html_liste_patients");
 	fclose($inF);
 	
 	
-	$inF = fopen("$CHEMIN_GLOBAL/upload/tableau_html_liste_clusters_$tmpresult_num.$process_num.html","w");
+	$inF = fopen("$CHEMIN_GLOBAL_UPLOAD/tableau_html_liste_clusters_$tmpresult_num.$process_num.html","w");
 	fputs( $inF,"$tableau_html_liste_clusters");
 	fclose($inF);
 	
-	$inF = fopen("$CHEMIN_GLOBAL/upload/tableau_csv_liste_clusters_$tmpresult_num.$process_num.csv","w");
+	$inF = fopen("$CHEMIN_GLOBAL_UPLOAD/tableau_csv_liste_clusters_$tmpresult_num.$process_num.csv","w");
 	fputs( $inF,"$csv");
 	fclose($inF);
 	
-	exec("/usr/bin/twopi \"$CHEMIN_GLOBAL/upload/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.dot\" -Gcharset=latin1 -Tcmapx -o \"$CHEMIN_GLOBAL/upload/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.map\"  -Tpng -o  \"$CHEMIN_GLOBAL/upload/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.png\"");
+	exec("/usr/bin/twopi \"$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.dot\" -Gcharset=latin1 -Tcmapx -o \"$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.map\"  -Tpng -o  \"$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.png\"");
 
 	update_process ($process_num,'1',get_translation('PROCESS_CLUSTER_DONE','cluster fini'),'');
 	

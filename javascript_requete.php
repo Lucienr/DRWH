@@ -79,4 +79,35 @@
 			});
 		}
 	}
+	
+	function display_patients_all_queries () {
+			list_num_query='';
+			list_num_cohort='';
+			$("input:checkbox[name=checkbox_query]:checked").each(function(){
+			    list_num_query=list_num_query + ',' + $(this).val();
+			});
+			$("input:checkbox[name=checkbox_cohort]:checked").each(function(){
+			    list_num_cohort=list_num_cohort + ',' + $(this).val();
+			});
+			jQuery.ajax({
+				type:"POST",
+				url:"ajax.php",
+				async:true,
+				data: { action:'display_patients_all_queries',list_num_query:list_num_query,list_num_cohort:list_num_cohort},
+				beforeSend: function(requester){
+					document.getElementById('id_div_all_queries_patients').innerHTML='<img src="images/chargement_mac.gif">';
+				},
+				success: function(requester){
+					if (requester=='deconnexion') {
+						afficher_connexion("display_patients_all_queries ()");
+					} else {
+						document.getElementById('id_div_all_queries_patients').innerHTML=requester;
+					}
+				},
+				complete: function(requester){
+				},
+				error: function(){
+				}
+			});
+	}
 </script>

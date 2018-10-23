@@ -31,10 +31,14 @@ define("LDAP_PASSWD", $GLOBALS['LDAP_PASSWD']);
 define("SUFFIXE_MAIL", $GLOBALS['SUFFIXE_MAIL']);
 
 function valid_login_ldap($login,$passwd) {
-	$cLdap = connectLdap();
-	if ($cLdap!='') {
-		$sResLdap = bindLdap($cLdap, $login, $passwd);
-		disconnectLdap($cLdap);
+	if (LDAP_SERVER!='') {
+		$cLdap = connectLdap();
+		if ($cLdap!='') {
+			$sResLdap = bindLdap($cLdap, $login, $passwd);
+			disconnectLdap($cLdap);
+		} else {
+			$sResLdap='nothing';
+		}
 	} else {
 		$sResLdap='nothing';
 	}
