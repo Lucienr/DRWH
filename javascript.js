@@ -2241,3 +2241,48 @@ function repondre_message_prive (num_user_destinataire) {
 	document.getElementById('id_textarea_message_prive').focus();
 	$('.chosen-select').trigger('chosen:updated');
 }
+
+
+
+function generer_resultat(query_num,tmpresult_num) {
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax.php",
+		async:true,
+		data: { action:'generer_resultat',tmpresult_num:tmpresult_num,query_num:query_num},
+		beforeSend: function(requester){
+			jQuery("#id_span_chargement").css('display','block');
+		},
+		success: function(requester){
+			result=requester;
+			if (result=='deconnexion') {
+					afficher_connexion("");
+			} else {
+				if (result=='erreur') {
+					alert(get_translation('JS_UNE_ERREUR_EST_SURVENUE','Une erreur est survenue'));
+				} else {
+					tab=result.split(',');
+					nb_patient=tab[0];
+					nb_document=tab[1];
+					nb_patient_user=tab[2];
+					nb_document_user=tab[3];
+					jQuery(".id_span_nb_patient_total").html(nb_patient);
+					jQuery(".id_span_nb_document_total").html(nb_document);
+					jQuery("#id_span_nb_patient_detail").html(nb_patient);
+					jQuery("#id_span_nb_document_detail").html(nb_document);
+					jQuery("#id_span_nb_patient_detail_user").html(nb_patient_user);
+					jQuery("#id_span_nb_document_detail_user").html(nb_document_user);
+					jQuery("#id_total_ligne").val(nb_patient_user);
+					
+					if (document.getElementById('id_num_last_ligne')) {
+						afficher_suite();
+					}
+				} 
+			}
+		},
+		complete: function(requester){
+		},
+		error: function(){
+		}
+	});
+}

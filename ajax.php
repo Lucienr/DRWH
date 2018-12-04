@@ -554,8 +554,8 @@ if ($_POST['action']=='ajouter_user_ancien') {
 				}
 	
 				$req="insert into dwh_user_profile  (user_num ,user_profile) values ($user_num,'$user_profile')";
-				$sel_var1=oci_parse($dbh,$req);
-				oci_execute($sel_var1) || die("erreur");
+				$ins=oci_parse($dbh,$req);
+				oci_execute($ins) || die("erreur");
 				
 			        $sel_var=oci_parse($dbh,"select count(*) from dwh_user_department where department_num=$department_num and  user_num =$user_num ");
 				oci_execute($sel_var);
@@ -718,8 +718,8 @@ if ($_POST['action']=='ajouter_droit_profil'  && $_SESSION['dwh_droit_admin']=='
 	$right=$_POST['right'];
 	
 	$req="insert into dwh_profile_right  (user_profile ,right) values ('$user_profile','$right')";
-	$sel_var1=oci_parse($dbh,$req);
-	oci_execute($sel_var1) ||die ("<strong style=\"color:red\">erreur profil non modifié</strong><br>");
+	$ins=oci_parse($dbh,$req);
+	oci_execute($ins) ||die ("<strong style=\"color:red\">erreur profil non modifié</strong><br>");
 	
 }
 
@@ -728,15 +728,15 @@ if ($_POST['action']=='ajouter_droit_profil_document_origin_code'  && $_SESSION[
 	$document_origin_code=$_POST['document_origin_code'];
 	
 	$req="insert into dwh_profile_document_origin  (user_profile ,document_origin_code) values ('$user_profile','$document_origin_code')";
-	$sel_var1=oci_parse($dbh,$req);
-	oci_execute($sel_var1) ||die ("<strong style=\"color:red\">erreur profil non modifié</strong><br>");
+	$ins=oci_parse($dbh,$req);
+	oci_execute($ins) ||die ("<strong style=\"color:red\">erreur profil non modifié</strong><br>");
 }
 
 if ($_POST['action']=='supprimer_profil'  && $_SESSION['dwh_droit_admin']=='ok') {
 	$user_profile=$_POST['user_profile'];
 	$req="delete from dwh_profile_right  where user_profile='$user_profile'";
-	$sel_var1=oci_parse($dbh,$req);
-	oci_execute($sel_var1) ||die ("<strong style=\"color:red\">erreur profil non supprimé</strong><br>");
+	$del=oci_parse($dbh,$req);
+	oci_execute($del) ||die ("<strong style=\"color:red\">erreur profil non supprimé</strong><br>");
 }
 
 if ($_POST['action']=='supprimer_droit_profil'   && $_SESSION['dwh_droit_admin']=='ok') {
@@ -744,8 +744,8 @@ if ($_POST['action']=='supprimer_droit_profil'   && $_SESSION['dwh_droit_admin']
 	$right=$_POST['right'];
 	
 	$req="delete from  dwh_profile_right where user_profile='$user_profile' and right='$right'";
-	$sel_var1=oci_parse($dbh,$req);
-	oci_execute($sel_var1) ||die ("<strong style=\"color:red\">erreur profil non supprimé</strong><br>");
+	$del=oci_parse($dbh,$req);
+	oci_execute($del) ||die ("<strong style=\"color:red\">erreur profil non supprimé</strong><br>");
 }
 
 if ($_POST['action']=='supprimer_droit_profil_document_origin_code'   && $_SESSION['dwh_droit_admin']=='ok') {
@@ -753,23 +753,23 @@ if ($_POST['action']=='supprimer_droit_profil_document_origin_code'   && $_SESSI
 	$document_origin_code=$_POST['document_origin_code'];
 	
 	$req="delete from  dwh_profile_document_origin where user_profile='$user_profile' and document_origin_code='$document_origin_code'";
-	$sel_var1=oci_parse($dbh,$req);
-	oci_execute($sel_var1) ||die ("<strong style=\"color:red\">erreur document_origin_code non supprimé</strong><br>");
+	$del=oci_parse($dbh,$req);
+	oci_execute($del) ||die ("<strong style=\"color:red\">erreur document_origin_code non supprimé</strong><br>");
 }
 
 if ($_POST['action']=='ajouter_nouveau_profil' && $_SESSION['dwh_droit_admin']!='') {
 	$user_profile=trim(nettoyer_pour_inserer(urldecode($_POST['user_profile'])));
 	
 	if ($user_profile!='') {
-		$sel_var1=oci_parse($dbh,"select count(*) NB from dwh_profile_right where user_profile='$user_profile'  ");
-		oci_execute($sel_var1);
-		$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
+		$sel=oci_parse($dbh,"select count(*) NB from dwh_profile_right where user_profile='$user_profile'  ");
+		oci_execute($sel);
+		$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
 		$verif=$r['NB'];
 		
 		if ($verif==0) {
 			$req="insert into dwh_profile_right  (user_profile ,right) values ('$user_profile','')";
-			$sel_var1=oci_parse($dbh,$req);
-			oci_execute($sel_var1) ||die ("<strong style=\"color:red\">erreur profil non ajouté</strong><br>");
+			$ins=oci_parse($dbh,$req);
+			oci_execute($ins) ||die ("<strong style=\"color:red\">erreur profil non ajouté</strong><br>");
 		}
 	}
 }
@@ -800,16 +800,16 @@ if ($_GET['action']=='autocomplete_rech_rapide_utilisateur_ajout') {
 
 if ($_POST['action']=='supprimer_user_admin' && $_SESSION['dwh_droit_admin']!='') {
 	$user_num=trim($_POST['user_num']);
-	$sel_var1=oci_parse($dbh,"delete from dwh_user where user_num=$user_num");
-	oci_execute($sel_var1);
-	$sel_var1=oci_parse($dbh,"delete from dwh_user_department where user_num=$user_num");
-	oci_execute($sel_var1);
-	$sel_var1=oci_parse($dbh,"delete from dwh_user_profile where user_num=$user_num");
-	oci_execute($sel_var1);
-	$sel_var1=oci_parse($dbh,"delete from dwh_query where user_num=$user_num");
-	oci_execute($sel_var1);
-	$sel_var1=oci_parse($dbh,"delete from dwh_tmp_result where user_num=$user_num");
-	oci_execute($sel_var1);
+	$del=oci_parse($dbh,"delete from dwh_user where user_num=$user_num");
+	oci_execute($del);
+	$del=oci_parse($dbh,"delete from dwh_user_department where user_num=$user_num");
+	oci_execute($del);
+	$del=oci_parse($dbh,"delete from dwh_user_profile where user_num=$user_num");
+	oci_execute($del);
+	$del=oci_parse($dbh,"delete from dwh_query where user_num=$user_num");
+	oci_execute($del);
+	$del=oci_parse($dbh,"delete from dwh_tmp_result where user_num=$user_num");
+	oci_execute($del);
 }
 
 
@@ -1963,6 +1963,7 @@ if ($_POST['action']=='importer_patient_cohorte') {
   		$lastname=trim($tab[1]);
   		$firstname=trim($tab[2]);
   		$birth_date=trim($tab[3]);
+  		$patient_num='';
   		if ($hospital_patient_id!='') {
 			$patient_num=get_patient_num ($hospital_patient_id);
 		} 
@@ -2590,6 +2591,11 @@ if ($_POST['action']=='nb_consult_per_unit_per_year_tableau') {
 if ($_POST['action']=='nb_hospit_per_unit_per_year_tableau') {
 	$tmpresult_num=$_POST['tmpresult_num'];
 	nb_hospit_per_unit_per_year_tableau ($tmpresult_num);
+}
+
+if ($_POST['action']=='nb_patient_per_unit_per_year_tableau') {
+	$tmpresult_num=$_POST['tmpresult_num'];
+	nb_patient_per_unit_per_year_tableau ($tmpresult_num);
 }
 
 if ($_POST['action']=='calcul_max_concepts') {
@@ -3568,6 +3574,20 @@ if ($_GET['action']=='load_file' ) {
 	header("Pragma: public");
 	header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
 	print "$load_file";
+}
+
+if ($_POST['action']=='generer_resultat' ) {
+	$query_num=$_POST['query_num'];
+	$tmpresult_num=$_POST['tmpresult_num'];
+	$sel = oci_parse($dbh, "select xml_query , to_char(QUERY_DATE,'DD/MM/YYYY HH24:MI') as DATE_REQUETE_CHAR, QUERY_DATE,user_num from dwh_query where query_num=$query_num");   
+	oci_execute($sel);
+	$r = oci_fetch_array($sel, OCI_ASSOC);
+	if ($r['XML_QUERY']) {
+		$xml=$r['XML_QUERY']->load();
+	}
+	generer_resultat($xml,$tmpresult_num);
+	list($nb_patient,$nb_document,$nb_patient_user,$nb_document_user)=get_nb_result($tmpresult_num);
+	print "$nb_patient,$nb_document,$nb_patient_user,$nb_document_user";
 }
 
 

@@ -214,6 +214,7 @@ if ($_POST['action']=='rechercher') {
 		$xml.="<minimum_period_folloup></minimum_period_folloup>";
 		$xml.="<list_excluded_cohort></list_excluded_cohort>";
 		$xml.="</query>";
+		$query_num=sauver_requete_temp($xml);
 	}
 }
 
@@ -331,14 +332,12 @@ if ($_POST['action']=='rechercher') {
 		$class_menu_stat='';
 		$display_detail='none';
 		$class_menu_detail='';
-		$afficher_result='';
+		$afficher_result="
+		generer_resultat('$query_num','$tmpresult_num') ;
+		";
 		if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') {
 			$display_detail='block';
 			$class_menu_detail=' current ';
-			$afficher_result="
-			if (document.getElementById('id_num_last_ligne')) {
-				afficher_suite();
-			}";
 			$initiate_result="voir_detail_dwh('resultat_detail');";
 		} else {
 			if ($_SESSION['dwh_droit_see_stat'.$datamart_num]=='ok') {
@@ -406,7 +405,7 @@ if ($_POST['action']=='rechercher') {
 		</div>
 	<?
 		$readable_query=readable_query ($xml);
-		list($nb_patient,$nb_document,$nb_patient_user,$nb_document_user)=generer_resultat($xml,$tmpresult_num);
+		//list($nb_patient,$nb_document,$nb_patient_user,$nb_document_user)=generer_resultat($xml,$tmpresult_num);
 	?>
 	
 	<?
@@ -419,16 +418,16 @@ if ($_POST['action']=='rechercher') {
 				$phrase_nb_patient_detail= "<strong>".get_translation('ON_YOUR_AUTHORIZED_DOCUMENTS_ORIGIN','Sur Vos types de document')." ($liste_document_origin_code) :</strong> <br>";
 			} 
 			
-			$phrase_nb_patient_detail.= "$nb_patient_user  ".get_translation('X_OUT_OF_Y_PATIENTS','sur')." $nb_patient Patients<br>";
-			$phrase_nb_patient_detail.= "$nb_document_user ".get_translation('X_OUT_OF_Y_PATIENTS','sur')." $nb_document Documents<br><br>";
+			$phrase_nb_patient_detail.= "<span id=\"id_span_nb_patient_detail_user\"></span>  ".get_translation('X_OUT_OF_Y_PATIENTS','sur')." <span id=\"id_span_nb_patient_detail\"></span> Patients<br>";
+			$phrase_nb_patient_detail.= "<span id=\"id_span_nb_document_detail_user\"></span> ".get_translation('X_OUT_OF_Y_PATIENTS','sur')." <span id=\"id_span_nb_document_detail\"></span> Documents<br><br>";
 		} else {
-			$phrase_nb_patient_detail= "$nb_patient ".get_translation('PATIENTS','Patients')."<br>";
-			$phrase_nb_patient_detail.= "$nb_document ".get_translation('DOCUMENTS','Documents')."<br><br>";
+			$phrase_nb_patient_detail= "<span id=\"id_span_nb_patient_detail\"></span> ".get_translation('PATIENTS','Patients')."<br>";
+			$phrase_nb_patient_detail.= "<span id=\"id_span_nb_document_detail\"></span> ".get_translation('DOCUMENTS','Documents')."<br><br>";
 		}
 		
 		$phrase_nb_patient_total= "<strong>".get_translation('ON_THE_ENTIRE_HOSPITAL',"Sur tout l'hôpital")." :</strong> <br>";
-		$phrase_nb_patient_total.= "$nb_patient ".get_translation('PATIENTS','Patients')."<br>";
-		$phrase_nb_patient_total.= "$nb_document ".get_translation('DOCUMENTS','Documents')."<br><br>";
+		$phrase_nb_patient_total.= "<span class=\"id_span_nb_patient_total\"></span> ".get_translation('PATIENTS','Patients')."<br>";
+		$phrase_nb_patient_total.= "<span class=\"id_span_nb_document_total\"></span> ".get_translation('DOCUMENTS','Documents')."<br><br>";
 		
 		
 		
@@ -574,12 +573,7 @@ if ($_POST['action']=='rechercher') {
 				<span id="id_span_chargement" style="display: none;"><img src="images/chargement_mac.gif"></span>
 			</div>
 		<? } ?>
-		<? // if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') { 
-			//<div id="id_div_dwh_cohorte" style="display:none;" class="div_result">
-			//	<? print $phrase_nb_patient_total; 
-			//	<? include "include_cohorte.php"; 
-			//</div>
-		// } ?>
+		
 		<? if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_cohorte_encours" style="display:none;" class="div_result">
 				<? print $phrase_nb_patient_total; ?>

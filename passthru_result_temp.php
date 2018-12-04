@@ -84,6 +84,24 @@ $upd = oci_parse($dbh,"update  dwh_tmp_query set count_patient=$nb_patient  wher
 oci_execute($upd);
 
 print "update  dwh_tmp_query set count_patient=$nb_patient  where query_key='$query_key_arg' and user_num=$user_num and datamart_num=$datamart_num \n\n";
+
+foreach ($tableau_final_query_key as $document_num => $query_key) {
+	$patient_num=$tableau_final_patient_num[$document_num];
+	//$user_num=$tableau_final_user_num[$document_num];
+	//$datamart_num=$tableau_final_num_datamart[$document_num];
+	$document_origin_code=$tableau_final_document_origin_code[$document_num];
+	$document_date=$tableau_final_date_document[$document_num];
+	$query_key=str_replace("'","''",$query_key);
+        $ins = oci_parse($dbh, " insert into dwh_tmp_preresult (document_num ,query_key , tmpresult_date,patient_num,user_num,datamart_num,document_origin_code,document_date) values ($document_num,'$query_key',sysdate,'$patient_num','$user_num','$datamart_num','$document_origin_code',to_date('$document_date','DD/MM/YYYY HH24:MI')) ");   
+        oci_execute($ins);
+}
+
+
+$upd = oci_parse($dbh,"update  dwh_tmp_query set status_calculate=1  where query_key='$query_key_arg' and user_num=$user_num and datamart_num=$datamart_num ");   
+oci_execute($upd);
+
+print "update  dwh_tmp_query set status_calculate=1  where query_key='$query_key_arg' and user_num=$user_num and datamart_num=$datamart_num  \n\n";
+
 if ($nb_patient>0) {
 	$tab_requete=explode(";",$query_key_arg);
 	$requete_ft=$tab_requete[0];
@@ -97,25 +115,7 @@ if ($nb_patient>0) {
 		oci_execute($sel);
 	}
 }
-print "test 2 \n\n";
 
-foreach ($tableau_final_query_key as $document_num => $query_key) {
-	$patient_num=$tableau_final_patient_num[$document_num];
-	//$user_num=$tableau_final_user_num[$document_num];
-	//$datamart_num=$tableau_final_num_datamart[$document_num];
-	$document_origin_code=$tableau_final_document_origin_code[$document_num];
-	$document_date=$tableau_final_date_document[$document_num];
-	$query_key=str_replace("'","''",$query_key);
-        $ins = oci_parse($dbh, " insert into dwh_tmp_preresult (document_num ,query_key , tmpresult_date,patient_num,user_num,datamart_num,document_origin_code,document_date) values ($document_num,'$query_key',sysdate,'$patient_num','$user_num','$datamart_num','$document_origin_code',to_date('$document_date','DD/MM/YYYY HH24:MI')) ");   
-        oci_execute($ins);
-}
-print "test 3 \n\n";
-
-
-$upd = oci_parse($dbh,"update  dwh_tmp_query set status_calculate=1  where query_key='$query_key_arg' and user_num=$user_num and datamart_num=$datamart_num ");   
-oci_execute($upd);
-
-print "update  dwh_tmp_query set status_calculate=1  where query_key='$query_key_arg' and user_num=$user_num and datamart_num=$datamart_num  \n\n";
 
 
 
