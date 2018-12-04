@@ -273,9 +273,9 @@ function autorisation_voir_patient_nominative ($patient_num,$user_num) {
 	
 	$verif='';
 	if ($user_num!='') {
-		$sel_var1=oci_parse($dbh,"select right from dwh_user_profile,dwh_profile_right  where dwh_user_profile.user_profile=dwh_profile_right.user_profile and user_num=$user_num");
-		oci_execute($sel_var1);
-		while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		$sel=oci_parse($dbh,"select right from dwh_user_profile,dwh_profile_right  where dwh_user_profile.user_profile=dwh_profile_right.user_profile and user_num=$user_num");
+		oci_execute($sel);
+		while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 			$right=$r['RIGHT'];
 			$tableau_droit[$right]='ok';
 		}
@@ -335,9 +335,9 @@ function autorisation_voir_patient ($patient_num,$user_num) {
 	global $dbh;
 	
 	if ($_SESSION['dwh_droit_all_departments0']=='') {
-		$sel_var1=oci_parse($dbh,"select right from dwh_user_profile a, dwh_profile_right b where user_num=$user_num and a.user_profile=b.user_profile");
-		oci_execute($sel_var1);
-		while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		$sel=oci_parse($dbh,"select right from dwh_user_profile a, dwh_profile_right b where user_num=$user_num and a.user_profile=b.user_profile");
+		oci_execute($sel);
+		while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 			$right=$r['RIGHT'];
 			$_SESSION['dwh_droit_'.$right.'0']='ok';
 		}
@@ -396,9 +396,9 @@ function liste_document_origin_code_tout_compris($patient_num,$user_num) {
 	
 	$liste_document_origin_code_session='';
 	if ($user_num!='') {
-		$sel_var1=oci_parse($dbh,"select distinct document_origin_code from dwh_profile_document_origin, dwh_user_profile where user_num='$user_num' and dwh_profile_document_origin.user_profile= dwh_user_profile.user_profile");
-		oci_execute($sel_var1);
-		while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		$sel=oci_parse($dbh,"select distinct document_origin_code from dwh_profile_document_origin, dwh_user_profile where user_num='$user_num' and dwh_profile_document_origin.user_profile= dwh_user_profile.user_profile");
+		oci_execute($sel);
+		while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 			$document_origin_code=$r['DOCUMENT_ORIGIN_CODE'];
 			$liste_document_origin_code_session.="'$document_origin_code',";
 		}
@@ -415,5 +415,67 @@ function liste_document_origin_code_tout_compris($patient_num,$user_num) {
 		$liste_document_origin_code_session=substr($liste_document_origin_code_session,0,-1);
 	}
 	return $liste_document_origin_code_session;
+}
+
+
+
+function autorisation_ecrf_voir ($ecrf_num,$user_num) {
+	global $dbh;
+	$verif='';
+        if ($ecrf_num!='' && $user_num!='') {
+		$sel_vardroit=oci_parse($dbh,"select user_num from dwh_ecrf where ecrf_num=$ecrf_num");
+	        oci_execute($sel_vardroit);
+	        $r=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
+	        $user_num_creation=$r['USER_NUM'];
+		if ($user_num_creation==$user_num) {
+			$verif='ok';
+		}
+		$sel_vardroit=oci_parse($dbh,"select user_num from dwh_ecrf_user_right where user_num=$user_num and ecrf_num=$ecrf_num");
+	        oci_execute($sel_vardroit);
+	        $r=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
+	        $user_num_ecrf=$r['USER_NUM'];
+		if ($user_num_ecrf==$user_num) {
+			$verif='ok';
+		}
+	}
+	return ($verif);
+}
+
+function autorisation_ecrf_modifier ($ecrf_num,$user_num) {
+	global $dbh;
+	$verif='';
+        if ($ecrf_num!='' && $user_num!='') {
+		$sel_vardroit=oci_parse($dbh,"select user_num from dwh_ecrf where ecrf_num=$ecrf_num");
+	        oci_execute($sel_vardroit);
+	        $r=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
+	        $user_num_creation=$r['USER_NUM'];
+		if ($user_num_creation==$user_num) {
+			$verif='ok';
+		}
+		$sel_vardroit=oci_parse($dbh,"select user_num from dwh_ecrf_user_right where user_num=$user_num and right='modifier' and ecrf_num=$ecrf_num");
+	        oci_execute($sel_vardroit);
+	        $r=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
+	        $user_num_ecrf=$r['USER_NUM'];
+		if ($user_num_ecrf==$user_num) {
+			$verif='ok';
+		}
+	}
+	return ($verif);
+
+}
+
+function autorisation_ecrf_supprimer ($ecrf_num,$user_num) {
+	global $dbh;
+	$verif='';
+        if ($ecrf_num!='' && $user_num!='') {
+		$sel_vardroit=oci_parse($dbh,"select user_num from dwh_ecrf where ecrf_num=$ecrf_num");
+	        oci_execute($sel_vardroit);
+	        $r=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
+	        $user_num_creation=$r['USER_NUM'];
+		if ($user_num_creation==$user_num) {
+			$verif='ok';
+		}
+	}
+	return ($verif);
 }
 ?>

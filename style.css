@@ -367,6 +367,8 @@ position:relative;float:left;padding-top:20px;padding-left:20px;text-align:left;
 .tableau_cohorte td,.tableau_cohorte th{
 	font-size:12px;
 }
+
+
 .span_alerte_ancien {   
    background-color: white;
     border: 1px solid black;
@@ -400,6 +402,16 @@ table.tablefin,table.tablefin td,table.tablefin  tr,table.tablefin  th {
 .tablefin td,.tablefin   th{
 	font-size:12px;
 	 padding: 1px 4px 1px 2px;
+}
+
+
+table.tablefin_small,table.tablefin_small td,table.tablefin_small  tr,table.tablefin_small  th { 
+    border: 1px black solid;  
+    border-collapse: collapse;
+}
+.tablefin td,.tablefin_small   th{
+    font-size:10px;
+     padding: 1px 1px 1px 1px;
 }
 
 .chosen-container .chosen-results li {
@@ -796,4 +808,35 @@ background-color:#D1DFEE;
 
 .over_color:hover {
 	background-color:#dcdff5;
+}
+
+
+table.dataTable thead th,  table.dataTable thead td {
+  padding: 2px;
+}
+table.dataTable tbody th, table.dataTable tbody td {
+  padding: 2px;
+}
+
+
+
+#id_tableau_ecrf_select td,#id_tableau_ecrf_select  th{
+	font-size:12px;
+}
+
+.tableau_ecrf td,.tableau_ecrf th{
+	font-size:12px;
+}
+
+.icone_ecrf {
+	cursor:pointer;
+	display:none;
+}
+span.icone_ecrf {
+	padding-left: 10px;
+}
+
+li.ecrf {
+display : list-item;
+ list-style-image : url(images/mini_ecrf.png);
 }

@@ -86,6 +86,7 @@ $date_today_unique=date("dmYHis");
 	<script src="javascript.js?<? print "v=$date_today_unique"; ?>" type="text/javascript"></script>
 	
 	<link href="style.css?<? print "v=$date_today_unique"; ?>" type="text/css" rel="StyleSheet"></link>
+	<link href="style_local.css?<? print "v=$date_today_unique"; ?>" type="text/css" rel="StyleSheet"></link>
 	<? if ($_SESSION['dwh_droit_fuzzy_display']=='ok') { ?>
 		<link href="style_capture_fuzzy.css?<? print "v=$date_today_unique"; ?>" type="text/css" rel="StyleSheet"></link>
 	<? } ?>

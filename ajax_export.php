@@ -21,8 +21,6 @@
     75015 Paris
     France
 */
-?>
-<?
 session_start();
 
 ini_set("memory_limit","100M");

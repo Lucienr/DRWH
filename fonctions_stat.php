@@ -916,6 +916,8 @@ function nb_patient_per_unit_per_year_tableau ($tmpresult_num) {
 	$year_max=0;
 	$year_min=2012;
 	
+	$year_max=date("Y");
+	
 	$req="select distinct unit_code,unit_num,department_num, to_char(entry_date,'YYYY') as year,  patient_num from 
 	dwh_patient_mvt 
 	where patient_num in (select patient_num  from dwh_tmp_result where tmpresult_num=$tmpresult_num) and type_mvt='C' and entry_date is not null order by to_char(entry_date,'YYYY') ";
@@ -951,15 +953,15 @@ function nb_patient_per_unit_per_year_tableau ($tmpresult_num) {
 		$tableau_nb_patient_unit[$unit_num]++;
 		$tableau_patient_num_deja_vu_unit[$unit_num][$patient_num]='ok';
 		
-		if ($year_min>$year) {
-			$year_min=$year;
-		}
-		if ($year_max<$year) {
-			$year_max=$year;
-		}
+		//if ($year_min>$year) {
+		//	$year_min=$year;
+		//}
+		//if ($year_max<$year) {
+		//	$year_max=$year;
+		//}
 	}
 	
-	print "<h2>".get_translation('TABLE_NB_CONSULT_PER_DEPARTMENT_AND_YEAR','Nombre de consultations par service et par an')."<h2>";	
+	print "<h2>".get_translation('TABLE_NB_CONSULT_PER_DEPARTMENT_AND_YEAR','Nombre de patients par service et par an (hospit, consult, etc.)')."<h2>";	
 	print "<table border=\"1\" class=\"tablefin\" id=\"id_table_nb_consult_per_department_per_year_tableau\">
 	<thead>
 	<tr><th rowspan=\"2\" >".get_translation('SERVICE','Service')."</th>";
@@ -997,7 +999,7 @@ function nb_patient_per_unit_per_year_tableau ($tmpresult_num) {
 	
 	
 	
-	print "<h2>".get_translation('TABLE_NB_CONSULT_PER_UNIT_AND_YEAR','Nombre de consultations par unité et par an')."<h2>";	
+	print "<h2>".get_translation('TABLE_NB_CONSULT_PER_UNIT_AND_YEAR','Nombre de patients par unité et par an (hospit, consult, etc.)')."<h2>";	
 	print "<table border=\"1\" class=\"tablefin\" id=\"id_table_nb_consult_per_unit_per_year_tableau\">
 	<thead>
 	<tr><th rowspan=\"2\" >".get_translation('UNIT','Unité')."</th>";
@@ -1048,6 +1050,7 @@ function nb_consult_per_unit_per_year_tableau ($tmpresult_num) {
 	
 	$year_max=0;
 	$year_min=2012;
+	$year_max=date("Y");
 	
 	$req="select  unit_code,unit_num,department_num, to_char(entry_date,'YYYY') as year,  patient_num from 
 	dwh_patient_mvt
@@ -1072,9 +1075,9 @@ function nb_consult_per_unit_per_year_tableau ($tmpresult_num) {
 		if ($year_min>$year) {
 			$year_min=$year;
 		}
-		if ($year_max<$year) {
-			$year_max=$year;
-		}
+		//if ($year_max<$year) {
+		//	$year_max=$year;
+		//}
 	}
 	
 	print "<h2>".get_translation('TABLE_NB_CONSULT_PER_DEPARTMENT_AND_YEAR','Nombre de consultations par service et par an')."<h2>";	
@@ -1147,6 +1150,7 @@ function nb_hospit_per_unit_per_year_tableau ($tmpresult_num) {
 	
 	$year_max=0;
 	$year_min=2012;
+	$year_max=date("Y");
 	
 	$req="select  unit_code,unit_num,department_num, to_char(out_date,'YYYY') as year,  patient_num from 
 	dwh_patient_mvt
@@ -1173,9 +1177,9 @@ function nb_hospit_per_unit_per_year_tableau ($tmpresult_num) {
 		if ($year_min>$year) {
 			$year_min=$year;
 		}
-		if ($year_max<$year) {
-			$year_max=$year;
-		}
+		//if ($year_max<$year) {
+		//	$year_max=$year;
+		//}
 	}
 	
 	print "<h2>".get_translation('TABLE_NB_HOSPIT_PER_DEPARTMENT_AND_YEAR','Nombre d hospitalisations par service et par an')."<h2>";	
@@ -1206,7 +1210,7 @@ function nb_hospit_per_unit_per_year_tableau ($tmpresult_num) {
 	
 	
 	
-	print "<h2>".get_translation('TABLE_NB_HOSPIT_PER_UNIT_AND_YEAR','Nombre de hospitalisations par unité et par an')."<h2>";	
+	print "<h2>".get_translation('TABLE_NB_HOSPIT_PER_UNIT_AND_YEAR','Nombre d hospitalisations par unité et par an')."<h2>";	
 	print "<table border=\"1\" class=\"tablefin\" id=\"id_table_nb_hospit_per_unit_per_year_tableau\">
 	<thead>
 	<tr><th>".get_translation('UNIT','Unité')."</th>";

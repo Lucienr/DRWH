@@ -285,8 +285,8 @@ include "fonctions_patient.php";
 			});
 		}
 		function afficher_onglet_concepts_patient_et_resume (patient_num) {
-			if (tableau_onglet_deja_ouvert['afficher_onglet_concepts_patient_et_resume']!='ok') {
-				tableau_onglet_deja_ouvert['afficher_onglet_concepts_patient_et_resume']='ok';
+			if (tableau_onglet_deja_ouvert['concepts_resume']!='ok') {
+				tableau_onglet_deja_ouvert['concepts_resume']='ok';
 				jQuery.ajax({
 					type:"POST",
 					url:"ajax.php",
@@ -309,8 +309,8 @@ include "fonctions_patient.php";
 		}
 		
 		function afficher_onglet_similarite_patient (patient_num) {
-			if (tableau_onglet_deja_ouvert['afficher_onglet_similarite_patient']!='ok') {
-				tableau_onglet_deja_ouvert['afficher_onglet_similarite_patient']='ok';
+			if (tableau_onglet_deja_ouvert['similarite_patient']!='ok') {
+				tableau_onglet_deja_ouvert['similarite_patient']='ok';
 				jQuery.ajax({
 					type:"POST",
 					url:"similarite_ajax.php",
@@ -330,7 +330,6 @@ include "fonctions_patient.php";
 				});
 			}
 		}
-		
 		function precalcul_nb_patient_similarite_patient (patient_num) {
 			requete=document.getElementById("id_textarea_similarite_patient_requete").value;
 			requete_exclure=document.getElementById("id_input_requete_exclure").value;

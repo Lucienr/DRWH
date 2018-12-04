@@ -262,6 +262,33 @@
 				error: function(){
 				}
 			});
+			
+			
+			jQuery.ajax({
+				type:"POST",
+				url:"ajax.php",
+				method: 'post',
+				async:true,
+				contentType: 'application/x-www-form-urlencoded',
+				encoding: 'latin1',
+				data: {action:'nb_patient_per_unit_per_year_tableau',tmpresult_num:tmpresult_num},
+				beforeSend: function(requester){
+						document.getElementById('id_nb_patient_per_unit_per_year_tableau').innerHTML="<img src=\"images/chargement_mac.gif\">";
+				},
+				success: function(requester){
+					var data=requester;
+					if (data=='deconnexion') {
+						afficher_stat_deja=0;
+						afficher_connexion("affiche_onglet_stat("+tmpresult_num+")");
+					} else {
+						document.getElementById('id_nb_patient_per_unit_per_year_tableau').innerHTML=data;
+						$("#id_table_nb_patient_per_unit_per_year_tableau").dataTable( {  "columnDefs": [ {"targets": 'no-sort',"orderable": false}],"order": [[ 0, "asc" ]],  "paging": false});
+						$("#id_table_nb_patient_per_department_per_year_tableau").dataTable( {  "columnDefs": [ {"targets": 'no-sort',"orderable": false}], "order": [[ 0, "asc" ]],"paging": false});
+					}
+				},
+				error: function(){
+				}
+			});
 		}
 	}
 
@@ -297,6 +324,8 @@
 	print "<div id=\"id_nb_hospit_per_unit_per_year_tableau\" style=\"float:left; \"></div>";
 	
 	print "<div id=\"id_nb_stay_per_unit_per_year_tableau\" style=\"float:left; \"></div>";
+	
+	print "<div id=\"id_nb_patient_per_unit_per_year_tableau\" style=\"float:left; \"></div>";
 	
 	
 	

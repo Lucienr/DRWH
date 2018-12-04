@@ -268,7 +268,7 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 			                $nb_patient_cohorte_commentaire=$r_pat['NB_PATIENT'];
 			                
 			                
-			                $sel_pat=oci_parse($dbh,"select lastname,firstname from dwh_user where user_num=$user_num");
+			                $sel_pat=oci_parse($dbh,"select lastname,firstname from dwh_user where user_num=$user_num_creation");
 			                oci_execute($sel_pat);
 			                $r_pat=oci_fetch_array($sel_pat,OCI_RETURN_NULLS+OCI_ASSOC);
 			                $lastname_createur=$r_pat['LASTNAME'];
@@ -391,9 +391,9 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 						print "<pre>;garcelon;nicolas;13/05/2007<br>9999999<br></pre><br>";
 						print "
 						<table border=\"0\">
-							<tr><td style=\"text-valign:top;\">
+							<tr><td style=\"vertical-align:top;\">
 							<textarea id=\"id_textarea_importer_patient\"  style=\"width:500px;\" rows=\"10\"></textarea>
-							</td><td style=\"text-valign:top;\"><div id=\"id_journal_import_patient\" style=\"overflow: auto;width:500px;height:177px;font-family:monospace;font-size:10px;\"></div></td></tr>
+							</td><td style=\"vertical-align:top;\"><div id=\"id_journal_import_patient\" style=\"overflow: auto;width:500px;height:177px;font-family:monospace;font-size:10px;\"></div></td></tr>
 						</table>
 						<br>
 						<input type=\"button\" value=\"importer ces patients\" onclick=\"importer_patient_cohorte($cohort_num_voir,'importer');\"> 
