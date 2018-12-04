@@ -42,8 +42,13 @@ session_write_close();
 			<td class="connexion" width="1"> | </td>
 			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=admin_user" nowrap=nowrap><? print get_translation('THE_USERS','Les utilisateurs'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
+<!--
 			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=datamart" nowrap=nowrap><? print get_translation('THE_DATAMART','Les datamart'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
+-->
+			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=opposition" nowrap=nowrap><? print get_translation('OPPOSITION','Opposition'); ?></a></td>
+			<td class="connexion" width="1"> | </td>
+
 			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=admin_concepts" nowrap=nowrap><? print get_translation('THE_CONCEPTS','Les concepts'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=admin_etl" nowrap=nowrap><? print get_translation('ETL','ETL'); ?></a></td>
@@ -191,8 +196,10 @@ if ($_GET['action']=='annuaire') {
 			var action='';
 			if (document.getElementById('id_checkbox_document_origin_code_'+user_profile+'_'+id_document_origin_code).checked==true) {
 				action='ajouter_droit_profil_document_origin_code';
+				jQuery('#id_td_'+user_profile+'_'+id_document_origin_code).css('backgroundColor','#ffccff');
 			} else {
 				action='supprimer_droit_profil_document_origin_code';
+				jQuery('#id_td_'+user_profile+'_'+id_document_origin_code).css('backgroundColor','#ffffff');
 			}
 		
 			jQuery.ajax({
@@ -279,10 +286,12 @@ if ($_GET['action']=='annuaire') {
 						$nb=$res['NB'];
 						if ($nb>0) {
 							$check='checked';
+							$bgcolor='#ffccff';
 						} else {
 							$check='';
+							$bgcolor='#ffffff';
 						}
-						print "<td><input type=checkbox id=\"id_checkbox_document_origin_code_".$user_profile."_tout\" onclick=\"modifier_droit_profil_document_origin_code('$user_profile','tout','tout');\" $check></td>";
+						print "<td id=\"id_td_".$user_profile."_tout\"  style=\"background-color:$bgcolor;\"><input type=checkbox id=\"id_checkbox_document_origin_code_".$user_profile."_tout\" onclick=\"modifier_droit_profil_document_origin_code('$user_profile','tout','tout');\" $check></td>";
 						foreach ($tableau_document_origin_code as $document_origin_code) { 
 							$sel=oci_parse($dbh,"select count(*) as NB from dwh_profile_document_origin where user_profile='$user_profile' and document_origin_code='$document_origin_code'");
 							oci_execute($sel);
@@ -290,11 +299,13 @@ if ($_GET['action']=='annuaire') {
 							$nb=$res['NB'];
 							if ($nb>0) {
 								$check='checked';
+								$bgcolor='#ffccff';
 							} else {
 								$check='';
+								$bgcolor='#ffffff';
 							}
 							$id_document_origin_code=preg_replace("/[^a-z]/i","_",$document_origin_code);
-							print "<td><input type=checkbox id=\"id_checkbox_document_origin_code_".$user_profile."_".$id_document_origin_code."\" onclick=\"modifier_droit_profil_document_origin_code('$user_profile','$document_origin_code','$id_document_origin_code');\" $check></td>";
+							print "<td id=\"id_td_".$user_profile."_".$id_document_origin_code."\" style=\"background-color:$bgcolor;\"><input type=checkbox id=\"id_checkbox_document_origin_code_".$user_profile."_".$id_document_origin_code."\" onclick=\"modifier_droit_profil_document_origin_code('$user_profile','$document_origin_code','$id_document_origin_code');\" $check></td>";
 						}
 						print "</tr>";
 					}
@@ -715,7 +726,7 @@ if ($_GET['action']=='annuaire') {
 		<div id="id_admin_ajouter_user"  class="div_admin" style="display:none;">
 			<h3><? print get_translation('ADD_USER','Ajouter un utilisateur'); ?></h3>
 			<table>
-				<tr><td class="question_user"><? print get_translation('SEARCH_IN_HOSPITAL_DIRECTORY',"Rechercher dans l'annuaire de Necker"); ?> : </td><td>
+				<tr><td class="question_user"><? print get_translation('SEARCH_IN_HOSPITAL_DIRECTORY',"Rechercher dans l'annuaire de l'hôpital"); ?> : </td><td>
 				<div class="ui-widget" style="padding-left: 0px;width:260px;font-size:10px;">
 					<span class="ui-helper-hidden-accessible" aria-live="polite" role="status"></span>
 					<span class="ui-helper-hidden-accessible" role="status" aria-live="polite"></span>
@@ -896,6 +907,7 @@ if ($_GET['action']=='admin_etl') {
 		<h1><? print get_translation('ETL','ETL'); ?></h1>
 		
 <?
+	$nb_jours=200;
 	print "<br><h3 style=\"color: #333333;fill: #333333;font-size: 18px;font-family:Lucida Sans Unicode;font-weight:normal;\">".get_translation('DOCUMENT_ORIGINS_DETAILED','Libellé des origines des document')."</h3>
 	
 	<form method=post action=admin.php>
@@ -910,6 +922,13 @@ if ($_GET['action']=='admin_etl') {
 	}
 	print "</table><input type=submit value=".get_translation('SAVE','sauver')."><input type=hidden name=action value=sauver_document_origin_str></form><br><br>";
 
+
+
+	// AFFICHAGE nb documents au cours du temps ///
+	afficher_etat_entrepot('document_origin_code_an_mois_presence','1000px','','','');
+
+
+	// AFFICHAGE EXECUTION DES SCRIPTS  ///
 	$tableau_script_date=array();
 	$tableau_script=array();
 	$sel_var1=oci_parse($dbh,"select  script,  to_char(last_execution_date,'DD/MM/YYYY') as char_last_execution_date,commentary,count_document from dwh_etl_script order by script,last_execution_date asc ");
@@ -926,7 +945,7 @@ if ($_GET['action']=='admin_etl') {
 		$tableau_script[$script]='ok';
 	}
 	
-	$sel_var1=oci_parse($dbh,"select to_char(max(last_execution_date)-365,'DD/MM/YYYY') as min_char_last_execution_date from dwh_etl_script");
+	$sel_var1=oci_parse($dbh,"select to_char(max(last_execution_date)-$nb_jours,'DD/MM/YYYY') as min_char_last_execution_date from dwh_etl_script");
 	oci_execute($sel_var1);
 	$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
 	$min_char_last_execution_date=$r['MIN_CHAR_LAST_EXECUTION_DATE'];
@@ -952,8 +971,46 @@ if ($_GET['action']=='admin_etl') {
 		print "</tr>";
 	}
 	print "</table>";
-	
-	afficher_etat_entrepot('document_origin_code_an_mois_presence','1000px','','','');
+
+
+
+	// AFFICHAGE NB DE DOCUMENTS INTEGRES SUR 31 DERNIERS JOURS ///
+	$nb_jours=20;
+	print "<br><br><h3>".get_translation('NB_DOCUMENTS_INSERTED_LAST_DAYS','Les documents insérés sur ses N derniers jours')."</h3>";
+	print get_translation('LAST_N_DAYS','N derniers jours')."  <input type=\"text\" size=\"2\" class=\"form\" value=\"$nb_jours\" id=\"id_calculate_nb_insert_nb_jours\"> <input type=\"button\" value=\"ok\" onclick=\"calculate_nb_insert()\">
+	<div id=\"id_calculate_nb_insert\"></div>
+	<script language=\"javascript\">
+		function calculate_nb_insert() {
+			nb_jours=$('#id_calculate_nb_insert_nb_jours').val();
+			jQuery.ajax({
+				type:'POST',
+				url:'ajax_admin.php',
+				async:true,
+				data: { action:'calculate_nb_insert',nb_jours:nb_jours},
+				beforeSend: function(requester){
+							$(\"#id_calculate_nb_insert\").html(\"<img src='images/chargement_mac.gif'>\");
+				},
+				success: function(requester){
+					if (requester=='deconnexion') {
+						afficher_connexion();
+					} else {
+						$('#id_calculate_nb_insert').html(requester);
+					}
+				},
+				complete: function(requester){
+				},
+				error: function(){
+				}
+			});		
+		}
+		$(document).ready(function() { 
+		        calculate_nb_insert(); 
+		}); 
+	</script>";
+
+
+
+	// AFFICHAGE NB DE DOCUMENT PRODUITS PAR MOIS ///
 	
 	
 	$sel_var1=oci_parse($dbh,"select to_char(min(last_execution_date),'DD/MM/YYYY') as min_char_last_execution_date from dwh_etl_script");
@@ -1066,6 +1123,126 @@ if ($_GET['action']=='analyse_requete') {
 ?>
 
 
+<?
+///////////////// OPPOSITIONS //////////////////
+if ($_GET['action']=='opposition') {
+
+	$req="select table_name from all_tables where table_name ='DWH_PATIENT_OPPOSITION' ";
+	$sel = oci_parse($dbh,$req);
+	oci_execute($sel);
+	$ligne = oci_fetch_array($sel);
+	$verif_opposition = $ligne['TABLE_NAME'];
+	if ($verif_opposition=='') {
+		$req="create table  DWH_PATIENT_OPPOSITION (hospital_patient_id varchar(100), origin_patient_id varchar(40), patient_num int,opposition_date date)  ";
+		$sel = oci_parse($dbh,$req);
+		oci_execute($sel);
+
+	}
+
+?>
+
+	<div id="id_admin_ajouter_opposition"  class="div_admin">
+		<h1><? print get_translation('PATIENT_OPPOSITION',"Ajouter l'opposition d'un patient"); ?></h1>
+		<i><? print get_translation('AUTO_DELETE_DOCUMENT',"Tous les documents seront automatiquement supprimés de l'entrepôt"); ?></i>
+		<table>
+			<tr><td class="question_user"><? print get_translation('INDICATE_HOSPITAL_PATIENT_ID',"Précisez l'IPP du patient"); ?> : </td><td><input type="text" size="30" id="id_opposition_hospital_patient_id" class="form"></td></tr>
+		</table>
+		<input type="button" onclick="affiche_patient_opposition();" class="form" value="<? print get_translation('RESEARCH','Rechercher'); ?>">
+		<div id="id_div_resultat_opposition_list"></div>
+		<br>
+	</div>
+
+
+	<div id="id_admin_lister_opposition"  class="div_admin">
+		<h1><? print get_translation('LIST_PATIENT_OPPOSITION',"Liste des patients opposés"); ?></h1>
+		<div id="id_div_list_patients_opposed"></div>
+		<br>
+	</div>
+
+	
+	
+	<script language="javascript">
+		function affiche_patient_opposition() {
+			hospital_patient_id=document.getElementById('id_opposition_hospital_patient_id').value;
+			jQuery.ajax({
+				type:"POST",
+				url:"ajax_admin.php",
+				async:true,
+				data: { action:'affiche_patient_opposition',hospital_patient_id:hospital_patient_id},
+				beforeSend: function(requester){
+				},
+				success: function(requester){
+					if (requester=='deconnexion') {
+						afficher_connexion();
+					} else {
+						$("#id_div_resultat_opposition_list").html(requester);
+						document.getElementById('id_opposition_hospital_patient_id').value='';
+					}
+				},
+				complete: function(requester){
+				},
+				error: function(){
+				}
+			});		
+		}
+		
+		function valider_opposition_patient(patient_num) {
+			jQuery.ajax({
+				type:"POST",
+				url:"ajax_admin.php",
+				async:true,
+				data: { action:'valider_opposition_patient',patient_num:patient_num},
+				beforeSend: function(requester){
+				},
+				success: function(requester){
+					if (requester=='deconnexion') {
+						afficher_connexion();
+					} else {
+						$("#id_div_opposition_patient_"+patient_num).html(requester);
+					}
+				},
+				complete: function(requester){
+					list_patients_opposed();
+				},
+				error: function(){
+				}
+			});		
+		}
+		
+		
+		function list_patients_opposed() {
+			jQuery.ajax({
+				type:"POST",
+				url:"ajax_admin.php",
+				async:true,
+				data: { action:'list_patients_opposed'},
+				beforeSend: function(requester){
+				},
+				success: function(requester){
+					if (requester=='deconnexion') {
+						afficher_connexion();
+					} else {
+						$("#id_div_list_patients_opposed").html(requester);
+					}
+				},
+				complete: function(requester){
+				},
+				error: function(){
+				}
+			});		
+		}
+		$(document).ready(function() { 
+		        list_patients_opposed(); 
+		}); 
+		 
+	</script>
+
+<?
+}
+?>
+
+
+
 
 <?
 ///////////////// OUTILS //////////////////
@@ -1102,7 +1279,7 @@ if ($_GET['action']=='outils') {
 			description=document.getElementById('id_ajouter_outil_description').value;
 			jQuery.ajax({
 				type:"POST",
-				url:"ajax.php",
+				url:"ajax_admin.php",
 				async:true,
 				data: { action:'insert_outil',title:escape(title),url:escape(url),authors:escape(authors),description:escape(description)},
 				beforeSend: function(requester){
@@ -1132,7 +1309,7 @@ if ($_GET['action']=='outils') {
 			url=document.getElementById('id_input_outil_url_'+tool_num).value;
 			jQuery.ajax({
 				type:"POST",
-				url:"ajax.php",
+				url:"ajax_admin.php",
 				async:true,
 				data: { action:'update_outil',tool_num:tool_num,title:escape(title),description:escape(description),authors:escape(authors),url:escape(url)},
 				beforeSend: function(requester){
@@ -1163,7 +1340,7 @@ if ($_GET['action']=='outils') {
 			if (confirm("Etes vous sûr de vouloir supprimer cet outil ? ")) {
 				jQuery.ajax({
 					type:"POST",
-					url:"ajax.php",
+					url:"ajax_admin.php",
 					async:true,
 					data: { action:'delete_outil',tool_num:tool_num},
 					beforeSend: function(requester){
