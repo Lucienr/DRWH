@@ -1,9 +1,9 @@
+-- version 2019 03 06
 
 /* create a list of stopwords in you language  */
 begin 
 CTX_DDL.CREATE_STOPLIST ('dwh_stoplist', 'BASIC_STOPLIST');
-END; 
-begin 
+/* pas de stop word pour la recherche dans le texte normal.  */ 
 ctx_ddl.add_stopword('dwh_stoplist', 'à');
 ctx_ddl.add_stopword('dwh_stoplist', 'ça');
 ctx_ddl.add_stopword('dwh_stoplist', 'étaient');
@@ -155,6 +155,15 @@ ctx_ddl.add_stopword('dwh_stoplist', 'vôtre');
 ctx_ddl.add_stopword('dwh_stoplist', 'vôtres');
 ctx_ddl.add_stopword('dwh_stoplist', 'y');
 END;
+
+
+
+/* create a list of stopwords in you language  */
+begin 
+CTX_DDL.CREATE_STOPLIST ('dwh_stoplist_empty', 'BASIC_STOPLIST');
+ctx_ddl.add_stopword('dwh_stoplist_empty', 'noword');
+END; 
+
 
 /* precier le tablespace de stockage de l'index full text */
 
