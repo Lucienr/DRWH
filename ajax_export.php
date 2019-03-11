@@ -59,24 +59,26 @@ if ($_POST['action']=='get_concept_data') {
 	$tmpresult_num=$_POST['tmpresult_num'];
 	$concepts=array();
 	$concepts['items']=array();
-	
+
 	$text=trim(replace_accent(utf8_decode($_POST['q'])));
 
+	$text=preg_replace("/\s+/"," ",$text);
+
+	$text=nettoyer_pour_requete(trim($text));
 	$text=trim(preg_replace("/([a-z])\s/i","$1% ","$text "));
 	$text=preg_replace("/([^\s])\s+([^\s])/","$1 and $2",$text);
+
 	$query="select thesaurus_data_num, concept_code,concept_str,info_complement,measuring_unit from dwh_thesaurus_data where contains(description,'$text')>0";	
 	$sel=oci_parse($dbh,$query);
 	oci_execute($sel);
-	
 	while($r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC)){
-			
-		$thesaurus_data_num=utf8_encode($r['THESAURUS_DATA_NUM']);
+		$thesaurus_data_num=$r['THESAURUS_DATA_NUM'];
 		$concept_str=utf8_encode($r['CONCEPT_STR']);
 		$concept_code=utf8_encode($r['CONCEPT_CODE']);
 		$info_complement=utf8_encode($r['INFO_COMPLEMENT']);
 		$measuring_unit=utf8_encode($r['MEASURING_UNIT']);
 		$total_patients= total_patients_per_concept($thesaurus_data_num,$tmpresult_num);
-		if($total_patients>0){
+		if ($total_patients>0){
 			$string=$concept_str;
 			if ($info_complement!=''){
 				$string.=' - '.$info_complement;
@@ -86,7 +88,7 @@ if ($_POST['action']=='get_concept_data') {
 			}
 			$string.=" (nb $total_patients) ";
 			
-			array_push($concepts['items'],array('id'=>$concept_code, 'text'=>$string));
+			array_push($concepts['items'],array('id'=>$thesaurus_data_num, 'text'=>$string));
 		}
 	}
 	print json_encode($concepts);	
@@ -97,7 +99,9 @@ if ($_POST['action']=='save_curent_selection') {
 	$selected_concepts=$_POST['selected_concepts'];
 	$title_concept_query=$_POST['title_concept_query'];
 	$share_concepts=$_POST['share_concepts'];
-	$list_concepts = implode(",", $selected_concepts);
+	if (is_array($selected_concepts)) {
+		$list_concepts = implode(",", $selected_concepts);
+	}
 	
 	if ($title_concept_query!='' && $list_concepts!='') {
 	       		
@@ -132,12 +136,11 @@ if ($_POST['action']=='extract_concepts_from_list') {
 		$concepts_list=$r['LIST_CONCEPT'];
 		$concepts_array=explode(",",$concepts_list);
 		
-		foreach ($concepts_array as $concept_item){
-			$query="select thesaurus_data_num, concept_code,concept_str,info_complement,measuring_unit from dwh_thesaurus_data where concept_code='$concept_item' ";
+		foreach ($concepts_array as $thesaurus_data_num){
+			$query="select thesaurus_data_num, concept_code,concept_str,info_complement,measuring_unit from dwh_thesaurus_data where thesaurus_data_num='$thesaurus_data_num' ";
 			$sel=oci_parse($dbh,$query);
 			oci_execute($sel);
 			$r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC);	
-			$thesaurus_data_num=utf8_encode($r['THESAURUS_DATA_NUM']);
 			$concept_str=utf8_encode($r['CONCEPT_STR']);
 			$concept_code=utf8_encode($r['CONCEPT_CODE']);
 			$info_complement=utf8_encode($r['INFO_COMPLEMENT']);
@@ -151,7 +154,7 @@ if ($_POST['action']=='extract_concepts_from_list') {
 					$string.=' ('.$measuring_unit.')';
 				}
 			$string.=" (nb $total_patients)";		
-			array_push($concepts,array('id'=>$concept_code, 'text'=>$string));			
+			array_push($concepts,array('id'=>$thesaurus_data_num, 'text'=>$string));			
 		}	
 	}
 	echo json_encode($concepts);
@@ -181,5 +184,43 @@ if ($_POST['action']=='share_list') {
 }
 
 
-	
+if ($_POST['action']=='execute_process_export_data') {
+	$tmpresult_num=$_POST['tmpresult_num'];
+	$selected_thesaurus=$_POST['selected_thesaurus'];
+	$selected_concepts=$_POST['selected_concepts'];
+	$file_type=$_POST['file_type'];
+	$file_name=urldecode($_POST['file_name']);
+	$export_type=$_POST['export_type'];
+	$patient_or_document=$_POST['patient_or_document'];
+	if (is_array($selected_concepts)) {
+		$list_concepts = implode(",", $selected_concepts);
+	}
+	if (is_array($selected_thesaurus)) {
+		$list_thesaurus = implode(",", $selected_thesaurus);
+	}
+	$process_num=uniqid();
+	if ($list_thesaurus!='' || $list_concepts!='') {
+		passthru( "php export_data_excel.php $user_num_session $tmpresult_num $process_num $file_type $export_type \"$list_thesaurus\" \"$list_concepts\" \"$file_name\" \"$patient_or_document\">> $CHEMIN_GLOBAL_LOG/log_export_data_excel_$process_num.txt 2>&1 &");
+		print "$process_num";
+	} else {
+		print "erreur";
+	}
+}
+
+if ($_POST['action']=='verif_process_execute_process_export_data') {
+	$process_num=$_POST['process_num'];
+	$process=get_process ($process_num);
+	$status=$process['STATUS'];
+	$commentary=$process['COMMENTARY'];
+	print "$status;$commentary";
+}
+
+if ($_POST['action']=='get_all_export_data') {
+	$all_process=get_all_my_process ($user_num_session,'export_data');
+	print_r($all_process);
+//	foreach ($all_process as $process_num => $process) {
+		
+//	}
+	print "$status;$commentary";
+}
 ?>
