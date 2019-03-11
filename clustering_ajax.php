@@ -62,7 +62,7 @@ if ($_POST['action']=='executer_clustering') {
 	$limite_similarite=$_POST['limite_similarite'];
 	$process_num=uniqid();
 	
-	create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','début du process'),'','sysdate+7');
+	create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','début du process'),'','sysdate+7',"clustering");
 	
 	passthru( "php exec_clustering.php \"$tmpresult_num\" \"10\" \"3\" \"0.01\" \"$limite_similarite\" \"2\" \"$process_num\" \"7\" >> $CHEMIN_GLOBAL_LOG/log_chargement_clustering_$tmpresult_num.$process_num.txt 2>&1 &");
 	print $process_num;
