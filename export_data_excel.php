@@ -21,41 +21,151 @@
     75015 Paris
     France
 */
-session_start();
-
 date_default_timezone_set('Europe/Paris');
 putenv("NLS_LANG=French");
 putenv("NLS_LANG=FRENCH");
 putenv("NLS_LANGUAGE=FRENCH_FRANCE.WE8MSWIN1252");
 error_reporting(E_ALL ^ E_NOTICE);
 
+if ($_GET['process_num'] !='') {
+	session_start();
+	$user_num_session=$_SESSION['dwh_user_num'];
+}
+ini_set("memory_limit","500M");
+
+
 include_once("parametrage.php");
 include_once("connexion_bdd.php");
 include_once("ldap.php");
 include_once("fonctions_dwh.php");
 include_once("fonctions_droit.php");
-include_once("verif_droit.php");
-include_once("fonctions_stat.php");
-session_write_close();
 
 $date_today=date("dmYHi");
-
 $date=date("YMjHms");
  
-$user_num_session=$_SESSION['dwh_user_num'];
+ // si en passthru via ajax_export.php : 
+//php export_data_excel.php $user_num_session $tmpresult_num $process_num $file_type $export_type \"$list_thesaurus\" \"$list_concepts\" \"$file_name\"
 
-
-$file_name=$_POST['file_name'];
-$file_name=preg_replace("/\s/","_",$file_name);
-if($file_name==''){
-	$file_name="export_dwh_concepts_$date";
+if ($_GET['process_num'] !='') {
+	$process=get_process ($_GET['process_num']);
+	$user_num=$process['USER_NUM'];
+	if ($user_num==$user_num_session) {
+		$file_name=$process['COMMENTARY'];
+		$result=$process['RESULT'];
+		if (preg_match("/.txt/i",$file_name)) {
+			header("Content-Type: text/plain");
+			header ("Content-Disposition: attachment; filename=$file_name.txt");
+		}
+		if (preg_match("/.xls/i",$file_name)) {
+			header ("Content-Type: application/excel");
+			header ("Content-Disposition: attachment; filename=$file_name.xls");	
+		}
+		print $result;
+	}
+	session_write_close();
+	exit;
 }
 
-$export_type=$_POST['export_type'];
-if ($export_type=='xls'){
-	header ("Content-Type: application/excel");
-	header ("Content-Disposition: attachment; filename=$file_name.xls");
-	print "<style>
+if ($argv[1] !='') {
+	$mode_export="argv";
+	$user_num_session=$argv[1];
+	$tmpresult_num=$argv[2];
+	$process_num=$argv[3];
+	$file_type=$argv[4];
+	$export_type=$argv[5];
+	$list_thesaurus=$argv[6];
+	$list_concepts=$argv[7];
+	$file_name=$argv[8];
+	$patient_or_document=$argv[9];
+
+	$file_name=preg_replace("/\s/","_",$file_name);
+	
+	if ($file_name==''){
+		$file_name="export_dwh_data_$date";
+	}
+	
+	
+	$thesaurus=explode(',',$list_thesaurus);
+	$concepts=explode(',',$list_concepts);
+	
+	create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','debut du process'),'',"sysdate+20",'export_data');
+	
+	if ($export_type=='row') {
+		$query_patients="select count(distinct patient_num) as nb_patient from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num";
+		$sel = oci_parse($dbh,$query_patients); 
+		oci_execute($sel);	
+		$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+		$nb_patient=$r['NB_PATIENT'];
+	} else {
+		$query_patients="select count(*) as nb_patient from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)";
+		$sel = oci_parse($dbh,$query_patients); 
+		oci_execute($sel);	
+		$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+		$nb_patient=$r['NB_PATIENT'];
+	}
+	update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
+
+	print "
+	file_type $file_type
+	process_num $process_num
+	tmpresult_num $tmpresult_num
+	export_type $export_type
+	list_thesaurus $list_thesaurus
+	list_concepts $list_concepts
+	file_name $file_name
+	";	
+} else {
+	$mode_export="post";
+	$user_num_session=$_SESSION['dwh_user_num'];
+
+	$tmpresult_num=$_POST['tmpresult_num'];
+	$export_type=$_POST['export_type']; // empty, row //
+	$file_type=$_POST['file_type'];
+			
+	$file_name=$_POST['file_name'];
+	$file_name=preg_replace("/\s/","_",$file_name);
+	
+	if ($file_name==''){
+		$file_name="export_dwh_concepts_$date";
+	}
+	
+	$concepts=$_POST['concepts'];	
+	$thesaurus=$_POST['thesaurus'];	
+	if ($file_type=='xls'){
+		header ("Content-Type: application/excel");
+		header ("Content-Disposition: attachment; filename=$file_name.xls");	
+	} else {
+		header("Content-Type: text/plain");
+		header ("Content-Disposition: attachment; filename=$file_name.txt");
+	}
+}
+print "3
+";
+
+$tableau_thesaurus_data_used=array();
+if (!empty($thesaurus)){
+	print "test_thes deb\n";
+	foreach ($thesaurus as $selected_thesaurus){
+		$query="select thesaurus_data_num from DWH_DATA where thesaurus_code='$selected_thesaurus' and $patient_or_document in (select dwh_tmp_result_$user_num_session.$patient_or_document from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)";
+		$sel=oci_parse($dbh,$query);
+		oci_execute($sel);
+		while ($r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC)) {
+			$tableau_thesaurus_data_used[$r['THESAURUS_DATA_NUM']]='ok';
+			$concepts[]=$r['THESAURUS_DATA_NUM'];
+		}
+	}
+}
+if (!empty($concepts)){		
+	foreach ($concepts as $thesaurus_data_num){
+		if ($thesaurus_data_num!='') {
+			$tableau_thesaurus_data_used[$thesaurus_data_num]='ok';
+		}
+	}
+}
+print_r($tableau_thesaurus_data_used);
+/// ENTETE EXPORT 
+if ($file_type=='xls'){
+	$resultat_final.="<style>
 		.num {
 		  mso-number-format:General;
 		}
@@ -63,194 +173,314 @@ if ($export_type=='xls'){
 		  mso-number-format:\"\@\";/*force text*/
 		}
 		</style>";
+	$resultat_final.="<table id=\"id_table_export_concept\" style=\"width:100%\">";	
+}
 		
-    	print"<table id=\"id_table_export_concept\" style=\"width:100%\">";				
-		print"<tr>
+if ($export_type=='row'){
+	if ($file_type=='xls'){			
+		$resultat_final.="<tr>
+			<th>PATIENT_NUM</th>
+			<th>IPP</th>
+			<th>BIRTH_DATE</th>
+			<th>ENCOUNTER_NUM</th>
+			<th>PATIENT_SEX</th>
+			<th>PATIENT_AGE</th>
 			<th>DOCUMENT_NUM</th>
+			<th>DOCUMENT_DATE</th>
 			<th>THESAURUS_CODE</th>
 			<th>CONCEPT_CODE</th>
 			<th>CONCEPT_STR</th>
-			<th>CONCEPT_PATH</th>
 			<th>INFO_COMPLEMENT</th>
 			<th>MEASURING_UNIT</th>
 			<th>VAL_NUMERIC</th>
 			<th>VAL_TEXT</th>
-			<th>DOCUMENT_DATE</th>
 			<th>LOWER_BOUND</th>
 			<th>UPPER_BOUND</th>
-			<th>ENCOUNTER_NUM</th>
-			<th>PATIENT_NUM</th>
-			<th>PATIENT_SEX</th>
-			<th>PATIENT_AGE</th>
 		</tr>";
-
-}else{
-	header("Content-Type: text/plain");
-	header ("Content-Disposition: attachment; filename=$file_name.txt");
-	print "DOCUMENT_NUM\tTHESAURUS_CODE\tCONCEPT_CODE\tCONCEPT_STR\tCONCEPT_PATH\tINFO_COMPLEMENT\tMEASURING_UNIT\tVAL_NUMERIC\tVAL_TEXT\tDOCUMENT_DATE\tLOWER_BOUND\tUPPER_BOUND\tENCOUNTER_NUM\tHOSPITAL_PATIENT_ID\tPATIENT_SEX\tPATIENT_AGE\n";
-}
-
-
-$cohort_num=$_GET['cohort_num'];
-$status=$_GET['status'];
-$request_access_num=$_GET['request_access_num'];
-$process_num=$_GET['process_num'];
-$tmpresult_num=$_POST['tmpresult_num'];
-
-$concepts=$_POST['concepts'];			
-if (!empty($concepts)){		
-
-	foreach ($concepts as $concept){
-		//select info concept
-  		$query="select concept_str,info_complement,measuring_unit,thesaurus_data_num,concept_path from dwh_thesaurus_data where concept_code='$concept'";
-		$sel=oci_parse($dbh,$query);
-		oci_execute($sel);
-		$r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC);
-		$CONCEPT_STR=$r['CONCEPT_STR'];
-		$INFO_COMPLEMENT=$r['INFO_COMPLEMENT'];
-		$MEASURING_UNIT=$r['MEASURING_UNIT'];
-		if ($r['CONCEPT_PATH']!='') {
-			$CONCEPT_PATH=$r['CONCEPT_PATH']->load();
+	} else {
+		$resultat_final.="PATIENT_NUM	";
+		$resultat_final.="IPP	";
+		$resultat_final.="BIRTH_DATE	";
+		$resultat_final.="ENCOUNTER_NUM	";
+		$resultat_final.="PATIENT_SEX	";
+		$resultat_final.="PATIENT_AGE	";
+		$resultat_final.="DOCUMENT_NUM	";
+		$resultat_final.="DOCUMENT_DATE	";
+		$resultat_final.="THESAURUS_CODE	";
+		$resultat_final.="CONCEPT_CODE	";
+		$resultat_final.="CONCEPT_STR	";
+		$resultat_final.="INFO_COMPLEMENT	";
+		$resultat_final.="MEASURING_UNIT	";
+		$resultat_final.="VAL_NUMERIC	";
+		$resultat_final.="VAL_TEXT	";
+		$resultat_final.="LOWER_BOUND	";
+		$resultat_final.="UPPER_BOUND\n";
+	}
+} else if ($export_type=='col'){
+	if ($file_type=='xls'){
+		$resultat_final.="<tr>
+			<th>PATIENT_NUM</th>
+			<th>IPP</th>
+			<th>BIRTH_DATE</th>
+			<th>PATIENT_SEX</th>
+			<th>DOCUMENT_DATE</th>";
+	} else {
+		$resultat_final.="PATIENT_NUM	";
+		$resultat_final.="IPP	";
+		$resultat_final.="BIRTH_DATE	";
+		$resultat_final.="PATIENT_SEX	";
+		$resultat_final.="DOCUMENT_DATE	";
+	}	
+	if (!empty($concepts)){
+		foreach ($tableau_thesaurus_data_used as $thesaurus_data_num => $ok){
+			//select info concept
+			if ($thesaurus_data_num!='') {
+		  		$query="select concept_str,info_complement,measuring_unit,thesaurus_data_num from dwh_thesaurus_data where thesaurus_data_num='$thesaurus_data_num'";
+				$sel=oci_parse($dbh,$query);
+				oci_execute($sel);
+				$r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC);
+				$CONCEPT_STR=$r['CONCEPT_STR'];
+				$INFO_COMPLEMENT=$r['INFO_COMPLEMENT'];
+				$MEASURING_UNIT=$r['MEASURING_UNIT'];
+				$CONCEPT_STR=str_replace("	"," ",$CONCEPT_STR);
+				$INFO_COMPLEMENT=str_replace("	"," ",$INFO_COMPLEMENT);
+				$MEASURING_UNIT=str_replace("	"," ",$MEASURING_UNIT);
+				if ($file_type=='xls'){
+					$resultat_final.="<th>$CONCEPT_STR $INFO_COMPLEMENT $MEASURING_UNIT</th>";
+				} else {
+					$resultat_final.="$CONCEPT_STR $INFO_COMPLEMENT $MEASURING_UNIT	";
+				}
+			}
 		}
-		$THESAURUS_DATA_NUM=$r['THESAURUS_DATA_NUM'];
-				
+		print_r($resultat_final);
+	}
+	if ($file_type=='xls'){
+		$resultat_final.="</tr>";
+	} else {
+		$resultat_final.="\n";
+	}
+	update_process ($process_num,'0',"entete calculee",$resultat_final);
+	$resultat_final='';
+} 
+
+//// CONTENU EXPORT
+if (!empty($tableau_thesaurus_data_used)){		
+	// EXPORT EN LIGNE AVEC UNE LIGNE PAR PATIENT / DATE / CONCEPT DATA
+	if ($export_type=='row'){
+		$i_patient=0;
 		//select patient
-    		$query_patients="select distinct patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num";
+		update_process ($process_num,'0',"$i_patient / $nb_patient",'');
+    		$query_patients="select distinct $patient_or_document as cle , patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num order by patient_num";
     		$sel_patient = oci_parse($dbh,$query_patients); 
     		oci_execute($sel_patient);	
     		while ($res_patient=oci_fetch_array($sel_patient,OCI_RETURN_NULLS+OCI_ASSOC)) {	
     			$patient_num=$res_patient['PATIENT_NUM'];
+    			$cle=$res_patient['CLE'];
+    			$i_patient++;
+    			//if ($i_patient % 20==0 && $mode_export=='argv') {
+				update_process ($process_num,'0',"$i_patient / $nb_patient",$resultat_final);
+				$resultat_final='';
+    			//}
     			$verif=autorisation_voir_patient($patient_num,$user_num_session);
     			if($verif=='ok'){
-    			
 	    			$tab_patient=get_patient ($patient_num);
 	    			$HOSPITAL_PATIENT_ID=$tab_patient['HOSPITAL_PATIENT_ID'];   
 	    			$PATIENT_SEX=$tab_patient['SEX'];  
-	    			
-    			
-      				$query_data="select DOCUMENT_NUM,THESAURUS_CODE,VAL_NUMERIC,VAL_TEXT,DOCUMENT_DATE,LOWER_BOUND,UPPER_BOUND,ENCOUNTER_NUM,AGE_PATIENT  
-      				from DWH_DATA where PATIENT_NUM=$patient_num and THESAURUS_DATA_NUM=$THESAURUS_DATA_NUM";			      				
-      				$sel = oci_parse($dbh,$query_data); 
-      				oci_execute($sel);
-      				while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {			
-      	      				$DOCUMENT_NUM=$r['DOCUMENT_NUM'];
-      		      			$THESAURUS_CODE=$r['THESAURUS_CODE'];     		      			
-      		      			$VAL_NUMERIC=$r['VAL_NUMERIC'];
-      		      			$VAL_TEXT=$r['VAL_TEXT'];
-      		      			$DOCUMENT_DATE=$r['DOCUMENT_DATE'];
-      		    			$LOWER_BOUND=$r['LOWER_BOUND'];
-      		    			$UPPER_BOUND=$r['UPPER_BOUND'];
-      		    			$ENCOUNTER_NUM=$r['ENCOUNTER_NUM'];
-      		      			$PATIENT_AGE=$r['AGE_PATIENT'];
-
-					if ($export_type=='xls'){
-							print"<tr>
-						   	<td>$DOCUMENT_NUM</td>
-							<td>$THESAURUS_CODE</td>
-							<td>$concept</td>
-							<td>$CONCEPT_STR</td>
-							<td>$CONCEPT_PATH</td>
-							<td>$INFO_COMPLEMENT</td>
-							<td>$MEASURING_UNIT</td>
-							<td>$VAL_NUMERIC</td>
-							<td>$VAL_TEXT</td>
-							<td>$DOCUMENT_DATE</td>
-							<td>$LOWER_BOUND</td>
-							<td>$UPPER_BOUND</td>
-							<td>$ENCOUNTER_NUM</td>
-							<td>$HOSPITAL_PATIENT_ID</td>
-							<th>$PATIENT_SEX</th>
-							<th>$PATIENT_AGE</th>
-						  	</tr>";
-					}else{
-						print "$DOCUMENT_NUM\t$THESAURUS_CODE\t$concept\t$CONCEPT_STR\t$CONCEPT_PATH\t$INFO_COMPLEMENT\t$MEASURING_UNIT\t$VAL_NUMERIC\t$VAL_TEXT\t$DOCUMENT_DATE\t$LOWER_BOUND\t$UPPER_BOUND\t$ENCOUNTER_NUM\t$HOSPITAL_PATIENT_ID\t$PATIENT_SEX\t$PATIENT_AGE\n";
+	    			$BIRTH_DATE=$tab_patient['BIRTH_DATE'];  
+				foreach ($tableau_thesaurus_data_used as $thesaurus_data_num => $ok){
+					if ($thesaurus_data_num!='') {
+						//select info concept
+				  		$query="select concept_str,info_complement,measuring_unit,thesaurus_data_num from dwh_thesaurus_data where thesaurus_data_num='$thesaurus_data_num'";
+						$sel=oci_parse($dbh,$query);
+						oci_execute($sel);
+						$r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC);
+						$CONCEPT_STR=$r['CONCEPT_STR'];
+						$INFO_COMPLEMENT=$r['INFO_COMPLEMENT'];
+						$MEASURING_UNIT=$r['MEASURING_UNIT'];
+		      				$query_data="select DOCUMENT_NUM,THESAURUS_CODE,VAL_NUMERIC,VAL_TEXT,to_char(DOCUMENT_DATE,'DD/MM/YYYY HH24:MI') as document_date,LOWER_BOUND,UPPER_BOUND,ENCOUNTER_NUM,AGE_PATIENT  
+		      				from DWH_DATA where $patient_or_document=$cle and THESAURUS_DATA_NUM=$thesaurus_data_num";			      				
+		      				$sel = oci_parse($dbh,$query_data); 
+		      				oci_execute($sel);
+		      				while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {	
+		      	      				$DOCUMENT_NUM=$r['DOCUMENT_NUM'];
+		      		      			$THESAURUS_CODE=$r['THESAURUS_CODE'];     		      			
+		      		      			$VAL_NUMERIC=$r['VAL_NUMERIC'];
+		      		      			$VAL_TEXT=$r['VAL_TEXT'];
+		      		      			$DOCUMENT_DATE=$r['DOCUMENT_DATE'];
+		      		    			$LOWER_BOUND=$r['LOWER_BOUND'];
+		      		    			$UPPER_BOUND=$r['UPPER_BOUND'];
+		      		    			$ENCOUNTER_NUM=$r['ENCOUNTER_NUM'];
+		      		      			$PATIENT_AGE=$r['AGE_PATIENT'];
+		
+							if ($file_type=='xls'){
+									$resultat_final.="<tr>
+									<td>$patient_num</td>
+									<td>'$HOSPITAL_PATIENT_ID</td>
+									<td>$BIRTH_DATE</td>
+									<td>$ENCOUNTER_NUM</td>
+									<td>$PATIENT_SEX</td>
+									<td>$PATIENT_AGE</td>
+								   	<td>$DOCUMENT_NUM</td>
+									<td>$DOCUMENT_DATE</td>
+									<td>$THESAURUS_CODE</td>
+									<td>$concept</td>
+									<td>$CONCEPT_STR</td>
+									<td>$INFO_COMPLEMENT</td>
+									<td>$MEASURING_UNIT</td>
+									<td>$VAL_NUMERIC</td>
+									<td>$VAL_TEXT</td>
+									<td>$LOWER_BOUND</td>
+									<td>$UPPER_BOUND</td>
+								  	</tr>";
+							}else{
+								$resultat_final.="$patient_num	$HOSPITAL_PATIENT_ID	$BIRTH_DATE\t$ENCOUNTER_NUM\t$PATIENT_SEX\t$PATIENT_AGE\t$DOCUMENT_NUM\t$DOCUMENT_DATE\t$THESAURUS_CODE\t$concept\t$CONCEPT_STR\t$INFO_COMPLEMENT\t$MEASURING_UNIT\t$VAL_NUMERIC\t$VAL_TEXT\t$LOWER_BOUND\t$UPPER_BOUND\n";
+							}
+						} 	
+					}	
+				}
+			}		
+		}
+	}// format 
+	// EXPORT EN COLONNE AVEC UNE LIGNE PAR PATIENT / DATE 
+	else if ($export_type=='col'){
+		//select patient
+		$i_patient=0;
+		$tableau_patient_ok=array();
+		$tableau_patient=array();
+    		
+		print "$i_patient / $nb_patient\n";
+		update_process ($process_num,'0',"$i_patient / $nb_patient",'');
+    		$query_patients="select distinct $patient_or_document as cle,patient_num, to_char(document_date,'DD/MM/YYYY HH24:MI') as date_char, document_date from DWH_DATA where $patient_or_document in (select dwh_tmp_result_$user_num_session.$patient_or_document from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) order by patient_num, document_date";
+    		$sel_patient = oci_parse($dbh,$query_patients); 
+    		oci_execute($sel_patient);	
+    		while ($res_patient=oci_fetch_array($sel_patient,OCI_RETURN_NULLS+OCI_ASSOC)) {	
+    			$patient_num=$res_patient['PATIENT_NUM'];
+    			$cle=$res_patient['CLE'];
+    			$date_char=$res_patient['DATE_CHAR'];
+			$i_patient++;
+	    		//if ($i_patient % 20==0 && $mode_export=='argv') {
+				update_process ($process_num,'0',"$i_patient / $nb_patient",$resultat_final);
+				$resultat_final='';
+				print "$i_patient / $nb_patient\n";
+    			//}
+    			$verif=autorisation_voir_patient($patient_num,$user_num_session);
+    			if($verif=='ok'){
+    				
+				if ($tableau_patient_ok["$patient_num"]=='') {
+			    		print "tableau_patient deb\n";
+				    	$tableau_patient=array();
+					$query_data="select data_num,thesaurus_data_num,to_char(document_date,'DD/MM/YYYY HH24:MI') as document_date_char,VAL_NUMERIC,VAL_TEXT from DWH_DATA where $patient_or_document=$cle  ";			      				
+					$sel = oci_parse($dbh,$query_data); 
+					oci_execute($sel);
+					while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+						$data_num=$r['DATA_NUM'];
+						$thesaurus_data_num=$r['THESAURUS_DATA_NUM'];
+						$document_date_char=$r['DOCUMENT_DATE_CHAR'];
+						$VAL_NUMERIC=$r['VAL_NUMERIC'];
+						$VAL_TEXT=$r['VAL_TEXT'];
+						$val=$VAL_NUMERIC.$VAL_TEXT;
+						$tableau_patient_ok["$patient_num"]='ok';
+						if ($document_date_char!='' && $tableau_thesaurus_data_used[$thesaurus_data_num]=='ok') {
+							$tableau_patient["$patient_num;$thesaurus_data_num;$document_date_char"]=$val;
+						}
 					}
-				} //WHILE	
+			    		print "tableau_patient fini\n";
+		    			$tab_patient=array();
+		    			$tab_patient=get_patient ($patient_num);
+		    			$HOSPITAL_PATIENT_ID=$tab_patient['HOSPITAL_PATIENT_ID'];   
+		    			$PATIENT_SEX=$tab_patient['SEX'];  
+			    		$BIRTH_DATE=$tab_patient['BIRTH_DATE'];
+		    		}
+		    		
+				$val_exists='';
+				if ($file_type=='xls'){
+					$line_concepts="<tr>
+				   	<td>$patient_num</td>
+					<td>'$HOSPITAL_PATIENT_ID</td>
+				   	<td>$BIRTH_DATE</td>
+					<td>$PATIENT_SEX</td>
+					<td>$date_char</td>";
+				} else {
+					$line_concepts="$patient_num	$HOSPITAL_PATIENT_ID	$BIRTH_DATE	$PATIENT_SEX	$date_char	";
+				}
+				foreach ($tableau_thesaurus_data_used as $thesaurus_data_num => $ok){
+					if ($thesaurus_data_num!='') {
+						//select info concept
+	    					if ($date_char!='') {
+	    						$val=$tableau_patient["$patient_num;$thesaurus_data_num;$date_char"];
+	    						if ($val!='') {
+				      				//$query_data="select DOCUMENT_NUM,THESAURUS_CODE,VAL_NUMERIC,VAL_TEXT,DOCUMENT_DATE,LOWER_BOUND,UPPER_BOUND,ENCOUNTER_NUM,AGE_PATIENT  
+				      				//from DWH_DATA where data_num=$data_num";			      				
+				      				//$sel = oci_parse($dbh,$query_data); 
+				      				//oci_execute($sel);
+				      				//$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);	
+			      		      			//$VAL_NUMERIC=$r['VAL_NUMERIC'];
+			      		      			//$VAL_TEXT=$r['VAL_TEXT'];
+			      		      			
+								if ($file_type=='xls'){
+									$line_concepts.="<td>$val</td>";
+								}else{
+									$line_concepts.="$val\t";
+								}
+								if ($val!='') {
+									$val_exists='ok';
+								}
+							} else {
+								if ($file_type=='xls'){
+									$line_concepts.="<td></td>";
+								}else{
+									$line_concepts.="\t";
+								}
+							}
+						} else {
+						
+			      				$query_data="select DOCUMENT_NUM,THESAURUS_CODE,VAL_NUMERIC,VAL_TEXT,LOWER_BOUND,UPPER_BOUND,ENCOUNTER_NUM,AGE_PATIENT  
+			      				from DWH_DATA where patient_num=$patient_num and THESAURUS_DATA_NUM=$thesaurus_data_num and document_date is null";			      				
+			      				$sel = oci_parse($dbh,$query_data); 
+			      				oci_execute($sel);
+			      				$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);	
+		      		      			$VAL_NUMERIC=$r['VAL_NUMERIC'];
+		      		      			$VAL_TEXT=$r['VAL_TEXT'];
+		      		    			$LOWER_BOUND=$r['LOWER_BOUND'];
+		      		    			$UPPER_BOUND=$r['UPPER_BOUND'];
+		      		    			$ENCOUNTER_NUM=$r['ENCOUNTER_NUM'];
+		      		      			$PATIENT_AGE=$r['AGE_PATIENT'];
+		
+							if ($file_type=='xls'){
+								$line_concepts.="<td>$VAL_NUMERIC$VAL_TEXT</td>";
+							}else{
+								$line_concepts.="$VAL_NUMERIC$VAL_TEXT\t";
+							}
+							if ($VAL_NUMERIC!=''||$VAL_TEXT!='') {
+								$val_exists='ok';
+							}
+						}
+					}
+				}
+				if ($val_exists=='ok') {
+					$resultat_final.=$line_concepts;
+					if ($file_type=='xls'){
+						$resultat_final.="</tr>";
+					}else{
+						$resultat_final.="\n";
+					}
+				}
+					
 			}// if verif		
-		}//WHILE			
-	}//FOREACH
+		}//WHILE	
+	} // format
 }//IF EMPTY	
 
-	
-$thesaurus=$_POST['thesaurus'];
-if (!empty($thesaurus)){
 
-	foreach ($thesaurus as $selected_thesaurus){
+if ($file_type=='xls'){
+	$resultat_final.="</table>";		
+}
 
-	$query_patients="select distinct patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num";
-	$sel_patient = oci_parse($dbh,$query_patients); 
-	oci_execute($sel_patient);	
-	while ($res_patient=oci_fetch_array($sel_patient,OCI_RETURN_NULLS+OCI_ASSOC)) {	
-		$patient_num=$res_patient['PATIENT_NUM'];
-		$verif=autorisation_voir_patient($patient_num,$user_num_session);
-		if($verif=='ok'){
-				$tab_patient=get_patient ($patient_num);
-	    			$HOSPITAL_PATIENT_ID=$tab_patient['HOSPITAL_PATIENT_ID'];   
-	    			$PATIENT_SEX=$tab_patient['SEX']; 
-
-	      			$query_data="select DOCUMENT_NUM,THESAURUS_CODE,THESAURUS_DATA_NUM,VAL_NUMERIC,VAL_TEXT,DOCUMENT_DATE,LOWER_BOUND,UPPER_BOUND,ENCOUNTER_NUM,AGE_PATIENT
-				from DWH_DATA where patient_num=$patient_num and thesaurus_code='$selected_thesaurus'";
-				$sel = oci_parse($dbh,$query_data); 
-				oci_execute($sel);
-				while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)){		
-	      				$DOCUMENT_NUM=$r['DOCUMENT_NUM'];
-	      				$THESAURUS_CODE=$r['THESAURUS_CODE'];
-	      				$THESAURUS_DATA_NUM=$r['THESAURUS_DATA_NUM'];
-	      				$VAL_NUMERIC=$r['VAL_NUMERIC'];
-	      				$VAL_TEXT=$r['VAL_TEXT'];
-	      				$DOCUMENT_DATE=$r['DOCUMENT_DATE'];
-	    				$LOWER_BOUND=$r['LOWER_BOUND'];
-		    			$UPPER_BOUND=$r['UPPER_BOUND'];
-		    			$ENCOUNTER_NUM=$r['ENCOUNTER_NUM'];
-		      			$PATIENT_AGE=$r['AGE_PATIENT'];
-		      			 
-
-					//select info data
-					$query_2="select concept_code,concept_str,info_complement,measuring_unit,concept_path from dwh_thesaurus_data where THESAURUS_DATA_NUM='$THESAURUS_DATA_NUM'";
-					$sel_res=oci_parse($dbh,$query_2);
-					oci_execute($sel_res);
-					$res=oci_fetch_array($sel_res, OCI_RETURN_NULLS+OCI_ASSOC);
-					$concept=$res['CONCEPT_CODE'];
-					$CONCEPT_STR=$res['CONCEPT_STR'];
-					$INFO_COMPLEMENT=$res['INFO_COMPLEMENT'];
-					$MEASURING_UNIT=$res['MEASURING_UNIT'];
-					if ($r['CONCEPT_PATH']!='') {
-						$CONCEPT_PATH=$r['CONCEPT_PATH']->load();
-					}
-				
-				if ($export_type=='xls'){
-							print"<tr>
-						   	<td>$DOCUMENT_NUM</td>
-							<td>$THESAURUS_CODE</td>
-							<td>$concept</td>
-							<td>$CONCEPT_STR</td>
-							<td>$CONCEPT_PATH</td>
-							<td>$INFO_COMPLEMENT</td>
-							<td>$MEASURING_UNIT</td>
-							<td>$VAL_NUMERIC</td>
-							<td>$VAL_TEXT</td>
-							<td>$DOCUMENT_DATE</td>
-							<td>$LOWER_BOUND</td>
-							<td>$UPPER_BOUND</td>
-							<td>$ENCOUNTER_NUM</td>
-							<td>$HOSPITAL_PATIENT_ID</td>
-							<th>$PATIENT_SEX</th>
-							<th>$PATIENT_AGE</th>
-						  	</tr>";
-					}else{
-						
-						print "$DOCUMENT_NUM\t$THESAURUS_CODE\t$concept\t$CONCEPT_STR\t$CONCEPT_PATH\t$INFO_COMPLEMENT\t$MEASURING_UNIT\t$VAL_NUMERIC\t$VAL_TEXT\t$DOCUMENT_DATE\t$LOWER_BOUND\t$UPPER_BOUND\t$ENCOUNTER_NUM\t$HOSPITAL_PATIENT_ID\t$PATIENT_SEX\t$PATIENT_AGE\n";
-					}  				  					
-				}
-			}//if verif
-		} // WHILE
-	}//foreach			
-}//IF EMPTY
-
-
-
-if ($export_type=='xls'){
-	print"</table>";		
+if ($mode_export=='argv') {
+	update_process ($process_num,'1',"$file_name.$file_type",$resultat_final);
+	update_process_end_date ($process_num,"sysdate + 5") ;
+} else {
+	print "$resultat_final";
 }
 
 save_log_page($user_num_session,'export_data');
