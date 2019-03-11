@@ -68,24 +68,11 @@ if ($document_num!='') {
 }
 
 if ($tmpresult_num!='') {
-        if ($dwh_droit_all_departments==='') {
-                if ($liste_uf_session!='') {
-                        $filtre_sql.=" and exists ( select patient_num from dwh_patient_department where department_num in ($liste_service_session) and  dwh_tmp_result.patient_num=dwh_patient_department.patient_num ) ";
-                } else {
-                        $filtre_sql.=" and 1=2";
-                }
-        }
-	$filtre_sql_document_origin_code='';
-        if ($liste_document_origin_code_session!='') {
-        	if (!preg_match("/'tout'/i","$liste_document_origin_code_session")) {
-                        $filtre_sql_document_origin_code.=" and document_origin_code in ($liste_document_origin_code_session) ";
-        	}
-        } else {
-                $filtre_sql_document_origin_code.=" and 1=2"; 
-        }
+	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+   
         $document='';
         $patient_num_before='';
-        $sel=oci_parse($dbh,"select patient_num, document_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and user_num=$user_num_session $filtre_sql  $filtre_sql_document_origin_code order by patient_num, document_num");
+        $sel=oci_parse($dbh,"select patient_num, document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and user_num=$user_num_session $filtre_sql_resultat order by patient_num, document_num");
         oci_execute($sel);
         while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
                 $patient_num=$r['PATIENT_NUM'];
