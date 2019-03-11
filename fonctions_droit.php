@@ -478,4 +478,24 @@ function autorisation_ecrf_supprimer ($ecrf_num,$user_num) {
 	}
 	return ($verif);
 }
+
+function filter_query_user_right ($table_joint,$user_num,$dwh_droit_all_departments,$liste_service,$liste_document_origin_code) {
+	global $dbh;
+	$filtre_sql="";
+        if ($dwh_droit_all_departments=='') {
+               if ($liste_service!='') {
+                        $filtre_sql.=" and exists ( select patient_num from dwh_patient_department where department_num in ($liste_service) and  $table_joint.patient_num=dwh_patient_department.patient_num ) ";
+                } else {
+                        $filtre_sql.=" and 1=2";
+                }
+        }
+        if ($liste_document_origin_code!='') {
+        	if (!preg_match("/'tout'/i","$liste_document_origin_code")) {
+                        $filtre_sql.=" and document_origin_code in ($liste_document_origin_code) ";
+        	}
+        } else {
+                $filtre_sql.=" and 1=2"; 
+        }
+        return $filtre_sql;
+}
 ?>
