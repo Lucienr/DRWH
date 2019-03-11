@@ -80,7 +80,7 @@ $date_today_unique=date("dmYHis");
 	
 	<link href="chosen/docsupport/prism.css" rel="stylesheet"></link>
 	<link href="chosen/chosen.css" rel="stylesheet"></link>
-	<script type="text/javascript" src="chosen/chosen.jquery.js"></script>
+	<script type="text/javascript" src="chosen/chosen.jquery.js?v2"></script>
 	<script charset="utf-8" type="text/javascript" src="chosen/docsupport/prism.js"></script>
 	<script type="text/javascript" src="jquery.autosize.js"></script>
 	<script src="javascript.js?<? print "v=$date_today_unique"; ?>" type="text/javascript"></script>
