@@ -50,7 +50,7 @@ session_write_close();
 
 $tmpresult_num=$_GET['tmpresult_num'];
  $localisation_list="[";
-$req="select  residence_city, residence_latitude,residence_longitude from dwh_patient where patient_num in (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)
+$req="select  residence_city, residence_latitude,residence_longitude from dwh_patient where patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)
 and  residence_longitude is not null and residence_latitude is not null ";
 $sel=oci_parse($dbh,$req);
 oci_execute($sel) ;

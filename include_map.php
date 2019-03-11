@@ -39,7 +39,7 @@
 $liste_ville='';
 $liste_nb_enr='';
 
-$req="select residence_city, residence_latitude,residence_longitude, count(distinct dwh_tmp_result.patient_num) nb_patient from dwh_tmp_result, dwh_patient where tmpresult_num=$tmpresult_num and dwh_tmp_result.patient_num=dwh_patient.patient_num 
+$req="select residence_city, residence_latitude,residence_longitude, count(distinct dwh_tmp_result_$user_num_session.patient_num) nb_patient from dwh_tmp_result_$user_num_session, dwh_patient where tmpresult_num=$tmpresult_num and dwh_tmp_result_$user_num_session.patient_num=dwh_patient.patient_num 
 and residence_city is not null and residence_longitude is not null and residence_latitude is not null group by residence_city, residence_latitude,residence_longitude";
 $sel=oci_parse($dbh,$req);
 oci_execute($sel) ;

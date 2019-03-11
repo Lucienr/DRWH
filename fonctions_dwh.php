@@ -21,6 +21,17 @@
     75015 Paris
     France
 */
+
+$sel = oci_parse($dbh, "select count(*) verif from user_tab_columns where table_name='DWH_PROCESS' and column_name ='CATEGORY_PROCESS'  ");   
+oci_execute($sel);
+$r = oci_fetch_array($sel, OCI_ASSOC);
+$verif=$r['VERIF'];
+if ($verif==0) {
+	$sel = oci_parse($dbh, "alter table DWH_process add category_process varchar(4000)");   
+	oci_execute($sel);
+}
+
+
 $user_num_session=$_SESSION['dwh_user_num'];
 if ($user_num_session!='') {
 	$sel=oci_parse($dbh,"delete from dwh_user_online where user_num='$user_num_session' and database='DrWH'");
@@ -38,6 +49,56 @@ while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 	$document_origin_str=$r['DOCUMENT_ORIGIN_STR'];
 	$tableau_global_document_origin_code[$document_origin_code]=$document_origin_str;
 }
+
+
+	$sel = oci_parse($dbh, "select table_name from all_tables where table_name='DWH_TMP_PRERESULT_$user_num_session'  ");   
+	oci_execute($sel);
+	$r = oci_fetch_array($sel, OCI_ASSOC);
+	$table_name_verif=$r['TABLE_NAME'];
+	if ($table_name_verif=='') {
+		$sel = oci_parse($dbh, "create table DWH_TMP_PRERESULT_$user_num_session 
+					(DOCUMENT_NUM INTEGER,
+					QUERY_KEY VARCHAR(4000),
+					TMPRESULT_DATE DATE,
+					USER_NUM INTEGER,
+					DATAMART_NUM INTEGER,
+					DOCUMENT_ORIGIN_CODE VARCHAR(50),
+					PATIENT_NUM  INTEGER,
+					DOCUMENT_DATE  DATE
+					)");   
+		oci_execute($sel);
+	}
+
+	$sel = oci_parse($dbh, "select table_name from all_tables where table_name='DWH_TMP_RESULT_$user_num_session'  ");   
+	oci_execute($sel);
+	$r = oci_fetch_array($sel, OCI_ASSOC);
+	$table_name_verif=$r['TABLE_NAME'];
+	if ($table_name_verif=='') {
+		$sel = oci_parse($dbh, "create table DWH_TMP_RESULT_$user_num_session 
+					(
+					  TMPRESULT_NUM         INTEGER,
+					  USER_NUM              VARCHAR(30),
+					  ENCOUNTER_NUM         VARCHAR(20),
+					  DOCUMENT_NUM          INTEGER,
+					  DOCUMENT_DATE         DATE,
+					  AUTHOR                VARCHAR(200),
+					  DOCUMENT_ORIGIN_CODE  VARCHAR(30),
+					  TITLE                 VARCHAR(300),
+					  DEPARTMENT_NUM        INTEGER,
+					  PATIENT_NUM           INTEGER
+					)
+					NOPARALLEL ");   
+		oci_execute($sel);
+		$sel = oci_parse($dbh, "CREATE INDEX DWH_TMP_RESULTIDX1_$user_num_session ON DWH_TMP_RESULT_$user_num_session  (TMPRESULT_NUM, DOCUMENT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
+		oci_execute($sel);
+		$sel = oci_parse($dbh, "CREATE INDEX DWH_TMP_RESULTIDX2_$user_num_session ON DWH_TMP_RESULT_$user_num_session  (PATIENT_NUM, TMPRESULT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
+		oci_execute($sel);
+		$sel = oci_parse($dbh, "CREATE INDEX DWH_TMP_RESULTIDX3_$user_num_session ON DWH_TMP_RESULT_$user_num_session  (TMPRESULT_NUM, PATIENT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
+		oci_execute($sel);
+		$sel = oci_parse($dbh, "CREATE INDEX DWH_TMP_RESULTIDX4_$user_num_session ON DWH_TMP_RESULT_$user_num_session  (TMPRESULT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
+		oci_execute($sel);
+		
+	}
 
 
 
@@ -550,7 +611,8 @@ function creer_requete_sql_filtre_passthru ($xml) {
         if ($xml!='') {
 		list($query_key,$datamart_num,$select_sql)=creer_requete_sql ($xml);
 		if ($query_key!='') {
-			$sel = oci_parse($dbh,"select count(*) as  NB from dwh_tmp_preresult where query_key='$query_key' and trunc(tmpresult_date)=trunc(sysdate) and datamart_num=$datamart_num and user_num=$user_num_session");   
+			//$sel = oci_parse($dbh,"select count(*) as  NB from DWH_TMP_PRERESULT_$user_num_session  where query_key='$query_key' and trunc(tmpresult_date)=trunc(sysdate) and datamart_num=$datamart_num ");   
+			$sel = oci_parse($dbh,"select count(*) as  NB from dwh_tmp_query where  query_key='$query_key' and user_num=$user_num_session and datamart_num=$datamart_num ");   
 			oci_execute($sel);
 			$r = oci_fetch_array($sel, OCI_ASSOC);
 			$nb=$r['NB'];
@@ -565,7 +627,7 @@ function creer_requete_sql_filtre_passthru ($xml) {
 	                        
 				passthru( "php passthru_result_temp.php $user_num_session $datamart_num \"$query_key\"  >> $CHEMIN_GLOBAL_LOG/log_chargement_result_temp.$user_num_session.$datamart_num.txt 2>&1 &");
 	                } else {
-	                        $sel = oci_parse($dbh,"select count(distinct patient_num) as  NB from dwh_tmp_preresult where query_key='$query_key' and trunc(tmpresult_date)=trunc(sysdate) and datamart_num=$datamart_num and user_num=$user_num_session");   
+	                        $sel = oci_parse($dbh,"select count(distinct patient_num) as  NB from DWH_TMP_PRERESULT_$user_num_session where query_key='$query_key' and trunc(tmpresult_date)=trunc(sysdate) and datamart_num=$datamart_num");   
 	                        oci_execute($sel);
 	                        $r = oci_fetch_array($sel, OCI_ASSOC);
 	                        $nb_patient=$r['NB'];
@@ -630,6 +692,7 @@ function creer_requete_sql ($xml) {
                         $context='patient_text';
                 }
 		$query_key=recup_query_key_depuis_xml ($xml);
+		$query_select_base="select  document_num,'$query_key' as query_key,sysdate as query_date,patient_num,$user_num_session as user_num,$datamart_num as datamart_num,document_origin_code,to_char(document_date,'DD/MM/YYYY HH24:MI') as document_date";
                 if ($text!='' ||  $chaine_requete_code!='') {
                         if ($hospital_department_list!='') {
                                 $filtre_sql.=" and department_num in ($hospital_department_list)  ";
@@ -667,8 +730,9 @@ function creer_requete_sql ($xml) {
                                 $filtre_sql.=" and trunc(age_patient*12)<=$agemois_fin_document ";
                         }
                         
+                        
 			if ($text!='') {
-				$select_sql="";
+
 				if ($context=='text') {
 					$requete_contexte="";
 				} else {
@@ -680,54 +744,60 @@ function creer_requete_sql ($xml) {
 				} else {
 					$requete_certitude=" and dwh_text.certainty=$certainty";
 				}
+				if ($datamart_num!=0) {
+					$query_datamart=" exists (select patient_num from dwh_datamart_result where datamart_num = $datamart_num and dwh_datamart_result.patient_num=dwh_text.patient_num) and ";
+				}
+       				$where='';
+	                        if ($filtre_sql!='') {
+	                        	$where="where 1=1 ";
+	                        }
 				if ($etendre_syno==1) {
 	               			if ($datamart_num==0) {
-	               				$select_sql="select document_num,'$query_key' as query_key,sysdate as query_date ,patient_num,$user_num_session as user_num,$datamart_num as datamart_num,document_origin_code,to_char(document_date,'DD/MM/YYYY HH24:MI') as document_date
-	               				 from dwh_text 
-	               				 where contains(dwh_text.enrich_text,'$text')>0 $requete_contexte $requete_certitude $filtre_sql   ";
-	               				 $select_sql_id_document="select document_num from dwh_text where contains(dwh_text.enrich_text,'$text')>0 $requete_contexte $requete_certitude $filtre_sql   ";
+	               				$select_sql="$query_select_base from 
+	               				(select  document_num,patient_num,document_origin_code,document_date,age_patient,title,department_num from dwh_text  where contains(dwh_text.enrich_text,'$text')>0 $requete_contexte $requete_certitude) t $where $filtre_sql   ";
+	               				 $select_sql_id_document="select document_num from (select document_num from dwh_text where contains(dwh_text.enrich_text,'$text')>0 $requete_contexte $requete_certitude)  $where $filtre_sql   ";
 		                        } else {
+	               				$select_sql="$query_select_base from 
+	               				(select  document_num,patient_num,document_origin_code,document_date,age_patient,title,department_num from dwh_text where $query_datamart contains(dwh_text.enrich_text,'$text')>0  $requete_contexte $requete_certitude ) t $where  $filtre_sql   ";
                                                 
-			                        $select_sql="select document_num,'$query_key' as query_key,sysdate as query_date ,patient_num,$user_num_session as user_num,$datamart_num as datamart_num,document_origin_code,to_char(document_date,'DD/MM/YYYY HH24:MI') as document_date
-                                                 from dwh_text
-                                                where exists (select patient_num from dwh_datamart_result where datamart_num = $datamart_num and dwh_datamart_result.patient_num=dwh_text.patient_num)  and contains(dwh_text.enrich_text,'$text')>0  $requete_contexte $requete_certitude  $filtre_sql   ";
-  
-                                                
-	               				$select_sql_id_document="select document_num from dwh_text where exists (select patient_num from dwh_datamart_result where datamart_num = $datamart_num and dwh_datamart_result.patient_num=dwh_text.patient_num)  and contains(dwh_text.enrich_text,'$text')>0 $requete_contexte $requete_certitude $filtre_sql";
+	               				$select_sql_id_document="select document_num from (select document_num from dwh_text where $query_datamart contains(dwh_text.enrich_text,'$text')>0 $requete_contexte $requete_certitude) t $where  $filtre_sql";
 		                        }
 		                } else {
 	               			if ($datamart_num==0) {
-			                        $select_sql="select  document_num,'$query_key' as query_key,sysdate as query_date ,patient_num,$user_num_session as user_num,$datamart_num as datamart_num,document_origin_code,to_char(document_date,'DD/MM/YYYY HH24:MI') as document_date
-		                                                from  dwh_text
-		                                                where contains(dwh_text.text,'$text')>0 $requete_contexte $requete_certitude $filtre_sql ";
-	               				 $select_sql_id_document="select document_num from dwh_text where contains(dwh_text.text,'$text')>0 $requete_contexte $requete_certitude $filtre_sql   ";
+	               				$select_sql="$query_select_base from 
+	               				(select  document_num,patient_num,document_origin_code,document_date,age_patient,title,department_num from dwh_text  where contains(dwh_text.text,'$text')>0 $requete_contexte $requete_certitude) t $where $filtre_sql   ";
+	               				 $select_sql_id_document="select document_num from (select document_num from dwh_text where contains(dwh_text.text,'$text')>0 $requete_contexte $requete_certitude) t $where $filtre_sql   ";
 		                        } else {
-		                                                
-			                        $select_sql="select document_num,'$query_key' as query_key,sysdate as query_date ,patient_num,$user_num_session as user_num,$datamart_num as datamart_num,document_origin_code,to_char(document_date,'DD/MM/YYYY HH24:MI') as document_date
-		                                                from  dwh_text
-		                                                where  exists (select patient_num from dwh_datamart_result where datamart_num = $datamart_num and dwh_datamart_result.patient_num=dwh_text.patient_num)  and  contains(dwh_text.text,'$text')>0  $requete_contexte $requete_certitude $filtre_sql   ";
-	               				 $select_sql_id_document="select document_num from dwh_text where  exists (select patient_num from dwh_datamart_result where datamart_num = $datamart_num and dwh_datamart_result.patient_num=dwh_text.patient_num)  and  contains(dwh_text.text,'$text')>0 $requete_contexte $requete_certitude $filtre_sql   ";
+	               				$select_sql="$query_select_base from 
+	               				(select  document_num,patient_num,document_origin_code,document_date,age_patient,title,department_num from dwh_text  where $query_datamart contains(dwh_text.text,'$text')>0 $requete_contexte $requete_certitude) t $where   $filtre_sql   ";
+	               				 $select_sql_id_document="select document_num from (select document_num from dwh_text where  $query_datamart contains(dwh_text.text,'$text')>0 $requete_contexte $requete_certitude) t $where   $filtre_sql   ";
 		                        }
 		                }
                         }
 			if ($chaine_requete_code!='') {
 				$requete_code=analyse_chaine_requete_code ($thesaurus_data_num,$chaine_requete_code,'sql','');
                			if ($datamart_num==0) {
-		                        $select_sql="select  document_num,'$query_key' as query_key,sysdate as query_date,patient_num,$user_num_session as user_num,$datamart_num as datamart_num,document_origin_code,to_char(document_date,'DD/MM/YYYY HH24:MI') as document_date
+		                        $select_sql="$query_select_base
 	                                                from dwh_data
 	                                                where $requete_code  $filtre_sql  ";
 	               			$select_sql_id_document="select document_num from dwh_data where $requete_code  $filtre_sql ";
 	                        } else {
 	                                                
-		                        $select_sql="select  document_num,'$query_key' as query_key,sysdate as query_date,patient_num,$user_num_session as user_num,$datamart_num as datamart_num,document_origin_code,to_char(document_date,'DD/MM/YYYY HH24:MI') as document_date
+		                        $select_sql="$query_select_base
 	                                                from dwh_data
 	                                                where  exists (select patient_num from dwh_datamart_result where datamart_num = $datamart_num and dwh_datamart_result.patient_num=dwh_data.patient_num)  and $requete_code  $filtre_sql";
 	               			$select_sql_id_document="select document_num from dwh_data  where  exists (select patient_num from dwh_datamart_result where datamart_num = $datamart_num and dwh_datamart_result.patient_num=dwh_data.patient_num)  and $requete_code  $filtre_sql ";
 	                        }
 			}
 			if ($periode_document!='') {
+       				$where='';
+	                        if ($filtre_sql=='') {
+	                        	$where="where ";
+	                        } else {
+	                        	$where="and ";
+	                        }
 				$periode_document=preg_replace("/\./",",","$periode_document");
-				$select_sql="$select_sql and  patient_num in  
+				$select_sql="$select_sql $where  patient_num in  
                                                         (
                                                         select patient_num from dwh_document where  document_date is not null
                                                         and document_num in ($select_sql_id_document)
@@ -738,10 +808,7 @@ function creer_requete_sql ($xml) {
 			
         	} else {
 			if ($datamart_num!='0') {
-                                                
-	                        $select_sql="select  document_num,'$query_key' as query_key,sysdate as query_date,patient_num,$user_num_session as user_num,$datamart_num as datamart_num,document_origin_code,to_char(document_date,'DD/MM/YYYY HH24:MI') as document_date
-                                                from dwh_document
-                                                where exists (select patient_num from dwh_datamart_result where datamart_num = $datamart_num  and dwh_datamart_result.patient_num=dwh_document.patient_num)  ";
+	                        $select_sql="$query_select_base from dwh_document where exists (select patient_num from dwh_datamart_result where datamart_num = $datamart_num  and dwh_datamart_result.patient_num=dwh_document.patient_num)  ";
 			}
         	}
         }
@@ -802,7 +869,7 @@ function creer_requete_sql_contrainte_temporelle_passthru ($xml,$query_key_a,$qu
         if ($xml!='') {
 		list($query_key,$select_sql)=creer_requete_sql_contrainte_temporelle ($xml,$query_key_a,$query_key_b,$datamart_num);
 		if ($query_key!='') {
-			$sel = oci_parse($dbh,"select count(*) as  NB from dwh_tmp_preresult where query_key='$query_key' and trunc(tmpresult_date)=trunc(sysdate) and datamart_num=$datamart_num and user_num=$user_num_session");   
+			$sel = oci_parse($dbh,"select count(*) as  NB from DWH_TMP_PRERESULT_$user_num_session where query_key='$query_key' and trunc(tmpresult_date)=trunc(sysdate) and datamart_num=$datamart_num");   
 			oci_execute($sel);
 			$r = oci_fetch_array($sel, OCI_ASSOC);
 			$nb=$r['NB'];
@@ -817,7 +884,7 @@ function creer_requete_sql_contrainte_temporelle_passthru ($xml,$query_key_a,$qu
 	                        
 				passthru( "php passthru_result_temp.php $user_num_session $datamart_num \"$query_key\"  >> $CHEMIN_GLOBAL_LOG/log_chargement_result_temp.$user_num_session.$datamart_num.txt 2>&1 &");
 	                } else {
-	                        $sel = oci_parse($dbh,"select count(distinct patient_num) as  NB from dwh_tmp_preresult where query_key='$query_key' and trunc(tmpresult_date)=trunc(sysdate) and datamart_num=$datamart_num and user_num=$user_num_session");   
+	                        $sel = oci_parse($dbh,"select count(distinct patient_num) as  NB from DWH_TMP_PRERESULT_$user_num_session where query_key='$query_key' and trunc(tmpresult_date)=trunc(sysdate) and datamart_num=$datamart_num ");   
 	                        oci_execute($sel);
 	                        $r = oci_fetch_array($sel, OCI_ASSOC);
 	                        $nb_patient=$r['NB'];
@@ -866,18 +933,18 @@ function creer_requete_sql_contrainte_temporelle ($xml,$query_key_a,$query_key_b
 			if ($type_contrainte=='stay') {
 				$select_sql= "
 				select a.document_num,'$query_key' as query_key,sysdate as query_date ,a.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,a.document_origin_code,to_char(a.document_date,'DD/MM/YYYY HH24:MI') as document_date
-               				 from dwh_tmp_preresult a, dwh_document a1, dwh_tmp_preresult b, dwh_document b1
-               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session
-               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session
+               				 from DWH_TMP_PRERESULT_$user_num_session a, dwh_document a1, DWH_TMP_PRERESULT_$user_num_session b, dwh_document b1
+               				 where a.query_key='$query_key_a' 
+               				 and  b.query_key='$query_key_b' 
                				 and a.patient_num=b.patient_num
                				 and a.document_num=a1.document_num
                				 and b.document_num=b1.document_num
                				 and a1.encounter_num=b1.encounter_num and a1.encounter_num is not null and b1.encounter_num is not null
 	               			union
 				select b.document_num,'$query_key' as query_key,sysdate as query_date ,b.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,b.document_origin_code,to_char(b.document_date,'DD/MM/YYYY HH24:MI') as document_date
-	               			 from dwh_tmp_preresult a, dwh_document a1, dwh_tmp_preresult b, dwh_document b1
-               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session
-               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session 
+	               			 from DWH_TMP_PRERESULT_$user_num_session a, dwh_document a1, DWH_TMP_PRERESULT_$user_num_session b, dwh_document b1
+               				 where a.query_key='$query_key_a'
+               				 and  b.query_key='$query_key_b'
                				 and a.patient_num=b.patient_num
                				 and a.document_num=a1.document_num
                				 and b.document_num=b1.document_num
@@ -887,16 +954,16 @@ function creer_requete_sql_contrainte_temporelle ($xml,$query_key_a,$query_key_b
 			if ($type_contrainte=='simultaneous') {
 				$select_sql= "
 				select a.document_num,'$query_key' as query_key,sysdate as query_date ,a.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,a.document_origin_code,to_char(a.document_date,'DD/MM/YYYY HH24:MI') as document_date
-               				 from dwh_tmp_preresult a, dwh_tmp_preresult b
-               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session
-               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session
+               				 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+               				 where a.query_key='$query_key_a' 
+               				 and  b.query_key='$query_key_b' 
                				 and a.patient_num=b.patient_num
                				 and a.document_date=b.document_date
 	               			union
 				select b.document_num,'$query_key' as query_key,sysdate as query_date ,b.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,b.document_origin_code,to_char(b.document_date,'DD/MM/YYYY HH24:MI') as document_date
-	               			 from dwh_tmp_preresult a, dwh_tmp_preresult b
-               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session
-               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session 
+	               			 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+               				 where a.query_key='$query_key_a' 
+               				 and  b.query_key='$query_key_b'
                				 and a.patient_num=b.patient_num
                				 and a.document_date=b.document_date
 				";
@@ -914,16 +981,16 @@ function creer_requete_sql_contrainte_temporelle ($xml,$query_key_a,$query_key_b
 				if ($minmax=='minimum') {
 					$select_sql= "
 					select a.document_num,'$query_key' as query_key,sysdate as query_date ,a.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,a.document_origin_code,to_char(a.document_date,'DD/MM/YYYY HH24:MI') as document_date
-	               				 from dwh_tmp_preresult a, dwh_tmp_preresult b
-	               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session 
-	               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session 
+	               				 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+	               				 where a.query_key='$query_key_a'
+	               				 and  b.query_key='$query_key_b' 
                				 and a.patient_num=b.patient_num
 	               				 and a.document_date<b.document_date and b.document_date-a.document_date> $req_temps
 	               			union
 					select b.document_num,'$query_key' as query_key,sysdate as query_date ,b.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,b.document_origin_code,to_char(b.document_date,'DD/MM/YYYY HH24:MI') as document_date
-	               				 from dwh_tmp_preresult a, dwh_tmp_preresult b
-	               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session 
-	               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session 
+	               				 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+	               				 where a.query_key='$query_key_a' 
+	               				 and  b.query_key='$query_key_b'
                				 and a.patient_num=b.patient_num
 	               				 and a.document_date<b.document_date and b.document_date-a.document_date> $req_temps
 					";
@@ -931,37 +998,37 @@ function creer_requete_sql_contrainte_temporelle ($xml,$query_key_a,$query_key_b
 				if ($minmax=='minimum_exclusive') {
 						$select_sql= "
 						select a.document_num,'$query_key' as query_key,sysdate as query_date ,a.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,a.document_origin_code,to_char(a.document_date,'DD/MM/YYYY HH24:MI') as document_date
-		               				 from dwh_tmp_preresult a, dwh_tmp_preresult b
-		               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session 
-		               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session 
+		               				 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+		               				 where a.query_key='$query_key_a' 
+		               				 and  b.query_key='$query_key_b' 
 	               				 and a.patient_num=b.patient_num
 		               				 and a.document_date<b.document_date and b.document_date-a.document_date> $req_temps
-		               				 and b.patient_num not in (select c.patient_num from dwh_tmp_preresult c where c.query_key='$query_key_b' and c.user_num=$user_num_session and c.document_date<b.document_date and c.document_date>a.document_date)
-		               				 and a.patient_num not in (select c.patient_num from dwh_tmp_preresult c where c.query_key='$query_key_a' and c.user_num=$user_num_session and c.document_date<b.document_date and c.document_date>a.document_date)
+		               				 and b.patient_num not in (select c.patient_num from DWH_TMP_PRERESULT_$user_num_session c where c.query_key='$query_key_b'  and c.document_date<b.document_date and c.document_date>a.document_date)
+		               				 and a.patient_num not in (select c.patient_num from DWH_TMP_PRERESULT_$user_num_session c where c.query_key='$query_key_a'  and c.document_date<b.document_date and c.document_date>a.document_date)
 		               			union
 						select b.document_num,'$query_key' as query_key,sysdate as query_date ,b.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,b.document_origin_code,to_char(b.document_date,'DD/MM/YYYY HH24:MI') as document_date
-		               				 from dwh_tmp_preresult a, dwh_tmp_preresult b
-		               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session 
-		               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session 
+		               				 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+		               				 where a.query_key='$query_key_a' 
+		               				 and  b.query_key='$query_key_b'
 	               				 and a.patient_num=b.patient_num
 		               				 and a.document_date<b.document_date and b.document_date-a.document_date> $req_temps
-		               				 and b.patient_num not in (select c.patient_num from dwh_tmp_preresult c where c.query_key='$query_key_b' and c.user_num=$user_num_session and c.document_date<b.document_date and c.document_date>a.document_date)
-		               				 and a.patient_num not in (select c.patient_num from dwh_tmp_preresult c where c.query_key='$query_key_a' and c.user_num=$user_num_session and c.document_date<b.document_date and c.document_date>a.document_date)
+		               				 and b.patient_num not in (select c.patient_num from DWH_TMP_PRERESULT_$user_num_session c where c.query_key='$query_key_b'  and c.document_date<b.document_date and c.document_date>a.document_date)
+		               				 and a.patient_num not in (select c.patient_num from DWH_TMP_PRERESULT_$user_num_session c where c.query_key='$query_key_a' and c.document_date<b.document_date and c.document_date>a.document_date)
 						";
 				}
 				if ($minmax=='maximum') {
 					$select_sql= "
 					select a.document_num,'$query_key' as query_key,sysdate as query_date ,a.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,a.document_origin_code,to_char(a.document_date,'DD/MM/YYYY HH24:MI') as document_date
-	               				 from dwh_tmp_preresult a, dwh_tmp_preresult b
-	               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session 
-	               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session 
+	               				 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+	               				 where a.query_key='$query_key_a' 
+	               				 and  b.query_key='$query_key_b'
                				 and a.patient_num=b.patient_num
 	               				 and a.document_date<b.document_date and b.document_date-a.document_date< $req_temps
 	               			union
 					select b.document_num,'$query_key' as query_key,sysdate as query_date ,b.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,b.document_origin_code,to_char(b.document_date,'DD/MM/YYYY HH24:MI') as document_date
-	               				 from dwh_tmp_preresult a, dwh_tmp_preresult b
-	               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session 
-	               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session 
+	               				 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+	               				 where a.query_key='$query_key_a'
+	               				 and  b.query_key='$query_key_b'
                				 and a.patient_num=b.patient_num
 	               				 and a.document_date<b.document_date and b.document_date-a.document_date< $req_temps
 					";
@@ -980,16 +1047,16 @@ function creer_requete_sql_contrainte_temporelle ($xml,$query_key_a,$query_key_b
 				if ($minmax=='minimum') {
 					$select_sql= "
 					select a.document_num,'$query_key' as query_key,sysdate as query_date ,a.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,a.document_origin_code,to_char(a.document_date,'DD/MM/YYYY HH24:MI') as document_date
-	               				 from dwh_tmp_preresult a, dwh_tmp_preresult b
-	               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session 
-	               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session
+	               				 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+	               				 where a.query_key='$query_key_a' 
+	               				 and  b.query_key='$query_key_b'
                				 and a.patient_num=b.patient_num
 	               				 and abs(b.document_date-a.document_date)> $req_temps
 	               			union
 					select b.document_num,'$query_key' as query_key,sysdate as query_date ,b.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,b.document_origin_code,to_char(b.document_date,'DD/MM/YYYY HH24:MI') as document_date
-	               				 from dwh_tmp_preresult a, dwh_tmp_preresult b
-	               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session 
-	               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session 
+	               				 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+	               				 where a.query_key='$query_key_a'
+	               				 and  b.query_key='$query_key_b'
                				 and a.patient_num=b.patient_num
 	               				 and abs(b.document_date-a.document_date)> $req_temps
 					";
@@ -997,37 +1064,37 @@ function creer_requete_sql_contrainte_temporelle ($xml,$query_key_a,$query_key_b
 				if ($minmax=='minimum_exclusive') {
 					$select_sql= "
 					select a.document_num,'$query_key' as query_key,sysdate as query_date ,a.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,a.document_origin_code,to_char(a.document_date,'DD/MM/YYYY HH24:MI') as document_date
-	               				 from dwh_tmp_preresult a, dwh_tmp_preresult b
-	               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session 
-	               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session
+	               				 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+	               				 where a.query_key='$query_key_a' 
+	               				 and  b.query_key='$query_key_b' 
                				 and a.patient_num=b.patient_num
 	               				 and abs(b.document_date-a.document_date)> $req_temps
-	               				 and b.patient_num not in (select c.patient_num from dwh_tmp_preresult c where c.query_key='$query_key_b' and c.user_num=$user_num_session and abs(a.document_date-c.document_date)< $req_temps)
-	               				 and a.patient_num not in (select c.patient_num from dwh_tmp_preresult c where c.query_key='$query_key_a' and c.user_num=$user_num_session and abs(b.document_date-c.document_date)< $req_temps)
+	               				 and b.patient_num not in (select c.patient_num from DWH_TMP_PRERESULT_$user_num_session c where c.query_key='$query_key_b'  and abs(a.document_date-c.document_date)< $req_temps)
+	               				 and a.patient_num not in (select c.patient_num from DWH_TMP_PRERESULT_$user_num_session c where c.query_key='$query_key_a'  and abs(b.document_date-c.document_date)< $req_temps)
 	               			union
 					select b.document_num,'$query_key' as query_key,sysdate as query_date ,b.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,b.document_origin_code,to_char(b.document_date,'DD/MM/YYYY HH24:MI') as document_date
-	               				 from dwh_tmp_preresult a, dwh_tmp_preresult b
-	               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session 
-	               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session 
+	               				 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+	               				 where a.query_key='$query_key_a' 
+	               				 and  b.query_key='$query_key_b'
                				 and a.patient_num=b.patient_num
 	               				 and abs(b.document_date-a.document_date)> $req_temps
-	               				 and b.patient_num not in (select c.patient_num from dwh_tmp_preresult c where c.query_key='$query_key_b' and c.user_num=$user_num_session and abs(a.document_date-c.document_date)< $req_temps)
-	               				 and a.patient_num not in (select c.patient_num from dwh_tmp_preresult c where c.query_key='$query_key_a' and c.user_num=$user_num_session and abs(b.document_date-c.document_date)< $req_temps)
+	               				 and b.patient_num not in (select c.patient_num from DWH_TMP_PRERESULT_$user_num_session c where c.query_key='$query_key_b' and abs(a.document_date-c.document_date)< $req_temps)
+	               				 and a.patient_num not in (select c.patient_num from DWH_TMP_PRERESULT_$user_num_session c where c.query_key='$query_key_a' and abs(b.document_date-c.document_date)< $req_temps)
 					";
 				}
 				if ($minmax=='maximum') {
 					$select_sql= "
 					select a.document_num,'$query_key' as query_key,sysdate as query_date ,a.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,a.document_origin_code,to_char(a.document_date,'DD/MM/YYYY HH24:MI') as document_date
-	               				 from dwh_tmp_preresult a, dwh_tmp_preresult b
-	               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session
-	               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session
+	               				 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+	               				 where a.query_key='$query_key_a'
+	               				 and  b.query_key='$query_key_b'
                				 and a.patient_num=b.patient_num
 	               				 and abs(b.document_date-a.document_date)< $req_temps
 	               			union
 					select b.document_num,'$query_key' as query_key,sysdate as query_date ,b.patient_num,$user_num_session as user_num,$datamart_num as datamart_num,b.document_origin_code,to_char(b.document_date,'DD/MM/YYYY HH24:MI') as document_date
-	               				 from dwh_tmp_preresult a, dwh_tmp_preresult b
-	               				 where a.query_key='$query_key_a' and a.user_num=$user_num_session
-	               				 and  b.query_key='$query_key_b' and b.user_num=$user_num_session
+	               				 from DWH_TMP_PRERESULT_$user_num_session a, DWH_TMP_PRERESULT_$user_num_session b
+	               				 where a.query_key='$query_key_a'
+	               				 and  b.query_key='$query_key_b' 
                				 and a.patient_num=b.patient_num
 	               				 and abs(b.document_date-a.document_date)< $req_temps
 					";
@@ -1061,19 +1128,19 @@ function creer_requete_sql_filtre ($xml,$option) {
         if ($xml!='') {
 		list($query_key,$datamart_num,$select_sql)=creer_requete_sql ($xml);
                 if ($query_key!='') {
-                        $sel = oci_parse($dbh,"select count(*) as  NB from dwh_tmp_preresult where query_key='$query_key' and trunc(tmpresult_date)=trunc(sysdate) and datamart_num=$datamart_num and user_num=$user_num_session");   
+                        $sel = oci_parse($dbh,"select count(*) as  NB from DWH_TMP_PRERESULT_$user_num_session where query_key='$query_key' and trunc(tmpresult_date)=trunc(sysdate) and datamart_num=$datamart_num ");   
                         oci_execute($sel);
                         $r = oci_fetch_array($sel, OCI_ASSOC);
                         $nb=$r['NB'];
                         
                         if ($nb==0) {
 				$select_sql=preg_replace("/to_char\(document_date,'DD\/MM\/YYYY HH24:MI'\) *as *document_date/","document_date",$select_sql);
-				$sel = oci_parse($dbh, " insert  /*+ APPEND */ into dwh_tmp_preresult (document_num ,query_key , tmpresult_date,patient_num,user_num,datamart_num,document_origin_code,document_date)  $select_sql  ");   
+				$sel = oci_parse($dbh, " insert  /*+ APPEND */ into DWH_TMP_PRERESULT_$user_num_session (document_num ,query_key , tmpresult_date,patient_num,user_num,datamart_num,document_origin_code,document_date)  $select_sql  ");   
 				oci_execute($sel);
                         }
                         
                         if ($option=='patient_num') {
-                                $requete_sql=" query_key='$query_key' and user_num=$user_num_session ";
+                                $requete_sql=" query_key='$query_key'  "; // a voir si on supprimer le filtre sur user_num ... garcelon
                         }
                 }
                 if ($datamart_num==0) {
@@ -1082,7 +1149,7 @@ function creer_requete_sql_filtre ($xml,$option) {
                         if ($option=='patient_num') {
                                  $requete_sql.=" and datamart_num=$datamart_num  ";
 				$select_sql=preg_replace("/to_char\(document_date,'DD\/MM\/YYYY HH24:MI'\) *as *document_date/i","document_date",$select_sql);
-				$sel = oci_parse($dbh, " insert  /*+ APPEND */ into dwh_tmp_preresult (document_num ,query_key , tmpresult_date,patient_num,user_num,datamart_num,document_origin_code,document_date)  $select_sql  ");   
+				$sel = oci_parse($dbh, " insert  /*+ APPEND */ into DWH_TMP_PRERESULT_$user_num_session (document_num ,query_key , tmpresult_date,patient_num,user_num,datamart_num,document_origin_code,document_date)  $select_sql  ");   
 				oci_execute($sel);
                         }
                 }
@@ -1444,6 +1511,17 @@ function analyse_chaine_requete_code ($thesaurus_data_num,$chaine_requete_code,$
 	}
 	$tableau_requete_code=explode(';',$chaine_requete_code);
 	//hors_borne+";"+operateur+";"+valeur+";"+valeur_deb+";"+valeur_fin+";"+valeur_sup_n_x_borne_sup+";"+valeur_inf_n_x_borne_inf;
+#$xml_chaine_requete="
+#<requete_code>
+#	<bound></bound>
+#	<operator></operator>
+#	<value></value>
+#	<value_start></value_start>
+#	<value_end></value_end>
+#	<value_sup_n_x_borne_sup></value_sup_n_x_borne_sup>
+#	<value_inf_n_x_borne_inf></value_inf_n_x_borne_inf>
+#	<list_of_values></list_of_values>
+#</requete_code>";
 	$hors_borne=$tableau_requete_code[0];
 	$operateur=$tableau_requete_code[1];
 	$valeur=nettoyer_float($tableau_requete_code[2]);
@@ -1873,69 +1951,42 @@ function calcul_nb_resultat_filtre ($requete_sql) {
         
         if ($requete_sql!='') {
                 $requete_sql=preg_replace("/^ ?and /"," ",$requete_sql);
-                $requete_service='';
-                if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='') {
-                        if ($liste_service_session!='') {
-                                $requete_service_intersect=" intersect select patient_num from dwh_patient_department where department_num in ($liste_service_session) ";
-                        } else {
-                                $requete_service_dead=" and 1=2";
-                        }
-                }
-                $requete_document_origin_code='';
-                if ($liste_document_origin_code_session!='') {
-                	if (!preg_match("/'tout'/i","$liste_document_origin_code_session")) {
-	                        $requete_document_origin_code=" and document_origin_code in ($liste_document_origin_code_session)  ";
-                	}
-                } else {
-                        $requete_document_origin_code=" and 1=2";
-                }
-
-		if ($requete_service_intersect!='') {
-			$sel = oci_parse($dbh," select count(*) NB  FROM (select patient_num from dwh_tmp_preresult WHERE $requete_sql  $requete_document_origin_code $requete_service_dead  $requete_service_intersect) t");   
-			oci_execute($sel);
-			$row = oci_fetch_array($sel, OCI_ASSOC);
-			$nb=$row['NB'];
-		} else {
-			$sel = oci_parse($dbh," select count(distinct patient_num) NB  FROM dwh_tmp_preresult WHERE $requete_sql  $requete_document_origin_code  $requete_service_dead ");   
-			oci_execute($sel);
-			$row = oci_fetch_array($sel, OCI_ASSOC);
-			$nb=$row['NB'];
-		}
-        } else {
-                $nb='';
-        }
-        return $nb;
-}
-function calcul_nb_resultat_filtre_ancien ($requete_sql) {
-        global $dbh,$liste_uf_session,$user_num_session,$datamart_num,$liste_document_origin_code_session,$liste_service_session;
-        $tableau_resultat=array();
-        if ($requete_sql!='') {
-                $requete_sql=preg_replace("/^ ?and /"," ",$requete_sql);
-                $requete_service='';
-                if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='') {
-                        if ($liste_service_session!='') {
-                                $requete_service=" and dwh_tmp_preresult.patient_num in (select patient_num from dwh_patient_department where department_num in ($liste_service_session) )";
-                        } else {
-                                $requete_service=" and 1=2";
-                        }
-                }
-                $requete_document_origin_code='';
-                if ($liste_document_origin_code_session!='') {
-                	if (!preg_match("/'tout'/i","$liste_document_origin_code_session")) {
-	                        $requete_document_origin_code=" and dwh_tmp_preresult.document_num in (select document_num from dwh_document where  document_origin_code in ($liste_document_origin_code_session) ) ";
-                	}
-                } else {
-                        $requete_document_origin_code=" and 1=2";
-                }
-
-                $tableau_patient_num=array();
-		$sel = oci_parse($dbh,"select patient_num from dwh_tmp_preresult where $requete_sql $requete_service $requete_document_origin_code");   
+                
+                
+#                $requete_service='';
+#                if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='') {
+#                        if ($liste_service_session!='') {
+#                                $requete_service_intersect=" intersect select patient_num from dwh_patient_department where department_num in ($liste_service_session) ";
+#                        } else {
+#                                $requete_service_dead=" and 1=2";
+#                        }
+#                }
+#                $requete_document_origin_code='';
+#                if ($liste_document_origin_code_session!='') {
+#                	if (!preg_match("/'tout'/i","$liste_document_origin_code_session")) {
+#	                        $requete_document_origin_code=" and document_origin_code in ($liste_document_origin_code_session)  ";
+#                	}
+#                } else {
+#                        $requete_document_origin_code=" and 1=2";
+#                }
+#
+#		if ($requete_service_intersect!='') {
+#			$sel = oci_parse($dbh," select count(*) NB  FROM (select patient_num from DWH_TMP_PRERESULT_$user_num_session WHERE $requete_sql  $requete_document_origin_code $requete_service_dead  $requete_service_intersect) t");   
+#			oci_execute($sel);
+#			$row = oci_fetch_array($sel, OCI_ASSOC);
+#			$nb=$row['NB'];
+#		} else {
+#			$sel = oci_parse($dbh," select count(distinct patient_num) NB  FROM DWH_TMP_PRERESULT_$user_num_session WHERE $requete_sql  $requete_document_origin_code  $requete_service_dead ");   
+#			oci_execute($sel);
+#			$row = oci_fetch_array($sel, OCI_ASSOC);
+#			$nb=$row['NB'];
+#		}
+		
+		$filter_query_user_right=filter_query_user_right("DWH_TMP_PRERESULT_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+		$sel = oci_parse($dbh," select count(distinct patient_num) NB  FROM DWH_TMP_PRERESULT_$user_num_session WHERE $requete_sql  $filter_query_user_right ");   
 		oci_execute($sel);
-		while ( $row = oci_fetch_array($sel, OCI_ASSOC)) {
-	                $patient_num=$row['PATIENT_NUM'];
-	                $tableau_patient_num[$patient_num]=$patient_num;
-		}
-                $nb=count($tableau_patient_num);
+		$row = oci_fetch_array($sel, OCI_ASSOC);
+		$nb=$row['NB'];
         } else {
                 $nb='';
         }
@@ -1943,8 +1994,8 @@ function calcul_nb_resultat_filtre_ancien ($requete_sql) {
 }
 
 function creer_requete_sql_filtre_patient ($xml,$tmpresult_num) {
-        global $dbh,$liste_uf_session;
-        $requete_sql="select dwh_tmp_result.patient_num from dwh_patient,dwh_tmp_result where dwh_patient.patient_num=dwh_tmp_result.patient_num and tmpresult_num=$tmpresult_num ";
+        global $dbh,$liste_uf_session,$user_num_session;
+        $requete_sql="select dwh_tmp_result_$user_num_session.patient_num from dwh_patient,dwh_tmp_result_$user_num_session where dwh_patient.patient_num=dwh_tmp_result_$user_num_session.patient_num and tmpresult_num=$tmpresult_num ";
         $test_filtre_patient='';
         if ($xml!='') {
                 $info_xml = new SimpleXMLElement($xml);
@@ -1977,11 +2028,11 @@ function creer_requete_sql_filtre_patient ($xml,$tmpresult_num) {
 	                $vivant_dcd=$info_xml->alive_death;
 	       		if ($vivant_dcd=='vivant') {
                                 $test_filtre_patient='ok';
-                                $requete_sql.="and exists (select patient_num from dwh_patient where death_code is null and dwh_tmp_result.patient_num=dwh_patient.patient_num)";
+                                $requete_sql.="and exists (select patient_num from dwh_patient where death_code is null and dwh_tmp_result_$user_num_session.patient_num=dwh_patient.patient_num)";
 		        }
 	       		if ($vivant_dcd=='decede') {
                                 $test_filtre_patient='ok';
-                                $requete_sql.="and exists (select patient_num from dwh_patient where death_code is not null and dwh_tmp_result.patient_num=dwh_patient.patient_num)";
+                                $requete_sql.="and exists (select patient_num from dwh_patient where death_code is not null and dwh_tmp_result_$user_num_session.patient_num=dwh_patient.patient_num)";
 		        }
 		}
 	        
@@ -1994,13 +2045,13 @@ function creer_requete_sql_filtre_patient ($xml,$tmpresult_num) {
        			$age_dcd_fin=trim(str_replace(".",",",$age_dcd_fin));
 	        }
        		if ($age_dcd_deb!='' && $age_dcd_fin=='') {
-			$requete_sql.="and exists (select patient_num from dwh_patient where death_code is not null and (death_date-birth_date)>=$age_dcd_deb*365 and dwh_tmp_result.patient_num=dwh_patient.patient_num)";
+			$requete_sql.="and exists (select patient_num from dwh_patient where death_code is not null and (death_date-birth_date)>=$age_dcd_deb*365 and dwh_tmp_result_$user_num_session.patient_num=dwh_patient.patient_num)";
 	        }
        		if ($age_dcd_deb=='' && $age_dcd_fin!='') {
-			$requete_sql.="and exists (select patient_num from dwh_patient where death_code is not null and (death_date-birth_date)<=$age_dcd_fin*365 and dwh_tmp_result.patient_num=dwh_patient.patient_num)";
+			$requete_sql.="and exists (select patient_num from dwh_patient where death_code is not null and (death_date-birth_date)<=$age_dcd_fin*365 and dwh_tmp_result_$user_num_session.patient_num=dwh_patient.patient_num)";
 	        }
        		if ($age_dcd_deb!='' && $age_dcd_fin!='') {
-			$requete_sql.="and exists (select patient_num from dwh_patient where death_code is not null and (death_date-birth_date)>=$age_dcd_deb*365  and (death_date-birth_date)<=$age_dcd_fin*365 and dwh_tmp_result.patient_num=dwh_patient.patient_num)";
+			$requete_sql.="and exists (select patient_num from dwh_patient where death_code is not null and (death_date-birth_date)>=$age_dcd_deb*365  and (death_date-birth_date)<=$age_dcd_fin*365 and dwh_tmp_result_$user_num_session.patient_num=dwh_patient.patient_num)";
 	        }
                 
                 
@@ -2009,15 +2060,15 @@ function creer_requete_sql_filtre_patient ($xml,$tmpresult_num) {
                         $date_fin_1ervenue=$info_xml->first_stay_date_end;
                         if ($date_deb_1ervenue!='' &&  $date_fin_1ervenue=='') {
                                 $test_filtre_patient='ok';
-                                $requete_sql.="and exists (select patient_num from dwh_document where dwh_tmp_result.patient_num=dwh_document.patient_num having  min(document_date)>=to_date('$date_deb_1ervenue','DD/MM/YYYY') group by patient_num)";
+                                $requete_sql.="and exists (select patient_num from dwh_document where dwh_tmp_result_$user_num_session.patient_num=dwh_document.patient_num having  min(document_date)>=to_date('$date_deb_1ervenue','DD/MM/YYYY') group by patient_num)";
                         }
                         if ($date_deb_1ervenue=='' &&  $date_fin_1ervenue!='') {
                                 $test_filtre_patient='ok';
-                                $requete_sql.="and exists (select patient_num from dwh_document where dwh_tmp_result.patient_num=dwh_document.patient_num having  min(document_date)<=to_date('$date_fin_1ervenue','DD/MM/YYYY') group by patient_num)";
+                                $requete_sql.="and exists (select patient_num from dwh_document where dwh_tmp_result_$user_num_session.patient_num=dwh_document.patient_num having  min(document_date)<=to_date('$date_fin_1ervenue','DD/MM/YYYY') group by patient_num)";
                         }
                         if ($date_deb_1ervenue!='' &&  $date_fin_1ervenue!='') {
                                 $test_filtre_patient='ok';
-                                $requete_sql.="and exists (select patient_num from dwh_document where dwh_tmp_result.patient_num=dwh_document.patient_num having  min(document_date) between to_date('$date_deb_1ervenue','DD/MM/YYYY')  and  to_date('$date_fin_1ervenue','DD/MM/YYYY')  group by patient_num)";
+                                $requete_sql.="and exists (select patient_num from dwh_document where dwh_tmp_result_$user_num_session.patient_num=dwh_document.patient_num having  min(document_date) between to_date('$date_deb_1ervenue','DD/MM/YYYY')  and  to_date('$date_fin_1ervenue','DD/MM/YYYY')  group by patient_num)";
                         }
                 }
                 if ($info_xml->minimum_period_folloup) {
@@ -2036,7 +2087,7 @@ function creer_requete_sql_filtre_patient ($xml,$tmpresult_num) {
 	                $liste_cohorte_exclue=trim($info_xml->list_excluded_cohort);
                         if ($liste_cohorte_exclue!='') {
                                 $test_filtre_patient='ok';
-	                        $requete_sql.="and dwh_tmp_result.patient_num not in (select patient_num  from dwh_cohort_result where cohort_num in ($liste_cohorte_exclue))";
+	                        $requete_sql.="and dwh_tmp_result_$user_num_session.patient_num not in (select patient_num  from dwh_cohort_result where cohort_num in ($liste_cohorte_exclue))";
 	                }
 	        }
                 
@@ -2097,17 +2148,16 @@ function generer_resultat($xml,$tmpresult_num) {
 				        <datamart_text_num>$datamart_num</datamart_text_num>
         		</text_filter>";
         	
-                $tableau_requete_filtre_query_key[$num_filtre]=recup_query_key_depuis_xml($xml_unitaire);
-                $tableau_requete_notexist[$num_filtre]= creer_requete_sql_filtre ($xml_unitaire,'patient_num');
+                $tableau_requete_filtre_query_key["$num_filtre"]=recup_query_key_depuis_xml($xml_unitaire);
+                $tableau_requete_notexist["$num_filtre"]= creer_requete_sql_filtre ($xml_unitaire,'patient_num');
                 
-                $tableau_requete_nbresult[$num_filtre]=$texte_nbresult;
-                $tableau_exclure[$num_filtre]=$exclure;
+                $tableau_requete_nbresult["$num_filtre"]=$texte_nbresult;
+                $tableau_exclure["$num_filtre"]=$exclure;
                 if ($datamart_num=='') {
                 	$datamart_num=0;
                 }
-        	$tableau_requete_filtre_num_datamart[$num_filtre]=$datamart_num;
+        	$tableau_requete_filtre_num_datamart["$num_filtre"]=$datamart_num;
         }
-
 
         foreach($info_xml->time_constraint as $contrainte_temporelle) {
                 $num_filtre= $contrainte_temporelle->filter_num;
@@ -2128,6 +2178,17 @@ function generer_resultat($xml,$tmpresult_num) {
                 	$datamart_num=0;
                 }
         	$tableau_requete_filtre_num_datamart["$num_filtre"]=$datamart_num;
+                if ($tableau_exclure["$num_filtre_a"]==1) {
+	        	unset($tableau_requete_nbresult["$num_filtre_a"]);
+            		$tableau_exclure["$num_filtre"]=1;
+               		$tableau_requete_notexist["$num_filtre"]= " query_key='".$tableau_requete_filtre_query_key["$num_filtre"]."' ";
+	        }
+        	
+                if ($tableau_exclure["$num_filtre_b"]==1) {
+	        	unset($tableau_requete_nbresult["$num_filtre_b"]);
+            		$tableau_exclure["$num_filtre"]=1;
+               		$tableau_requete_notexist["$num_filtre"]= " query_key='".$tableau_requete_filtre_query_key["$num_filtre"]."' ";
+	        }
         }
         
         
@@ -2135,14 +2196,14 @@ function generer_resultat($xml,$tmpresult_num) {
         $i_nb_intersect=0;
         $liste_query_key='';
         foreach ($tableau_requete_nbresult as $num_filtre => $nb) {
-        	if ($tableau_exclure[$num_filtre]=='' || $tableau_exclure[$num_filtre]==0) {
+        	if ($tableau_exclure["$num_filtre"]=='' || $tableau_exclure["$num_filtre"]==0) {
         		$query_key=$tableau_requete_filtre_query_key["$num_filtre"];
         		$datamart_num=$tableau_requete_filtre_num_datamart["$num_filtre"];
         		$liste_query_key.="'$query_key',";
 	                if ($i_nb_intersect==0) {
-	                	$requete_intersect=" select patient_num from dwh_tmp_preresult WHERE query_key = '$query_key' AND user_num = $user_num_session and datamart_num=$datamart_num";
+	                	$requete_intersect=" select patient_num from DWH_TMP_PRERESULT_$user_num_session WHERE query_key = '$query_key'  and datamart_num=$datamart_num";
 	                } else {
-	                	$requete_intersect.=" intersect select patient_num from dwh_tmp_preresult WHERE query_key = '$query_key' AND user_num = $user_num_session  and datamart_num=$datamart_num";
+	                	$requete_intersect.=" intersect select patient_num from DWH_TMP_PRERESULT_$user_num_session WHERE query_key = '$query_key' and datamart_num=$datamart_num";
 	                }       
 	                $i_nb_intersect++;
 	        }
@@ -2159,8 +2220,8 @@ function generer_resultat($xml,$tmpresult_num) {
 	          author,
 	          title,
 	          department_num from  dwh_document  WHERE
-	                          exists  (   select document_num  from dwh_tmp_preresult where dwh_tmp_preresult.document_num=dwh_document.document_num and query_key in ($liste_query_key)
-	                        AND user_num = $user_num_session  and datamart_num=$datamart_num)
+	                          exists  (   select document_num  from DWH_TMP_PRERESULT_$user_num_session where DWH_TMP_PRERESULT_$user_num_session.document_num=dwh_document.document_num and query_key in ($liste_query_key)
+	                         and datamart_num=$datamart_num)
 	        ";
         } else {
 	        $req_final="select  '$user_num_session' as user_num,
@@ -2173,8 +2234,8 @@ function generer_resultat($xml,$tmpresult_num) {
 	          author,
 	          title,
 	          department_num from  dwh_document  WHERE
-	                          exists  (   select document_num  from dwh_tmp_preresult where dwh_tmp_preresult.document_num=dwh_document.document_num and query_key in ($liste_query_key)
-	                        AND user_num = $user_num_session  and datamart_num=$datamart_num)
+	                          exists  (   select document_num  from DWH_TMP_PRERESULT_$user_num_session where DWH_TMP_PRERESULT_$user_num_session.document_num=dwh_document.document_num and query_key in ($liste_query_key)
+	                         and datamart_num=$datamart_num)
 	        intersect
 	                        select  '$user_num_session' as user_num,
 	          dwh_document.patient_num,
@@ -2189,22 +2250,22 @@ function generer_resultat($xml,$tmpresult_num) {
 	                          patient_num in ($requete_intersect)";
 	}
 	
-        $sel = oci_parse($dbh,"delete from dwh_tmp_result where tmpresult_num=$tmpresult_num ");   
+        $sel = oci_parse($dbh,"delete from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num ");   
         oci_execute($sel);
         
         inserer_resultat($req_final);
         
         foreach ($tableau_requete_nbresult as $num_filtre => $nb) {
-        	if ($tableau_exclure[$num_filtre]==1) {
+        	if ($tableau_exclure["$num_filtre"]==1) {
 			$requete_sql_notexist=$tableau_requete_notexist["$num_filtre"];
-			$sel = oci_parse($dbh,"delete from dwh_tmp_result where tmpresult_num=$tmpresult_num and patient_num in (select patient_num from dwh_tmp_preresult where $requete_sql_notexist)");   
+			$sel = oci_parse($dbh,"delete from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and patient_num in (select patient_num from DWH_TMP_PRERESULT_$user_num_session where $requete_sql_notexist)");   
 			oci_execute($sel);
 	        }
         }
         
         $requete_sql_filtre_patient= creer_requete_sql_filtre_patient ($xml,$tmpresult_num);
         if ($requete_sql_filtre_patient!='') {
-                $sel = oci_parse($dbh,"delete from dwh_tmp_result where patient_num not in ($requete_sql_filtre_patient) and tmpresult_num=$tmpresult_num");   
+                $sel = oci_parse($dbh,"delete from dwh_tmp_result_$user_num_session where patient_num not in ($requete_sql_filtre_patient) and tmpresult_num=$tmpresult_num");   
                 oci_execute($sel);
         }
 }
@@ -2212,49 +2273,26 @@ function generer_resultat($xml,$tmpresult_num) {
 function get_nb_result($tmpresult_num) {
         global $dbh,$liste_uf_session,$liste_document_origin_code_session,$liste_service_session,$user_num_session;
         
-        $requete_document_origin_code='';
-        if ($liste_document_origin_code_session!='') {
-        	if (!preg_match("/'tout'/i","$liste_document_origin_code_session")) {
-                        $requete_document_origin_code=" and document_origin_code in ($liste_document_origin_code_session) ";
-        	}
-        } else {
-                $requete_document_origin_code=" and 1=2";
-        }
+	$filter_query_user_right=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
         
-        $sel = oci_parse($dbh,"select count(distinct patient_num) nb from dwh_tmp_result where tmpresult_num=$tmpresult_num ");   
+        $sel = oci_parse($dbh,"select count(distinct patient_num) nb from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num ");   
         oci_execute($sel);
         $row = oci_fetch_array($sel, OCI_ASSOC);
         $nb_patient=$row['NB'];
-        $sel = oci_parse($dbh,"select count(*) nb from dwh_tmp_result where tmpresult_num=$tmpresult_num ");   
+        $sel = oci_parse($dbh,"select count(*) nb from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num ");   
         oci_execute($sel);
         $row = oci_fetch_array($sel, OCI_ASSOC);
         $nb_document=$row['NB'];
 
 	$filtre_sql='';
-        if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='') {
-                if ($liste_service_session!='') {
-                        $filtre_sql.=" and  exists ( select patient_num from dwh_patient_department where department_num in ($liste_service_session) and  dwh_tmp_result.patient_num=dwh_patient_department.patient_num)";
-                } else {
-                        $filtre_sql.=" and 1=2";
-                }
-                $sel = oci_parse($dbh,"select count(distinct patient_num) nb from dwh_tmp_result where tmpresult_num=$tmpresult_num $filtre_sql  $requete_document_origin_code");   
-                oci_execute($sel);
-                $row = oci_fetch_array($sel, OCI_ASSOC);
-                $nb_patient_user=$row['NB'];
-                $sel = oci_parse($dbh,"select count(*) nb from dwh_tmp_result where tmpresult_num=$tmpresult_num $filtre_sql  $requete_document_origin_code");   
-                oci_execute($sel);
-                $row = oci_fetch_array($sel, OCI_ASSOC);
-                $nb_document_user=$row['NB'];
-        } else {
-                $sel = oci_parse($dbh,"select count(distinct patient_num) nb from dwh_tmp_result where tmpresult_num=$tmpresult_num $requete_document_origin_code");   
-                oci_execute($sel);
-                $row = oci_fetch_array($sel, OCI_ASSOC);
-                $nb_patient_user=$row['NB'];
-                $sel = oci_parse($dbh,"select count(*) nb from dwh_tmp_result where tmpresult_num=$tmpresult_num $requete_document_origin_code");   
-                oci_execute($sel);
-                $row = oci_fetch_array($sel, OCI_ASSOC);
-                $nb_document_user=$row['NB'];
-        }
+        $sel = oci_parse($dbh,"select count(distinct patient_num) nb from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num $filter_query_user_right");   
+        oci_execute($sel);
+        $row = oci_fetch_array($sel, OCI_ASSOC);
+        $nb_patient_user=$row['NB'];
+        $sel = oci_parse($dbh,"select count(*) nb from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num $filter_query_user_right");   
+        oci_execute($sel);
+        $row = oci_fetch_array($sel, OCI_ASSOC);
+        $nb_document_user=$row['NB'];
         
         return array($nb_patient,$nb_document,$nb_patient_user,$nb_document_user);
 }
@@ -2277,14 +2315,14 @@ function generer_resultat_requete_sauve($query_num) {
 	$user_num_session=$r['USER_NUM'];
 	generer_resultat($xml,$tmpresult_num);
 
-        $sel_var=oci_parse($dbh,"insert into dwh_query_result (patient_num,load_date,query_num) select distinct patient_num, sysdate, $query_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and user_num=$user_num_session
+        $sel_var=oci_parse($dbh,"insert into dwh_query_result (patient_num,load_date,query_num) select distinct patient_num, sysdate, $query_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and user_num=$user_num_session
         and patient_num not in (select patient_num from dwh_query_result where query_num=$query_num)");
 	oci_execute($sel_var);
 
         $sel = oci_parse($dbh,"update dwh_query set last_load_date=sysdate where query_num=$query_num");   
         oci_execute($sel);
         
-        $sel = oci_parse($dbh,"delete from dwh_tmp_result where tmpresult_num=$tmpresult_num");   
+        $sel = oci_parse($dbh,"delete from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num");   
         oci_execute($sel);
 }
 	
@@ -2333,64 +2371,47 @@ function sauver_requete_temp($xml_query) {
 function inserer_resultat ($requete_sql) {
         global $dbh,$login_session,$user_num_session;
         $requete_sql=preg_replace("/^ ?and /"," ",$requete_sql);
-        $sel = oci_parse($dbh,"insert /*+ APPEND */ into dwh_tmp_result (user_num,patient_num, encounter_num,document_num,document_date,tmpresult_num,document_origin_code,author,title,department_num) select user_num,patient_num,encounter_num,document_num,document_date,tmpresult_num,document_origin_code,author,title,department_num from ( $requete_sql ) t " );   
+        $sel = oci_parse($dbh,"insert /*+ APPEND */ into dwh_tmp_result_$user_num_session (user_num,patient_num, encounter_num,document_num,document_date,tmpresult_num,document_origin_code,author,title,department_num) select user_num,patient_num,encounter_num,document_num,document_date,tmpresult_num,document_origin_code,author,title,department_num from ( $requete_sql ) t " );   
         oci_execute($sel);
 }
 
 function inserer_resultat_texte ($requete_sql,$tmpresult_num) {
         global $dbh,$login_session,$user_num_session;
         $requete_sql=preg_replace("/^ ?and /"," ",$requete_sql);
-        $sel = oci_parse($dbh,"insert /*+ APPEND */ into dwh_tmp_result (user_num,patient_num, encounter_num,document_num,document_date,tmpresult_num,document_origin_code,author,title,department_num) select '$user_num_session',patient_num,encounter_num,document_num,document_date,$tmpresult_num,document_origin_code,author,title,department_num from dwh_document where $requete_sql " );   
+        $sel = oci_parse($dbh,"insert /*+ APPEND */ into dwh_tmp_result_$user_num_session (user_num,patient_num, encounter_num,document_num,document_date,tmpresult_num,document_origin_code,author,title,department_num) select '$user_num_session',patient_num,encounter_num,document_num,document_date,$tmpresult_num,document_origin_code,author,title,department_num from dwh_document where $requete_sql " );   
         oci_execute($sel);
 }
 
 function intersect_resultat_texte ($requete_sql,$tmpresult_num, $perimetre_intersect,$requete_sql_notexist) {
-        global $dbh,$login_session;
+        global $dbh,$login_session,$user_num_session;
         if ($perimetre_intersect=='') {
                 $perimetre_intersect='patient_num';
         }
         
-        $sel = oci_parse($dbh,"delete from dwh_tmp_result where tmpresult_num=$tmpresult_num and not exists (select document_num from dwh_tmp_preresult where $requete_sql_notexist  and dwh_tmp_preresult.$perimetre_intersect=dwh_tmp_result.$perimetre_intersect ) " );   
+        $sel = oci_parse($dbh,"delete from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and not exists (select document_num from DWH_TMP_PRERESULT_$user_num_session where $requete_sql_notexist  and DWH_TMP_PRERESULT_$user_num_session.$perimetre_intersect=dwh_tmp_result_$user_num_session.$perimetre_intersect ) " );   
         oci_execute($sel);
         
-	$requete_sql_completee=$requete_sql." and dwh_tmp_preresult.$perimetre_intersect = dwh_tmp_result.$perimetre_intersect and tmpresult_num = $tmpresult_num )";
-	inserer_resultat_texte ("$requete_sql_completee   AND dwh_document.document_num NOT IN (SELECT dwh_tmp_result.document_num FROM dwh_tmp_result WHERE tmpresult_num = $tmpresult_num ) ",$tmpresult_num);
-        
- //       inserer_resultat_texte ("$requete_sql and dwh_document.$perimetre_intersect in (select dwh_tmp_result.$perimetre_intersect from dwh_tmp_result where tmpresult_num=$tmpresult_num)  and dwh_document.document_num not in (select dwh_tmp_result.document_num from dwh_tmp_result where tmpresult_num=$tmpresult_num) ",$tmpresult_num);
+	$requete_sql_completee=$requete_sql." and DWH_TMP_PRERESULT_$user_num_session.$perimetre_intersect = dwh_tmp_result_$user_num_session.$perimetre_intersect and tmpresult_num = $tmpresult_num )";
+	inserer_resultat_texte ("$requete_sql_completee   AND dwh_document.document_num NOT IN (SELECT dwh_tmp_result_$user_num_session.document_num FROM dwh_tmp_result_$user_num_session WHERE tmpresult_num = $tmpresult_num ) ",$tmpresult_num);
 }
 
 function recuperer_resultat ($tmpresult_num,$full_text_query,$i_deb,$filtre_sql) {
-        global $dbh,$modulo_ligne_ajoute,$liste_uf_session,$datamart_num,$liste_document_origin_code_session,$liste_service_session,$login_session;
+        global $dbh,$modulo_ligne_ajoute,$liste_uf_session,$datamart_num,$liste_document_origin_code_session,$liste_service_session,$login_session,$user_num_session;
         
         //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
-        if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='') {
-#         
-                if ($liste_uf_session!='') {
-                        $filtre_sql.=" and exists ( select patient_num from dwh_patient_department where department_num in ($liste_service_session) and  dwh_tmp_result.patient_num=dwh_patient_department.patient_num ) ";
-                } else {
-                        $filtre_sql.=" and 1=2";
-                }
-        }
-	$filtre_sql_document_origin_code='';
-        if ($liste_document_origin_code_session!='') {
-        	if (!preg_match("/'tout'/i","$liste_document_origin_code_session")) {
-                        $filtre_sql_document_origin_code.=" and document_origin_code in ($liste_document_origin_code_session) ";
-        	}
-        } else {
-                $filtre_sql_document_origin_code.=" and 1=2"; 
-        }
+	$filter_query_user_right=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
         
 	//$liste_synonyme=recupere_liste_concept_full_texte ($full_text_query);
 	$tableau_liste_synonyme=recupere_liste_concept_full_texte ($full_text_query);
         $tableau_resultat=array();
         $i_fin=$i_deb+$modulo_ligne_ajoute;
-        $sel = oci_parse($dbh,"select patient_num from (select rownum i, patient_num from dwh_patient where patient_num in (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num $filtre_sql $filtre_sql_document_origin_code ) and rownum<=$i_fin  order by patient_num desc ) t where i>$i_deb and i<=$i_fin  order by i asc" );   
+        $sel = oci_parse($dbh,"select patient_num from (select rownum i, patient_num from dwh_patient where patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num $filtre_sql $filter_query_user_right) and rownum<=$i_fin  order by patient_num desc ) t where i>$i_deb and i<=$i_fin  order by i asc" );   
         oci_execute($sel);
         while ($row = oci_fetch_array($sel, OCI_ASSOC)) {
                 $patient_num=$row['PATIENT_NUM'];
                 $nb_doc_par_patient=0;
                 $tableau_document_origin_code_deja_fait=array();
-                $sel_doc = oci_parse($dbh,"select dwh_tmp_result.document_num,dwh_tmp_result.patient_num,dwh_tmp_result.encounter_num, title,author,document_date,document_origin_code,department_num from dwh_tmp_result where dwh_tmp_result.patient_num=$patient_num and tmpresult_num=$tmpresult_num  $filtre_sql  $filtre_sql_document_origin_code order by  dwh_tmp_result.document_date desc " );   
+                $sel_doc = oci_parse($dbh,"select dwh_tmp_result_$user_num_session.document_num,dwh_tmp_result_$user_num_session.patient_num,dwh_tmp_result_$user_num_session.encounter_num, title,author,document_date,document_origin_code,department_num from dwh_tmp_result_$user_num_session where dwh_tmp_result_$user_num_session.patient_num=$patient_num and tmpresult_num=$tmpresult_num  $filtre_sql $filter_query_user_right order by  dwh_tmp_result_$user_num_session.document_date desc " );   
                 oci_execute($sel_doc);
                 while ($row_doc = oci_fetch_array($sel_doc, OCI_ASSOC)) {
                         $document_num=$row_doc['DOCUMENT_NUM'];
@@ -2433,10 +2454,10 @@ function recuperer_resultat ($tmpresult_num,$full_text_query,$i_deb,$filtre_sql)
 }
 
 function ouvrir_plus_document ($liste_document,$full_text_query,$tableau_liste_synonyme) {
-        global $dbh,$modulo_ligne_ajoute,$liste_uf_session,$datamart_num,$liste_document_origin_code_session;
+        global $dbh,$modulo_ligne_ajoute,$liste_uf_session,$datamart_num,$liste_document_origin_code_session,$user_num_session;
         $res="";
         if ($liste_document!='') {
-	        $sel_doc = oci_parse($dbh,"select distinct dwh_tmp_result.document_num,dwh_tmp_result.patient_num,dwh_tmp_result.encounter_num, title,author,document_date,document_origin_code,department_num from dwh_tmp_result where dwh_tmp_result.document_num in ($liste_document) order by  dwh_tmp_result.document_date desc " );   
+	        $sel_doc = oci_parse($dbh,"select distinct dwh_tmp_result_$user_num_session.document_num,dwh_tmp_result_$user_num_session.patient_num,dwh_tmp_result_$user_num_session.encounter_num, title,author,document_date,document_origin_code,department_num from dwh_tmp_result_$user_num_session where dwh_tmp_result_$user_num_session.document_num in ($liste_document) order by  dwh_tmp_result_$user_num_session.document_date desc " );   
 	        oci_execute($sel_doc);
 	        while ($row_doc = oci_fetch_array($sel_doc, OCI_ASSOC)) {
 	                $document_num=$row_doc['DOCUMENT_NUM'];
@@ -2595,7 +2616,10 @@ function afficher_patient ($patient_num,$option,$document_num,$cohort_num,$log_c
         if ($patient_num!='' && $autorisation_voir_patient=='ok') {
        		 $tab_patient=get_patient ($patient_num);
                 $hospital_patient_id=$tab_patient['HOSPITAL_PATIENT_ID'];         
-                $lastname=$tab_patient['LASTNAME'];               
+                $lastname=$tab_patient['LASTNAME']; 
+                if ($option=='patient' && $tab_patient['MAIDEN_NAME']!='' && $tab_patient['MAIDEN_NAME']!=$lastname) {
+	                $lastname.=" (".$tab_patient['MAIDEN_NAME'].")";               
+	        	}
                 $firstname=ucfirst ($tab_patient['FIRSTNAME']);               
                 $birth_date=$tab_patient['BIRTH_DATE'];             
                 $sex=$tab_patient['SEX'];
@@ -2743,8 +2767,8 @@ function afficher_patient ($patient_num,$option,$document_num,$cohort_num,$log_c
 	                }
 	        	$autorisation_cohorte_ajouter_patient=autorisation_cohorte_ajouter_patient($cohort_num,$user_num_session);
 	        	list($add_date,$num_user_ajout,$user_name_ajout)=lister_info_cohorte_patient ($patient_num,$cohort_num);
-	        	$query_num_inclusion=get_query_inclusion ($cohort_num, $patient_num);
-	        	$query_inclusion_patient=get_query_clear($query_num_inclusion);
+#	        	$query_num_inclusion=get_query_inclusion ($cohort_num, $patient_num);
+#	        	$query_inclusion_patient=get_query_clear($query_num_inclusion);
 	        	
 	        	$res.= " </td><td>(le $add_date par $user_name_ajout)</td> ";
                         $res.="<td><a href=\"patient.php?patient_num=$patient_num&cohort_num_encours=$cohort_num&datamart_num=$datamart_num\" target=\"_blank\"><img src=\"images/dossier_patient.png\" alt=\"Dossier du patient\" title=\"Dossier du patient\" border=\"0\" height=\"15px\"></a>&nbsp;&nbsp;";
@@ -2760,9 +2784,9 @@ function afficher_patient ($patient_num,$option,$document_num,$cohort_num,$log_c
 	                        	$icone_pencil="pencil";
 	                        }
                        		$res.="<img id=\"id_img_pencil_cohorte_$patient_num\" src=\"images/$icone_pencil.png\" border=\"0\" width=\"15px\" onclick=\"commenter_patient_cohorte('$patient_num','cohorte');\" style=\"cursor:pointer\" alt=\"Commenter\" title=\"Commenter\">&nbsp;&nbsp;";
-                        	if ($query_inclusion_patient!='') {
-	                       		$res.="<img src=\"images/search.png\" border=\"0\" width=\"18px\" onclick=\"plier_deplier('id_div_display_query_inclusion_cohort_$patient_num');\" style=\"cursor:pointer\" alt=\"Inclusion Query\" title=\"Inclusion Query\">";
-	                       	}
+                        	#if ($query_num_inclusion!='') {
+	                       		$res.="<img src=\"images/search.png\" border=\"0\" width=\"18px\" onclick=\"display_query_inclusion('$patient_num','$cohort_num','$query_num_inclusion');plier_deplier('id_div_display_query_inclusion_cohort_$patient_num');\" style=\"cursor:pointer\" alt=\"Inclusion Query\" title=\"Inclusion Query\">";
+	                       	#}
 	                       	
 	                        $res.="<div id=\"id_div_lister_commentaire_patient_cohorte_cohorte_$patient_num\" class=\"div_lister_commentaire_patient_cohorte\" style=\"display:none;\">
                         	<table border=\"0\" width=\"100%\"><tr><td nowrap=nowrap><strong>".get_translation('COMMENTS_IN_COHORT','Commentaires dans la cohorte')." :</strong></td><td style=\"text-align:right;cursor:pointer\" onclick=\"plier_deplier('id_div_lister_commentaire_patient_cohorte_cohorte_$patient_num');\">x</td></tr></table>
@@ -2774,10 +2798,10 @@ function afficher_patient ($patient_num,$option,$document_num,$cohort_num,$log_c
 		                        <input type=\"button\" value=\"".get_translation('ADD','ajouter')."\" onclick=\"sauver_commenter_patient_cohorte($patient_num,'cohorte');\">                        
 		                </span>
                         	</div> ";
-                        	if ($query_inclusion_patient!='') {
+                        	#if ($query_num_inclusion!='') {
 		                        $res.="<div id=\"id_div_display_query_inclusion_cohort_$patient_num\" class=\"div_lister_commentaire_patient_cohorte\" style=\"display:none;\">
-                        	<table border=\"0\" width=\"100%\"><tr><td nowrap=nowrap><strong>".get_translation('QUERY_USED_FOR_INCLUSION','Requête pour inclure ce patient')." :</strong></td><td style=\"text-align:right;cursor:pointer\" onclick=\"plier_deplier('id_div_display_query_inclusion_cohort_$patient_num');\">x</td></tr></table><span>$query_inclusion_patient</span></div>";
-                        	}
+                        	<table border=\"0\" width=\"100%\"><tr><td nowrap=nowrap><strong>".get_translation('QUERY_USED_FOR_INCLUSION','Requête pour inclure ce patient')." :</strong></td><td style=\"text-align:right;cursor:pointer\" onclick=\"plier_deplier('id_div_display_query_inclusion_cohort_$patient_num');\">x</td></tr></table><span id='id_span_display_query_inclusion_cohort_$patient_num'>$query_inclusion_patient</span></div>";
+                        	#}
 	                }
                 }
                 
@@ -2815,7 +2839,7 @@ function afficher_patient ($patient_num,$option,$document_num,$cohort_num,$log_c
         		}
                         $nominative=1;
         		$acces=1;
-                        $res= "$hospital_patient_id	$initiales	$lastname	$firstname	$birth_date\n";
+                        $res= "$hospital_patient_id	$initiales	$lastname	$firstname	$birth_date	$death_date\n";
                 }
                 
                 if ($option=='demande_acces_excel') {
@@ -2850,7 +2874,7 @@ function afficher_patient ($patient_num,$option,$document_num,$cohort_num,$log_c
 					$initiales.=substr($in,0,1); 
 				}
 				$initiales=strtoupper($initiales);
-                                $res= "$hospital_patient_id	$initiales	$lastname	$firstname	$birth_date\n";
+                                $res= "$hospital_patient_id	$initiales	$lastname	$firstname	$birth_date	$death_date\n";
                         }
                 }
                 if ($option=='cohorte_excel') {
@@ -3024,7 +3048,7 @@ function afficher_resultat ($tmpresult_num,$tableau_resultat,$i_deb,$cohort_num_
                 $nb_document_patient=count($tableau_resultat[$patient_num]);
                 $res.= "<tr id=\"id_tr_patient_$patient_num\" class=\"$class\" style=\"background-color:$color;\"><td class=\"patient_resultat\">
                 <div class=\"numero_patient\">$numero_patient</div>
-               <div style=\"position:relative\">";
+               <div style=\"position:relative;min-height:75px;\">";
                 $res.=afficher_patient($patient_num,'resultat','',$cohort_num_encours);
                 $res.="</div>
                </td><td>";
@@ -3236,11 +3260,16 @@ function afficher_document($document_num,$full_text_query,$tableau_liste_synonym
                     </table>
             </div>
             <div id=\"id_document_$document_num\" class=\"afficher_document\">";
-    if (preg_match("/<style[^>]*>/i",$displayed_text)) {
-    	$res.="$displayed_text";
-    } else {
-       	$res.="<pre>$displayed_text</pre>";
-    }
+	if (preg_match("/(<style[^>]*>|<br[^>]?>)/i",$displayed_text)) {
+		$res.="$displayed_text";
+	} else {
+		$res.="<pre>$displayed_text</pre>";
+	}
+#	if (preg_match("/(<style[^>]*>|<i>)/i",$displayed_text)) {
+#		$res.="$displayed_text";
+#	} else {
+#		$res.="<pre>$displayed_text</pre>";
+#	}
     $res.="$display_list_file</div>
     </div>
     ";
@@ -3293,7 +3322,7 @@ function afficher_document_patient_popup($document_num,$full_text_query,$tableau
                     </table>
             </div>
             <div id=\"id_document_$id_cle\" class=\"afficher_document\">";
-    if (preg_match("/<style[^>]*>/i",$displayed_text)) {
+    if (preg_match("/(<style[^>]*>|<br[^>]?>)/i",$displayed_text)) {
     	$res.="$displayed_text";
     } else {
        	$res.="<pre>$displayed_text</pre>";
@@ -3451,7 +3480,7 @@ function surligner_resultat ($text,$full_text_query,$option,$colorer,$tableau_li
 		                        } else {
 		                        	
 		                                $couleur=$requete_tableau_couleur[$sous_requete_unitaire];
-		                                $pattern="#([^a-z0-9])(".$sous_requete_unitaire_normalise.")([^a-z0-9])#i";
+		                                $pattern="#([^a-z0-9])(".$sous_requete_unitaire_normalise.")(s?[^a-z0-9])#i";
 		                                $text=preg_replace($pattern,"$1<b style='background:$couleur;color:black;' class='highlight'><u>$2</u></b>$".$nb_parenthese,$text,-1,$count);
 		                                $text_final=preg_replace($pattern,"$1<b style='background:$couleur;color:black;' class='highlight'><u>$2</u></b>$".$nb_parenthese,$text_final);
 		                        }
@@ -3612,8 +3641,11 @@ function nettoyer_pour_surligner ($full_text_query) {
         $full_text_query=preg_replace("/[çc]/","[çc]",$full_text_query);
         /////////////////
         
-        $full_text_query=preg_replace("/[^a-z0-9éeêèîïàââçùûüôö%;\[\]]/i","[^a-z0-9]+",$full_text_query);
+        
+        $full_text_query=preg_replace("/[^a-z0-9éeêèîïàââçùûüôö%;\[\]-]/i","[^a-z0-9]+",$full_text_query);
 
+        //ad NG 2019 02 08
+        $full_text_query=preg_replace("/%/","[a-z0-9éeêèîïàââçùûüôö]*",$full_text_query);
 
         foreach ($stop_words as $word) {
               $full_text_query=preg_replace("/([^a-z0-9])$word([^a-z0-9])/i","$1[A-Za-z]+$2"," $full_text_query ");
@@ -3664,7 +3696,7 @@ function verif_connexion($login,$passwd,$option) {
             if ($result=='nothing') {
                 $sel=oci_parse($dbh,"select count(*) as verif_passwd from dwh_user where login='$login' and passwd='".md5($passwd)."' ");
                 oci_execute($sel);
-		$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+				$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
                 $verif_passwd=$r['VERIF_PASSWD'];
                 if ($verif_passwd==0) {
                 	$result='nothing';
@@ -4523,7 +4555,7 @@ function affiche_liste_document_patient($patient_num,$requete) {
 					$date_document_char='[DATE]';
 				}
 				$nb_document++;
-				$res.= "<tr onmouseout=\"this.style.backgroundColor='#ffffff';\" onmouseover=\"this.style.backgroundColor='#B9C2C8';\" onclick=\"afficher_document_patient($document_num);\" style=\"cursor: pointer; background-color:#ffffff;\" id=\"id_document_patient_$document_num\" class=\"tr_document_patient\" sousgroupe=\"text\">";
+				$res.= "<tr onmouseout=\"this.style.backgroundColor='#ffffff';\" onmouseover=\"this.style.backgroundColor='#B9C2C8';\" onclick=\"afficher_document_patient($document_num,'id_div_voir_document');\" style=\"cursor: pointer; background-color:#ffffff;\" id=\"id_document_patient_$document_num\" class=\"tr_document_patient id_document_patient_$document_num\" sousgroupe=\"text\">";
 				
 				if ($affichage_tableau_expression_regulier=='ok') {
 					$sel_texte = oci_parse($dbh,"select TEXT from dwh_text where document_num=$document_num  and context='text' and certainty=0" );   
@@ -4749,7 +4781,7 @@ function afficher_document_patient($document_num,$full_text_query) {
         	$document.=" ".get_translation('BY_FOLLOWED_BY_NAME','par')." $author,";
         }
         $document.=" ".get_translation('THE_DATE','le')." $document_date <img align=\"absmiddle\" src=\"images/printer.png\" onclick=\"ouvrir_document_print('$document_num');return false;\" style=\"cursor:pointer;width:18px;\" border=\"0\"></h2>";
-    	if (preg_match("/<style[^>]*>/i",$displayed_text)) {
+    	if (preg_match("/(<style[^>]*>|<br[^>]?>)/i",$displayed_text)) {
 	    	$document.="$displayed_text";
 	    } else {
 	       	$document.="<pre>$displayed_text</pre>";
@@ -4826,7 +4858,7 @@ function affiche_contenu_liste_document_patient($patient_num,$requete) {
 			        	$texte_final.=" par $author,";
 			        }
 			        $texte_final.=" ".get_translation('THE_DATE','le')." $date_document_char </h2>";
-   				 	if (preg_match("/<style[^>]*>/i",$displayed_text)) {
+   				 	if (preg_match("/(<style[^>]*>|<br[^>]?>)/i",$displayed_text)) {
 				    	$texte_final.="$displayed_text";
 				    } else {
 				       	$texte_final.="<pre>$displayed_text</pre>";
@@ -5958,7 +5990,7 @@ function afficher_mes_droits () {
 
 
 function parcours_complet($type_affichage,$tmpresult_num,$cohort_num,$patient_num_local,$unit_or_department,$nb_mini) {
-	global $dbh,$CHEMIN_GLOBAL,$CHEMIN_GLOBAL_UPLOAD,$CHEMIN_GLOBAL_LOG,$CHEMIN_GRAPHVIZ;
+	global $dbh,$CHEMIN_GLOBAL,$CHEMIN_GLOBAL_UPLOAD,$CHEMIN_GLOBAL_LOG,$CHEMIN_GRAPHVIZ,$user_num_session;
 	$max_nb=1;
 	$max_width=20;
 	$patient_num_preced='';
@@ -5973,7 +6005,7 @@ function parcours_complet($type_affichage,$tmpresult_num,$cohort_num,$patient_nu
 	}
 	
 	if ($tmpresult_num!='') {
-		$req_filtre="  patient_num in (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num) and ";
+		$req_filtre="  patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and ";
 	}
 	if ($cohort_num!='') {
 		$req_filtre="  patient_num in (select patient_num from dwh_cohort_result where cohort_num=$cohort_num and status=1) and ";
@@ -6180,7 +6212,7 @@ function parcours_complet($type_affichage,$tmpresult_num,$cohort_num,$patient_nu
 }
 
 function parcours_sejour_uf ($tmpresult_num,$cohort_num,$patient_num,$patient_num_encounter_num,$nb_mini) {
-	global $dbh,$CHEMIN_GLOBAL,$CHEMIN_GLOBAL_UPLOAD,$CHEMIN_GRAPHVIZ;
+	global $dbh,$CHEMIN_GLOBAL,$CHEMIN_GLOBAL_UPLOAD,$CHEMIN_GRAPHVIZ,$user_num_session;
 
 	$max_nb=1;
 	$max_width=20;
@@ -6204,7 +6236,7 @@ function parcours_sejour_uf ($tmpresult_num,$cohort_num,$patient_num,$patient_nu
 	$liste_total_num_uf='';
 	
 	if ($tmpresult_num!='') {
-		$req_filtre_a="exists (select encounter_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and dwh_tmp_result.$patient_num_encounter_num= a.$patient_num_encounter_num and dwh_tmp_result.encounter_num is not null) and";
+		$req_filtre_a="exists (select encounter_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and dwh_tmp_result_$user_num_session.$patient_num_encounter_num= a.$patient_num_encounter_num and dwh_tmp_result_$user_num_session.encounter_num is not null) and";
 	}
 	if ($cohort_num!='') {
 		$req_filtre_a="a.patient_num in (select patient_num from dwh_cohort_result where cohort_num=$cohort_num and status=1) and";
@@ -6348,7 +6380,7 @@ function parcours_sejour_uf ($tmpresult_num,$cohort_num,$patient_num,$patient_nu
 }
 
 function parcours_sejour_uf_json ($tmpresult_num,$cohort_num,$patient_num,$patient_num_encounter_num,$nb_mini) {
-        global $dbh,$CHEMIN_GLOBAL,$CHEMIN_GLOBAL_UPLOAD,$CHEMIN_GRAPHVIZ;
+        global $dbh,$CHEMIN_GLOBAL,$CHEMIN_GLOBAL_UPLOAD,$CHEMIN_GRAPHVIZ,$user_num_session;
         $tableau_parcours=array();
         $tableau_noeud_present=array();
         $fichier= "{\"nodes\":[";
@@ -6358,7 +6390,7 @@ function parcours_sejour_uf_json ($tmpresult_num,$cohort_num,$patient_num,$patie
         $nb_noeud=-1;
 
 	if ($tmpresult_num!='') {
-		$req_filtre_a="exists (select encounter_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and dwh_tmp_result.$patient_num_encounter_num= a.$patient_num_encounter_num and dwh_tmp_result.encounter_num is not null) and";
+		$req_filtre_a="exists (select encounter_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and dwh_tmp_result_$user_num_session.$patient_num_encounter_num= a.$patient_num_encounter_num and dwh_tmp_result_$user_num_session.encounter_num is not null) and";
 	}
 	if ($cohort_num!='') {
 		$req_filtre_a="a.patient_num in (select patient_num from dwh_cohort_result where cohort_num=$cohort_num and status=1) and";
@@ -6494,7 +6526,7 @@ function parcours_sejour_uf_json ($tmpresult_num,$cohort_num,$patient_num,$patie
 
 
 function parcours_sejour_service($tmpresult_num,$cohort_num,$patient_num,$patient_num_encounter_num,$nb_mini) {
-	global $dbh,$CHEMIN_GLOBAL,$CHEMIN_GRAPHVIZ,$CHEMIN_GLOBAL_UPLOAD;
+	global $dbh,$CHEMIN_GLOBAL,$CHEMIN_GRAPHVIZ,$CHEMIN_GLOBAL_UPLOAD,$user_num_session;
 
 	$max_nb=1;
 	$max_width=20;
@@ -6516,7 +6548,7 @@ function parcours_sejour_service($tmpresult_num,$cohort_num,$patient_num,$patien
 	$liste_total_department_num='';
 	
 	if ($tmpresult_num!='') {
-		$req_filtre_a="exists ( select encounter_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and dwh_tmp_result.$patient_num_encounter_num= a.$patient_num_encounter_num and dwh_tmp_result.encounter_num is not null) and";
+		$req_filtre_a="exists ( select encounter_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and dwh_tmp_result_$user_num_session.$patient_num_encounter_num= a.$patient_num_encounter_num and dwh_tmp_result_$user_num_session.encounter_num is not null) and";
 	}
 	if ($cohort_num!='') {
 		$req_filtre_a="a.patient_num in (select patient_num from dwh_cohort_result where cohort_num=$cohort_num and status=1) and";
@@ -6659,7 +6691,7 @@ function parcours_sejour_service($tmpresult_num,$cohort_num,$patient_num,$patien
 
 
 function parcours_sejour_service_json ($tmpresult_num,$cohort_num,$patient_num,$patient_num_encounter_num,$nb_mini) {
-        global $dbh,$CHEMIN_GLOBAL,$CHEMIN_GLOBAL_UPLOAD;
+        global $dbh,$CHEMIN_GLOBAL,$CHEMIN_GLOBAL_UPLOAD,$user_num_session;
         $tableau_parcours=array();
         $tableau_noeud_present=array();
         $fichier= "{\"nodes\":[";
@@ -6670,7 +6702,7 @@ function parcours_sejour_service_json ($tmpresult_num,$cohort_num,$patient_num,$
         
         
 	if ($tmpresult_num!='') {
-		$req_filtre_a="exists ( select encounter_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and dwh_tmp_result.$patient_num_encounter_num= a.$patient_num_encounter_num and dwh_tmp_result.encounter_num is not null) and";
+		$req_filtre_a="exists ( select encounter_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and dwh_tmp_result_$user_num_session.$patient_num_encounter_num= a.$patient_num_encounter_num and dwh_tmp_result_$user_num_session.encounter_num is not null) and";
 	}
 	if ($cohort_num!='') {
 		$req_filtre_a="a.patient_num in (select patient_num from dwh_cohort_result where cohort_num=$cohort_num and status=1) and";
@@ -6930,8 +6962,8 @@ function modify_hospital_patient_id ($patient_num,$hospital_patient_id_ancien,$h
 		}
 		
 		if ($master_patient_id!='') {
-			$patient_num_maitre=get_patient_num($master_patient_id);
-			$patient_num_nouveau=get_patient_num($hospital_patient_id_nouveau);
+			$patient_num_maitre=get_patient_num($master_patient_id,'SIH');
+			$patient_num_nouveau=get_patient_num($hospital_patient_id_nouveau,'SIH');
 			
 			
 			if ($patient_num_maitre=='') {
@@ -7496,18 +7528,18 @@ function update_preferred_term ($code_filtre) {
 function lister_services_nbpatient_manager_department ($tmpresult_num,$query_num) {
 	global $dbh,$user_num_session;
 	$req="
-		SELECT patient_num,department_num from  dwh_tmp_result
+		SELECT patient_num,department_num from  dwh_tmp_result_$user_num_session
 		                          WHERE tmpresult_num = $tmpresult_num and department_num is not null and not exists (select patient_num 
 		                           FROM dwh_patient_department
-		                          WHERE dwh_patient_department.patient_num=dwh_tmp_result.patient_num and department_num IN (SELECT department_num
+		                          WHERE dwh_patient_department.patient_num=dwh_tmp_result_$user_num_session.patient_num and department_num IN (SELECT department_num
 		                                          FROM dwh_user_department
 		                                         WHERE user_num = $user_num_session))
 		union all
 		SELECT patient_num,department_num from dwh_patient_department where patient_num in (select patient_num 
-		                           FROM dwh_tmp_result
+		                           FROM dwh_tmp_result_$user_num_session
 		                          WHERE tmpresult_num = $tmpresult_num and department_num is  null and not exists (select patient_num 
 		                           FROM dwh_patient_department
-		                          WHERE dwh_patient_department.patient_num=dwh_tmp_result.patient_num and department_num IN (SELECT department_num
+		                          WHERE dwh_patient_department.patient_num=dwh_tmp_result_$user_num_session.patient_num and department_num IN (SELECT department_num
 		                                          FROM dwh_user_department
 		                                         WHERE user_num = $user_num_session))
 		                          )
@@ -7538,18 +7570,18 @@ function lister_services_nbpatient_manager_department ($tmpresult_num,$query_num
 	$req="SELECT department_num, COUNT (*) AS nb_patient
     FROM  (
     (
-SELECT patient_num,department_num from  dwh_tmp_result
+SELECT patient_num,department_num from  dwh_tmp_result_$user_num_session
                           WHERE tmpresult_num = $tmpresult_num and department_num is not null and not exists (select patient_num 
                            FROM dwh_patient_department
-                          WHERE dwh_patient_department.patient_num=dwh_tmp_result.patient_num and department_num IN (SELECT department_num
+                          WHERE dwh_patient_department.patient_num=dwh_tmp_result_$user_num_session.patient_num and department_num IN (SELECT department_num
                                           FROM dwh_user_department
                                          WHERE user_num = $user_num_session))
 union
 SELECT patient_num,department_num from dwh_patient_department where patient_num in (select patient_num 
-                           FROM dwh_tmp_result
+                           FROM dwh_tmp_result_$user_num_session
                           WHERE tmpresult_num = $tmpresult_num and department_num is  null and not exists (select patient_num 
                            FROM dwh_patient_department
-                          WHERE dwh_patient_department.patient_num=dwh_tmp_result.patient_num and department_num IN (SELECT department_num
+                          WHERE dwh_patient_department.patient_num=dwh_tmp_result_$user_num_session.patient_num and department_num IN (SELECT department_num
                                           FROM dwh_user_department
                                          WHERE user_num = $user_num_session))
                           )
@@ -7595,17 +7627,6 @@ order by count(*) desc";
 		}
 		print "</table></td>";
 		
-		
-#		$sel_service=oci_parse($dbh,"select distinct patient_num from dwh_tmp_result  where tmpresult_num=$tmpresult_num order by patient_num");
-#		oci_execute($sel_service);
-#		while ($r_service=oci_fetch_array($sel_service,OCI_RETURN_NULLS+OCI_ASSOC)) {
-#			$patient_num=$r_service['PATIENT_NUM'];
-#			if ($tableau_patient_service[$department_num][$patient_num]=='ok') {
-#				print "<td style=\"background-color:red;width:1px\"></td>";
-#			} else {
-#				print "<td style=\"background-color:white;width:1px\"></td>";
-#			}
-#		}
 		print "</tr>";
 	}
 	print "</tbody></table></div><br><br>";
@@ -7934,12 +7955,30 @@ function get_master_patient_id ($patient_num) {
 	}
 	return $hospital_patient_id;
 }
-function get_patient_num ($hospital_patient_id) {
+
+function get_master_patient_id_sih ($patient_num) {
+        global $dbh;
+        $hospital_patient_id='';
+        $patient_num=trim($patient_num);
+	if ($patient_num!='') {
+		$sel=oci_parse($dbh,"select hospital_patient_id from  dwh_patient_ipphist where patient_num=$patient_num and master_patient_id=1 and origin_patient_id='SIH'");
+	        oci_execute($sel);
+		$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+		$hospital_patient_id=$r['HOSPITAL_PATIENT_ID'];
+	}
+	return $hospital_patient_id;
+}
+function get_patient_num ($hospital_patient_id,$origin_patient_id='') {
         global $dbh;
         $patient_num='';
         $hospital_patient_id=trim($hospital_patient_id);
+        if ($origin_patient_id!='') {
+		$req_origin_patient_id="and origin_patient_id='$origin_patient_id' ";
+        } else {
+		$req_origin_patient_id="";
+        }
 	if ($hospital_patient_id!='') {
-		$sel=oci_parse($dbh,"select patient_num from dwh_patient_ipphist where hospital_patient_id='$hospital_patient_id'");
+		$sel=oci_parse($dbh,"select patient_num from dwh_patient_ipphist where hospital_patient_id='$hospital_patient_id' $req_origin_patient_id");
 	        oci_execute($sel);
 		$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
 		$patient_num=$r['PATIENT_NUM'];
@@ -8091,35 +8130,51 @@ function get_user_info ($user_num) {
 	return $tableau_user;
 	
 }
-function create_process ($process_num,$user_num,$status,$commentary,$result,$process_end_date) {
+
+function create_process ($process_num,$user_num,$status,$commentary,$result,$process_end_date,$category_process) {
 	global $dbh;
 	$commentary=supprimer_apost($commentary);
-	$req="insert into dwh_process (process_num,status,user_num,commentary,result,process_end_date) values ('$process_num','$status','$user_num','$commentary',:result,$process_end_date)";
+	$req="insert into dwh_process (process_num,status,user_num,commentary,result,process_end_date,category_process) values ('$process_num','$status','$user_num','$commentary',:result,$process_end_date,'$category_process')";
 	$ins = ociparse($dbh,$req);
 	$rowid = ocinewdescriptor($dbh, OCI_D_LOB);
 	ocibindbyname($ins, ":result",$result);
 	$execState = ociexecute($ins)||die ("ERreur  $req");
 	ocifreestatement($ins);
-
 }
-
-
 
 function update_process ($process_num,$status,$commentary,$result) {
 	global $dbh;
-	$commentary=supprimer_apost($commentary);
-	$req="update dwh_process set status='$status',commentary='$commentary',result=:result where process_num='$process_num'";
+	if ($result=='NULL') { // on vide result
+		$result='';
+		$req="update dwh_process set status='$status',commentary=:commentary,result=:result where process_num='$process_num'";
+	} else { // on concatene result, cela permet de vider le cache si nécessaire 
+	
+		$process=get_process($process_num);
+		$result=$process['RESULT'].$result;
+		$req="update dwh_process set status='$status',commentary=:commentary,result=:result where process_num='$process_num'";
+	}
 	$upd = ociparse($dbh,$req);
 	$rowid = ocinewdescriptor($dbh, OCI_D_LOB);
+	ocibindbyname($upd, ":commentary",$commentary);
 	ocibindbyname($upd, ":result",$result);
 	$execState = ociexecute($upd)||die ("ERreur  $req");
 	ocifreestatement($upd);
 
 }
 
-function get_process ($process_num) {
+
+function update_process_end_date ($process_num,$process_end_date) {
 	global $dbh;
-	$req= "select status,commentary,result,user_num,process_num from dwh_process where process_num='$process_num' ";
+	$commentary=supprimer_apost($commentary);
+	$req="update dwh_process set process_end_date=$process_end_date where process_num='$process_num'";
+	$upd=oci_parse($dbh, $req);
+	oci_execute($upd) ||die ("ERreur  $req");
+	ocifreestatement($upd);
+}
+
+function get_process  ($process_num) {
+	global $dbh;
+	$req= "select status,commentary,result,user_num,process_num,to_char(process_end_date,'DD/MM/YYYY HH24:MI') as process_end_date_char,category_process from dwh_process where process_num='$process_num' ";
 	$sel=oci_parse($dbh, $req);
 	oci_execute($sel) ||die ("ERreur  $req");
 	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
@@ -8127,6 +8182,8 @@ function get_process ($process_num) {
 	$status = $r['STATUS'];
 	$commentary = $r['COMMENTARY'];
 	$user_num = $r['USER_NUM'];
+	$process_end_date = $r['PROCESS_END_DATE_CHAR'];
+	$category_process = $r['CATEGORY_PROCESS'];
 	$result='';
 	if ($r['RESULT']) {
 		$result = $r['RESULT']-> load();
@@ -8137,8 +8194,38 @@ function get_process ($process_num) {
 	$tableau['STATUS']=$status;
 	$tableau['COMMENTARY']=$commentary;
 	$tableau['RESULT']=$result;
+	$tableau['PROCESS_END_DATE']=$process_end_date;
+	$tableau['CATEGORY_PROCESS']=$category_process;
 	return $tableau;
 }
+
+
+function get_all_my_process ($user_num,$category_process) {
+	global $dbh;
+	$req='';
+	if ($category_process!='') {
+		$req.=" and category_process='$category_process' ";
+	}
+	$req= "select status,commentary,user_num,process_num,to_char(process_end_date,'DD/MM/YYYY HH24:MI') as process_end_date_char,category_process from dwh_process where user_num=$user_num $req";
+	$sel=oci_parse($dbh, $req);
+	oci_execute($sel) ||die ("ERreur  $req");
+	while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		$process_num = $r['PROCESS_NUM'];
+		$status = $r['STATUS'];
+		$commentary = $r['COMMENTARY'];
+		$user_num = $r['USER_NUM'];
+		$process_end_date = $r['PROCESS_END_DATE_CHAR'];
+		$category_process = $r['CATEGORY_PROCESS'];
+		
+		$tableau[$process_num]['USER_NUM']=$user_num;
+		$tableau[$process_num]['STATUS']=$status;
+		$tableau[$process_num]['COMMENTARY']=$commentary;
+		$tableau[$process_num]['PROCESS_END_DATE']=$process_end_date;
+		$tableau[$process_num]['CATEGORY_PROCESS']=$category_process;
+	}
+	return $tableau;
+}
+
 
 function get_outil ($tool_num) {
 	global $dbh;
@@ -8294,7 +8381,7 @@ function get_translation($code,$defaut) {
 		if ($table_translation[$code]!='') {
 			$translation=$table_translation[$code];
 		} else {
-		        $inF = fopen("$CHEMIN_GLOBAL_LOG/CODE_UNSTRANSLATE.translate_alert","w");
+		        $inF = fopen("$CHEMIN_GLOBAL_LOG/CODE_UNTRANSLATE.translate_alert","a+");
 		        fputs( $inF,"$code;$defaut\n");
 		        fclose($inF);
 		        
@@ -8438,10 +8525,10 @@ function get_my_export_lists ($user_num) {
 
 
 function total_patients_per_concept($thesaurus_data_num,$tmpresult_num) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	
 	$query="select count(*) as counter from dwh_data where thesaurus_data_num='$thesaurus_data_num'
-	and exists  (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and dwh_data.patient_num=dwh_tmp_result.patient_num)";
+	and exists  (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and dwh_data.patient_num=dwh_tmp_result_$user_num_session.patient_num)";
 	$sel = oci_parse($dbh,$query); 
 	oci_execute($sel);
 	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
@@ -8913,7 +9000,20 @@ function calculate_nb_insert ($nb_jour){
 	}
 
 	return $tableau_result;
-
 }
 
+
+function get_concept_str ($concept_code,$thesaurus_code) {
+	global $dbh;
+	$tableau_result=array();
+	$thesaurus_code='';
+	if ($thesaurus_code!='') {
+		$req_thesaurus_code=" and thesaurus_code='$thesaurus_code' ";
+	}
+	$sel=oci_parse($dbh,"select concept_str from dwh_thesaurus_enrsem where concept_code='$concept_code' and pref='Y' $req_thesaurus_code");
+	oci_execute($sel);
+	$res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+	$concept_str=$res['CONCEPT_STR'];
+	return $concept_str;
+}
 ?>

@@ -48,6 +48,12 @@ foreach ($tableau_user_droit as $right) {
 	$_SESSION['dwh_droit_'.$right.'0']='';
 	$_SESSION['dwh_droit_'.$right]='';
 }
+if (is_array($tableau_user_droit_default)==false) {
+	$tableau_user_droit_default=array('search_engine','nominative','see_detailed','see_stat','see_concept','patient_quick_access');
+}
+if (is_array($tableau_patient_droit_default)==false) {
+	$tableau_patient_droit_default=array('patient_documents','patient_labo','patient_timeline','patient_carepath','patient_cohort','patient_concept');
+}
 
 //// LES DROITS GLOBAUX DE L'UTILISATEUR //////////
 $sel_var1=oci_parse($dbh,"select user_profile from dwh_user_profile where user_num in (select user_num from dwh_user where login='$login_session')");
@@ -145,8 +151,10 @@ if ($_GET['action']=='rechercher_dans_resultat') {
 	$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
 	$num_datamart_insert=$r['DATAMART_NUM'];
 	
+	
         if ($_GET['concept_code']!='') {
-        	$titre_datamart=" sur le concept ".$_GET['concept_code'];
+		$concept_str=get_concept_str($_GET['concept_code'],'');
+        	$titre_datamart=" sur le concept '$concept_str'";
         }
 	insert_datamart ($num_datamart_insert,"Affiner le résultat précédent $titre_datamart","Affiner le résultat $titre_datamart",'sysdate','sysdate','sysdate+1',1,$datamart_num);
 	if ($datamart_num!=0) {
@@ -183,47 +191,32 @@ if ($_GET['action']=='rechercher_dans_resultat') {
 			}
 		}
 	}
-	$filtre_sql_resultat='';
-        if ($liste_document_origin_code_session!='') {
-        	if (!preg_match("/'tout'/i","$liste_document_origin_code_session")) {
-                        $filtre_sql_resultat.=" and document_origin_code in ($liste_document_origin_code_session) ";
-        	}
-        } else if ($_SESSION['dwh_droit_admin_datamart0']=='') {
-                $filtre_sql_resultat.=" and 1=2";
-        }
-        
-        if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='') {
-                if ($liste_service_session!='') {
-                        $filtre_sql_resultat.=" and exists (select patient_num from dwh_document where department_num in ($liste_service_session) and  dwh_tmp_result.patient_num=dwh_document.patient_num) ";
-                } else if ($_SESSION['dwh_droit_admin_datamart0']=='') {
-                        $filtre_sql_resultat.=" and 1=2";
-                }
-        }
+
+	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
         if ($_GET['concept_code']!='' && $_GET['type']=='patient') {
         	$concept_code=$_GET['concept_code'];
-		//$filtre_sql_resultat.=" and patient_num in (select patient_num from dwh_enrsem where concept_code='$concept_code' and certainty=1 and context='patient_text' and patient_num in (select  patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)) ";
 		$filtre_sql_resultat.="   AND exists 
 			                 (SELECT document_num
 			                    FROM dwh_enrsem
 			                   WHERE     concept_code = '$concept_code'
 			                         AND certainty = 1
 			                         AND context = 'patient_text'
-			                         AND patient_num= dwh_tmp_result.patient_num) ";
+			                         AND patient_num= dwh_tmp_result_$user_num_session.patient_num) ";
         }
         if ($_GET['concept_code']!='' && $_GET['type']=='document') {
         	$concept_code=$_GET['concept_code'];
-		//$filtre_sql_resultat.=" and document_num in (select document_num from dwh_enrsem where concept_code='$concept_code' and certainty=1 and context='patient_text' and patient_num in (select  patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)) ";
+		//$filtre_sql_resultat.=" and document_num in (select document_num from dwh_enrsem where concept_code='$concept_code' and certainty=1 and context='patient_text' and patient_num in (select  patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)) ";
 		$filtre_sql_resultat.="   AND exists 
 			                 (SELECT document_num
 			                    FROM dwh_enrsem
 			                   WHERE     concept_code = '$concept_code'
 			                         AND certainty = 1
 			                         AND context = 'patient_text'
-			                         AND patient_num= dwh_tmp_result.patient_num
-			                         AND document_num= dwh_tmp_result.document_num) ";
+			                         AND patient_num= dwh_tmp_result_$user_num_session.patient_num
+			                         AND document_num= dwh_tmp_result_$user_num_session.document_num) ";
         }
         
-	insert_datamart_resultat ("select distinct $num_datamart_insert,patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num $filtre_sql_resultat");
+	insert_datamart_resultat ("select distinct $num_datamart_insert,patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num $filtre_sql_resultat");
 	$_POST['datamart_num']=$num_datamart_insert;
 	$_GET['datamart_num']=$num_datamart_insert;
 	
@@ -233,6 +226,16 @@ if ($_GET['action']=='rechercher_dans_resultat') {
 	$tmpresult_num=$r['TMPRESULT_NUM'];
 	$_POST['tmpresult_num']=$tmpresult_num;
 	$_GET['tmpresult_num']=$tmpresult_num;
+	
+        if ($_GET['concept_code']!='') {
+		$_POST['max_num_filtre']=1;
+		$_POST['text_1']="$concept_str";
+		$_POST['num_filtre_1']="1";
+		$_POST['etendre_syno_1']=1;
+		$_POST['action']='rechercher';
+	}
+	
+	
 }
 
 /// Accéder au contenu d'une requete sauvegardee sur une date particuliere de resultat

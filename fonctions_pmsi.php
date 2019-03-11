@@ -23,7 +23,7 @@
 */
 
 function graph_pmsi_json_ancien ($tmpresult_num,$thesaurus_data_father_num,$thesaurus_code,$type,$distance) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	
 	$tableau_nb_total=array();
 	$tableau_concept_str=array();
@@ -31,9 +31,9 @@ function graph_pmsi_json_ancien ($tmpresult_num,$thesaurus_data_father_num,$thes
 	$tableau_sous_category=array();
 	
 	if ($type=='sejour') {
-		$req_type=" c.encounter_num in ( select encounter_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and encounter_num is not null) and ";
+		$req_type=" c.encounter_num in ( select encounter_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and encounter_num is not null) and ";
 	} else {
-		$req_type=" c.patient_num in ( select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num) and ";
+		$req_type=" c.patient_num in ( select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and ";
 	}
 	
 	$req="select list_values from  dwh_thesaurus_data  where  thesaurus_code='$thesaurus_code' ";
@@ -135,8 +135,9 @@ function graph_pmsi_json_ancien ($tmpresult_num,$thesaurus_data_father_num,$thes
 		return "";
 	}
 }
+
 function max_distance_pmsi ($tmpresult_num,$thesaurus_code) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	
 	$req="select  max(distance) as distance_max  from 
 		dwh_thesaurus_data_graph a, 
@@ -144,7 +145,7 @@ function max_distance_pmsi ($tmpresult_num,$thesaurus_code) {
 	         where a.thesaurus_data_father_num=0 and
 	         a.thesaurus_data_son_num=b.thesaurus_data_num and
 	         b.thesaurus_code='$thesaurus_code' and a.thesaurus_code='$thesaurus_code' and
-	      	 b.patient_num in ( select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)  ";
+	      	 b.patient_num in ( select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)  ";
 	$selval=oci_parse($dbh,"$req ");
 	oci_execute($selval);
 	$res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC);
@@ -157,7 +158,7 @@ function max_distance_pmsi ($tmpresult_num,$thesaurus_code) {
 
 
 function graph_pmsi_json ($tmpresult_num,$thesaurus_data_father_num,$thesaurus_code,$type,$distance) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	
 	$tableau_nb_total=array();
 	$tableau_concept_str=array();
@@ -166,11 +167,11 @@ function graph_pmsi_json ($tmpresult_num,$thesaurus_data_father_num,$thesaurus_c
 	$tableau_sous_category=array();
 	
 	if ($type=='sejour') {
-		$req_type="  exists  ( select encounter_num from dwh_tmp_result where dwh_data.encounter_num=dwh_tmp_result.encounter_num and tmpresult_num=$tmpresult_num and encounter_num is not null)  and encounter_num is not null ";
-		$req_type="  dwh_data.encounter_num in  ( select encounter_num from dwh_tmp_result where  tmpresult_num=$tmpresult_num and encounter_num is not null)  and encounter_num is not null ";
+		$req_type="  exists  ( select encounter_num from dwh_tmp_result_$user_num_session where dwh_data.encounter_num=dwh_tmp_result_$user_num_session.encounter_num and tmpresult_num=$tmpresult_num and encounter_num is not null)  and encounter_num is not null ";
+		$req_type="  dwh_data.encounter_num in  ( select encounter_num from dwh_tmp_result_$user_num_session where  tmpresult_num=$tmpresult_num and encounter_num is not null)  and encounter_num is not null ";
 	} else {
-		$req_type="  exists  ( select patient_num from dwh_tmp_result where dwh_data.patient_num=dwh_tmp_result.patient_num and tmpresult_num=$tmpresult_num and patient_num is not null)  ";
-		$req_type="  dwh_data.patient_num in  ( select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num  )  ";
+		$req_type="  exists  ( select patient_num from dwh_tmp_result_$user_num_session where dwh_data.patient_num=dwh_tmp_result_$user_num_session.patient_num and tmpresult_num=$tmpresult_num and patient_num is not null)  ";
+		$req_type="  dwh_data.patient_num in  ( select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num  )  ";
 	}
 	
 	$req="select list_values from  dwh_thesaurus_data  where  thesaurus_code='$thesaurus_code' ";
@@ -257,6 +258,7 @@ function graph_pmsi_json ($tmpresult_num,$thesaurus_data_father_num,$thesaurus_c
 		$nb_c=0;
 		foreach ($tableau_nb_total as $thesaurus_data_num => $nb_total) {
 			$concept_str=str_replace("'"," ",$tableau_concept_str[$thesaurus_data_num]);
+			$concept_str=trim($concept_str);
 			$liste_category.="'$concept_str',";
 			$nb_c++;
 		}
@@ -266,7 +268,58 @@ function graph_pmsi_json ($tmpresult_num,$thesaurus_data_father_num,$thesaurus_c
 	if ($liste_category!='') {
 		return "$liste_category;separateur;$liste_series;separateur;$height";
 	} else {
-		return "";
+		return ";separateur;;separateur;";
 	}
+}
+
+
+function affiche_tableau_pmsi ($tmpresult_num,$thesaurus_code,$type) {
+	global $dbh,$user_num_session;
+	
+	$tableau_nb_total=array();
+	$tableau_concept_str=array();
+	$tableau_nb=array();
+	$tableau_nb_detaille=array();
+	$tableau_sous_category=array();
+	
+	if ($type=='sejour') {
+		$req_type="  exists  ( select encounter_num from dwh_tmp_result_$user_num_session where dwh_data.encounter_num=dwh_tmp_result_$user_num_session.encounter_num and tmpresult_num=$tmpresult_num and encounter_num is not null)  and encounter_num is not null ";
+		$req_type="  dwh_data.encounter_num in  ( select encounter_num from dwh_tmp_result_$user_num_session where  tmpresult_num=$tmpresult_num and encounter_num is not null)  and encounter_num is not null ";
+	} else {
+		$req_type="  exists  ( select patient_num from dwh_tmp_result_$user_num_session where dwh_data.patient_num=dwh_tmp_result_$user_num_session.patient_num and tmpresult_num=$tmpresult_num and patient_num is not null)  ";
+		$req_type="  dwh_data.patient_num in  ( select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num  )  ";
+	}
+
+	$req_nb="SELECT thesaurus_data_num,val_text,count(*),count(distinct patient_num) as nb from dwh_data where thesaurus_code='$thesaurus_code' and $req_type  group by  thesaurus_data_num,val_text";
+	$sel_nb=oci_parse($dbh,"$req_nb ");
+	oci_execute($sel_nb);
+	while ($r=oci_fetch_array($sel_nb,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		$thesaurus_data_num=$r['THESAURUS_DATA_NUM'];
+		$val_text=$r['VAL_TEXT'];
+  		$nb=$r['NB'];
+		$tableau_nb_code[$thesaurus_data_num][$val_text]="$nb";
+		$tableau_nb_patients[$thesaurus_data_num][$val_text]="$nb";
+	}
+	
+	$json_tableau='';
+	$req="select thesaurus_data_num,concept_str,list_values from  dwh_thesaurus_data  where  thesaurus_code='$thesaurus_code' ";
+	$selval=oci_parse($dbh,"$req ");
+	oci_execute($selval);
+	while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		$thesaurus_data_num=$res['THESAURUS_DATA_NUM'];
+		$concept_str=$res['CONCEPT_STR'];
+		$list_values=$res['LIST_VALUES'];
+		if ($tableau_nb_code[$thesaurus_data_num][$val_text]!='') {
+				$json_tableau.= " [
+					     \"$concept_str\",
+					     \"$val_text\",
+					 \"".$tableau_nb_code[$thesaurus_data_num][$val_text]."\",
+					 \"".$tableau_nb_patients[$thesaurus_data_num][$val_text]."\"
+				    ],";
+		}	
+	}
+	$json_tableau=substr($json_tableau,0,-1);
+	
+	return "$json_tableau";
 }
 ?>

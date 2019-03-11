@@ -85,7 +85,7 @@ if ( $tmpresult_num!='' && $type_export=='detail_patient_concept') {
 		        COUNT_CONCEPT_STR_FOUND as COUNT_CONCEPT_FOUND, 
 		        concept_str as concept_pref
 	 	from dwh_patient,dwh_enrsem,dwh_thesaurus_enrsem 
-	 	where dwh_enrsem.document_num in (select document_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)
+	 	where dwh_enrsem.document_num in (select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)
 			and certainty=1 and context='patient_text'
 			and dwh_patient.patient_num=dwh_enrsem.patient_num
 			and dwh_enrsem.concept_code=dwh_thesaurus_enrsem.concept_code
@@ -100,7 +100,7 @@ if ( $tmpresult_num!='' && $type_export=='detail_patient_concept') {
 		        COUNT_CONCEPT_STR_FOUND as COUNT_CONCEPT_FOUND, 
 		        concept_str as concept_pref
 	 	from dwh_patient,dwh_enrsem,dwh_thesaurus_enrsem 
-	 	where dwh_enrsem.patient_num in (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)
+	 	where dwh_enrsem.patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)
 			and certainty=1 and context='patient_text'
 			and dwh_patient.patient_num=dwh_enrsem.patient_num
 			and dwh_enrsem.concept_code=dwh_thesaurus_enrsem.concept_code
@@ -154,9 +154,15 @@ if ( $tmpresult_num!='' && $type_export=='agregated_concept') {
 	$distance=$_GET['distance'];
 	$age_concept_min=$_GET['age_concept_min'];
 	$age_concept_max=$_GET['age_concept_max'];
-	$json=repartition_concepts_general_json ($tmpresult_num,$phenotype_genotype,1,0,0,$donnees_reelles_ou_pref,$type,$distance,$age_concept_min,$age_concept_max);
+	$json=repartition_concepts_general_json ($tmpresult_num,$phenotype_genotype,2,0,0,$donnees_reelles_ou_pref,$type,$distance,$age_concept_min,$age_concept_max);
 	$tab=explode(";separateur_general;",$json);
 	$json_table=$tab[0];
+	$json_table=preg_replace("/[יטך]/","e",$json_table);
+	$json_table=preg_replace("/[גא]/","a",$json_table);
+	$json_table=preg_replace("/[פצ]/","o",$json_table);
+	$json_table=preg_replace("/[ח]/","c",$json_table);
+	$json_table=preg_replace("/[ןמ]/","i",$json_table);
+	$json_table=preg_replace("/[שûü]/","u",$json_table);
 	$tableau=json_decode("[$json_table]");
 	
 	
@@ -164,6 +170,7 @@ if ( $tmpresult_num!='' && $type_export=='agregated_concept') {
 	
         print "<table  class=\"tableau_cohorte\" border=\"1\">";
         print "<tr>
+        <th>".get_translation('CONCEPT_CODE','CODE')."</th>
         <th>".get_translation('CONCEPTS','Concepts')."</th>
         <th>".get_translation('NUMBER_OF_PATIENTS','# Patients')."</th>
         <th>".get_translation('FREQ_PATIENTS','FreqRes')."</th>
@@ -173,6 +180,7 @@ if ( $tmpresult_num!='' && $type_export=='agregated_concept') {
         <th>".get_translation('MEDIAN AGE','Median age')."</th>
         </tr>";
 	foreach ($tableau as $t) {
+		$concept_code=$t[0];
 		$concepts=$t[1];
 		$number_of_patients=$t[2];
 		$freq_patients=convert_decimal_for_export($t[3]);
@@ -182,6 +190,7 @@ if ( $tmpresult_num!='' && $type_export=='agregated_concept') {
 		$median_age=convert_decimal_for_export($t[7]);
 		
 		print "<tr>";
+		print "<td>$concept_code</td>";
 		print "<td>$concepts</td>";
 		print "<td>$number_of_patients</td>";
 		print "<td>$freq_patients</td>";

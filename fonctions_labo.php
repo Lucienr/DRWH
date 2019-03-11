@@ -23,7 +23,7 @@
 */
   
  function rechercher_examen_thesaurus_labo ($requete_texte,$thesaurus_data_father_num,$sans_filtre,$tmpresult_num) {
-	global $dbh,$thesaurus_code_labo;
+	global $dbh,$thesaurus_code_labo,$user_num_session;
 	$requete_texte=nettoyer_pour_requete(trim($requete_texte));
 	
 	if ($requete_texte!='') {
@@ -117,7 +117,7 @@
 				</div>";
 			} else {
 			
-				$sel=oci_parse($dbh,"select count(distinct patient_num) nb_patient_reel from dwh_tmp_result where tmpresult_num=$tmpresult_num and patient_num in (select patient_num from dwh_data where thesaurus_data_num=$thesaurus_data_num)");
+				$sel=oci_parse($dbh,"select count(distinct patient_num) nb_patient_reel from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and patient_num in (select patient_num from dwh_data where thesaurus_data_num=$thesaurus_data_num)");
 				oci_execute($sel);
 				$r=oci_fetch_array($sel);
 				$count_data_used=$r['NB_PATIENT_REEL'];
@@ -148,9 +148,9 @@
 }         
            
  function visualiser_graph_groupe ($thesaurus_data_num,$tmpresult_num) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	
-	$sel_patient_num=oci_parse($dbh,"select distinct patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num");
+	$sel_patient_num=oci_parse($dbh,"select distinct patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num");
 	oci_execute($sel_patient_num);
 	while ($r_patient_num=oci_fetch_array($sel_patient_num)) {
 		$patient_num=$r_patient_num['PATIENT_NUM'];
@@ -171,8 +171,9 @@
 
            
  function visualiser_tableau_groupe ($thesaurus_data_num,$tmpresult_num) {
-	global $dbh;
-	print "<table class=\"tablefin\" id=\"id_tableau_visualiser_tableau_groupe\">
+	global $dbh,$user_num_session;
+	print "
+	<form autocomplete=\"off\"><table class=\"tablefin\" id=\"id_tableau_visualiser_tableau_groupe\">
 	<thead><tr>
 		<th>".get_translation('PATIENT','Patient')."</th>
 		<th>".get_translation('COUNT_OR_NUMBER_SHORT','nb')."</th>
@@ -188,7 +189,7 @@
 		<th>".get_translation('TREND','Trend')."</th>
 	</tr></thead>
 	<tbody>";
-	$sel_patient_num=oci_parse($dbh,"select distinct patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num");
+	$sel_patient_num=oci_parse($dbh,"select distinct patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num");
 	oci_execute($sel_patient_num);
 	while ($r_patient_num=oci_fetch_array($sel_patient_num)) {
 		$patient_num=$r_patient_num['PATIENT_NUM'];
@@ -239,7 +240,7 @@
 	print "</tbody>";
 	
 	
-	$sel=oci_parse($dbh,"select max(val_numeric) as max, min(val_numeric) as min, round(avg(val_numeric),2) as avg, median (val_numeric) as median, round(STDDEV(val_numeric),2) as STDDEV,count(*) as nb  from dwh_data where thesaurus_data_num=$thesaurus_data_num and patient_num in (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num) ");
+	$sel=oci_parse($dbh,"select max(val_numeric) as max, min(val_numeric) as min, round(avg(val_numeric),2) as avg, median (val_numeric) as median, round(STDDEV(val_numeric),2) as STDDEV,count(*) as nb  from dwh_data where thesaurus_data_num=$thesaurus_data_num and patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) ");
 	oci_execute($sel);
 	$r=oci_fetch_array($sel);
 	$max=$r['MAX'];
@@ -255,13 +256,13 @@
 	$median=str_replace(",",".",$median);
 	$stddev=str_replace(",",".",$stddev);
 	
-	$sel=oci_parse($dbh,"select count(*) as nb_supborne_sup ,round(100*count(*)/$nb) as pourcent_sup from dwh_data where thesaurus_data_num=$thesaurus_data_num and patient_num in (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)  and val_numeric>upper_bound");
+	$sel=oci_parse($dbh,"select count(*) as nb_supborne_sup ,round(100*count(*)/$nb) as pourcent_sup from dwh_data where thesaurus_data_num=$thesaurus_data_num and patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)  and val_numeric>upper_bound");
 	oci_execute($sel);
 	$r=oci_fetch_array($sel);
 	$nb_supborne_sup=$r['NB_SUPBORNE_SUP'];
 	$pourcent_sup=$r['POURCENT_SUP'];
 	
-	$sel=oci_parse($dbh,"select count(*) as nb_infborne_inf ,round(100*count(*)/$nb) as pourcent_inf from dwh_data where thesaurus_data_num=$thesaurus_data_num and patient_num in (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)  and val_numeric<lower_bound");
+	$sel=oci_parse($dbh,"select count(*) as nb_infborne_inf ,round(100*count(*)/$nb) as pourcent_inf from dwh_data where thesaurus_data_num=$thesaurus_data_num and patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)  and val_numeric<lower_bound");
 	oci_execute($sel);
 	$r=oci_fetch_array($sel);
 	$nb_infborne_inf=$r['NB_INFBORNE_INF'];
@@ -270,7 +271,7 @@
 	print "<tfoot>";
 	print "<tr><th>".get_translation('TOTAL','Total')."</th><th>$nb</th><th>$min</th><th>$max</th><th>$median</th><th>$avg</th><th>$stddev</th><th>$nb_supborne_sup</th><th>$pourcent_sup</th><th>$nb_infborne_inf</th><th>$pourcent_inf</th><th></th></tr>";
 	print "<tr><th>".get_translation('PATIENT','Patient')."</th><th>".get_translation('COUNT_OR_NUMBER_SHORT','nb')."</th><th>".get_translation('MINIMUM_SHORT','min')."</th><th>".get_translation('MAXIMUM_SHORT','max')."</th><th>".get_translation('MEDIAN','Médiane')."</th><th>".get_translation('MEAN_STATISTICS','Moyenne')."</th><th>".get_translation('STANDARD_DEVIATION','Ecart Type')."</th><th>".get_translation('COUNT_VALUES_SHORT','Nb val')." &gt; ".get_translation('UPPER_LIMIT_SHORT','borne sup')."</th><th>% &gt; ".get_translation('UPPER_LIMIT_SHORT','borne sup')."</th><th>".get_translation('COUNT_VALUES_SHORT','Nb val')." &lt ".get_translation('LOWER_LIMIT_SHORT','borne inf')."</th><th>% &lt ".get_translation('LOWER_LIMIT_SHORT','borne inf')."</th><th>".get_translation('TREND','Trend')."</th></tr>";
-	print "</tfoot></table>";
+	print "</tfoot></table></form>";
 }
 
 
@@ -291,8 +292,9 @@
 
            
  function visualiser_tableau_all_exam ($tmpresult_num) {
-	global $dbh,$thesaurus_code_labo;
-	print "<table class=\"tablefin\" id=\"id_tableau_visualiser_tableau_all_exam\">
+	global $dbh,$thesaurus_code_labo,$user_num_session;
+	print "
+	<form autocomplete=\"off\"><table class=\"tablefin\" id=\"id_tableau_visualiser_tableau_all_exam\">
 	<thead><tr>
 		<th>".get_translation('EXAMS','Examens')."</th>
 		<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','nb patients')."</th>
@@ -313,7 +315,7 @@
 	
 	 
   
-	$sel=oci_parse($dbh,"select thesaurus_data_num,count(distinct patient_num),count(*) nb_supborne_sup from dwh_data where   patient_num in (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)
+	$sel=oci_parse($dbh,"select thesaurus_data_num,count(distinct patient_num),count(*) nb_supborne_sup from dwh_data where   patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)
 	and thesaurus_code='$thesaurus_code_labo'  and val_numeric>upper_bound having count(distinct patient_num) >2  group by thesaurus_data_num");
 	oci_execute($sel);
 	while ($r=oci_fetch_array($sel)) {
@@ -323,7 +325,7 @@
 	}
 	 
   
-	$sel=oci_parse($dbh,"select thesaurus_data_num,count(distinct patient_num),count(*) nb_infborne_inf from dwh_data where   patient_num in (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)
+	$sel=oci_parse($dbh,"select thesaurus_data_num,count(distinct patient_num),count(*) nb_infborne_inf from dwh_data where   patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)
 	and thesaurus_code='$thesaurus_code_labo'  and val_numeric<lower_bound having count(distinct patient_num) >2  group by thesaurus_data_num");
 	oci_execute($sel);
 	while ($r=oci_fetch_array($sel)) {
@@ -334,7 +336,7 @@
   
   
 	$sel_patient_num=oci_parse($dbh,"select concept_str,measuring_unit,info_complement,dwh_data.thesaurus_data_num,count(distinct patient_num) as nb_patient,count(*) as nb_examen,median(val_numeric) as median,round(stddev(val_numeric),1) as stddev,round(avg(val_numeric),1) as avg,min(val_numeric) as min,max(val_numeric) as max,round(avg(lower_bound),1),round(avg(upper_bound),1) 
-	from dwh_data, dwh_thesaurus_data where dwh_data.thesaurus_data_num= dwh_thesaurus_data.thesaurus_data_num and  patient_num in (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)
+	from dwh_data, dwh_thesaurus_data where dwh_data.thesaurus_data_num= dwh_thesaurus_data.thesaurus_data_num and  patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)
   and dwh_data.thesaurus_code='$thesaurus_code_labo' having count(distinct patient_num) >2  group by concept_str,measuring_unit,info_complement,dwh_data.thesaurus_data_num order by count(distinct patient_num)  desc");
 	oci_execute($sel_patient_num);
 	while ($r_patient_num=oci_fetch_array($sel_patient_num)) {
@@ -379,11 +381,11 @@
 	}
 	print "</tbody>";
 	
-	print "</table>";
+	print "</table></form>";
 }
            
  function visualiser_graph_scatterplot ($thesaurus_data_num,$tmpresult_num,$option_date_alignement,$option_population) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	
 	$sel=oci_parse($dbh,"select measuring_unit,concept_str  from dwh_thesaurus_data where thesaurus_data_num=$thesaurus_data_num ");
 	oci_execute($sel);
@@ -394,7 +396,7 @@
 	
 	if ($option_date_alignement=='age_naissance') {
 		$i=0;
-		$sel_patient_num=oci_parse($dbh,"select distinct patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num");
+		$sel_patient_num=oci_parse($dbh,"select distinct patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num");
 		oci_execute($sel_patient_num);
 		while ($r_patient_num=oci_fetch_array($sel_patient_num)) {
 			$patient_num=$r_patient_num['PATIENT_NUM'];

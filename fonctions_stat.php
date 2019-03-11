@@ -23,7 +23,7 @@
 */
 
 function pyramide_age ($tmpresult_num,$tableau_interval,$liste_interval_libelle,$id_pyramide_age,$option_age,$title) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	foreach ($tableau_interval as $interval) {
 		$tableau_age[$interval]=0;
 	}
@@ -33,11 +33,11 @@ function pyramide_age ($tmpresult_num,$tableau_interval,$liste_interval_libelle,
 	$tableau_sex=array();
 	$tableau_age_sex=array();
 	if ($option_age=='document') {
-		$req="select trunc((document_date-birth_date)/365) as age,sex,count(*) as nb from dwh_patient, (select patient_num,min(document_date) as document_date from dwh_tmp_result where tmpresult_num=$tmpresult_num  group by patient_num) resultat where  resultat.patient_num=dwh_patient.patient_num group by trunc((document_date-BIRTH_DATE)/365),sex";
+		$req="select trunc((document_date-birth_date)/365) as age,sex,count(*) as nb from dwh_patient, (select patient_num,min(document_date) as document_date from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num  group by patient_num) resultat where  resultat.patient_num=dwh_patient.patient_num group by trunc((document_date-BIRTH_DATE)/365),sex";
 	} else {	
 		$req="select decode(death_date,null,trunc((sysdate-BIRTH_DATE)/365) , trunc((death_date-BIRTH_DATE)/365) ) as age,sex,count(*) as nb from dwh_patient where 
 		(death_date is null and (death_code is null or death_code='0') or death_date is not null)
-		and  exists (select * from dwh_tmp_result where TMPRESULT_NUM=$tmpresult_num and patient_num=dwh_patient.patient_num) g
+		and  exists (select * from dwh_tmp_result_$user_num_session where TMPRESULT_NUM=$tmpresult_num and patient_num=dwh_patient.patient_num) g
 		roup by decode(death_date,null,trunc((sysdate-BIRTH_DATE)/365) , trunc((death_date-BIRTH_DATE)/365) ) ,sex";
 	}
 	$selage=oci_parse($dbh,$req);
@@ -171,7 +171,7 @@ function pyramide_age ($tmpresult_num,$tableau_interval,$liste_interval_libelle,
 
 
 function pyramide_age_vivant_dcd ($tmpresult_num,$tableau_interval,$liste_interval_libelle,$id_pyramide_age,$title) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	foreach ($tableau_interval as $interval) {
 		$tableau_age[$interval]=0;
 	}
@@ -190,7 +190,7 @@ function pyramide_age_vivant_dcd ($tmpresult_num,$tableau_interval,$liste_interv
 	where
 	(death_date is null and (death_code is null or death_code='0') or death_date is not null)
 	and 
-	 exists (select * from dwh_tmp_result where TMPRESULT_NUM=$tmpresult_num and patient_num=dwh_patient.patient_num) group by decode(death_date,null,trunc((sysdate-BIRTH_DATE)/365) , trunc((death_date-BIRTH_DATE)/365) ),sex,decode(death_date,null,'vivant','dcd')";
+	 exists (select * from dwh_tmp_result_$user_num_session where TMPRESULT_NUM=$tmpresult_num and patient_num=dwh_patient.patient_num) group by decode(death_date,null,trunc((sysdate-BIRTH_DATE)/365) , trunc((death_date-BIRTH_DATE)/365) ),sex,decode(death_date,null,'vivant','dcd')";
 	$selage=oci_parse($dbh,$req);
 	oci_execute($selage) ;
 	while ($resselage=oci_fetch_array($selage,OCI_RETURN_NULLS+OCI_ASSOC)) {
@@ -354,7 +354,7 @@ function pyramide_age_vivant_dcd ($tmpresult_num,$tableau_interval,$liste_interv
 }
 
 function nb_patients_temps ($tmpresult_num,$id_div,$option_affichage) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	$tableau_nb_nouveau_patient=array();
 	$tableau_nb_dejavu_patient=array();
 	$tableau_nb_patient=array();
@@ -362,7 +362,7 @@ function nb_patients_temps ($tmpresult_num,$id_div,$option_affichage) {
 	$an_max=0;
 	$an_min=2012;
 	
-	$req="select distinct to_char(document_date,'YYYY') as an,  patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and document_date is not null and document_date<=sysdate and to_char(document_date,'YYYY')>1990   order by to_char(document_date,'YYYY')";
+	$req="select distinct to_char(document_date,'YYYY') as an,  patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and document_date is not null and document_date<=sysdate and to_char(document_date,'YYYY')>1990   order by to_char(document_date,'YYYY')";
 	$sel=oci_parse($dbh,$req);
 	oci_execute($sel) ;
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
@@ -470,14 +470,14 @@ function nb_patients_temps ($tmpresult_num,$id_div,$option_affichage) {
 }
 
 function nb_patients_service ($tmpresult_num,$id_div) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	
 	
 	$liste_libelle_service='';
 	$liste_nb_patient='';
-	$req="select department_str,count(distinct patient_num) nb_patient from dwh_tmp_result, dwh_thesaurus_department
+	$req="select department_str,count(distinct patient_num) nb_patient from dwh_tmp_result_$user_num_session, dwh_thesaurus_department
 		where tmpresult_num=$tmpresult_num
-		and dwh_tmp_result.department_num=dwh_thesaurus_department.department_num
+		and dwh_tmp_result_$user_num_session.department_num=dwh_thesaurus_department.department_num
 		group by department_str order by department_str";
 	$sel=oci_parse($dbh,$req);
 	oci_execute($sel) ;
@@ -536,12 +536,12 @@ function nb_patients_service ($tmpresult_num,$id_div) {
 }
 
 function nb_document_document_origin_code ($tmpresult_num,$id_div) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	
 	
 	$liste_libelle_service='';
 	$liste_nb_patient='';
-	$req="select document_origin_code,count(*) nb_document from dwh_tmp_result
+	$req="select document_origin_code,count(*) nb_document from dwh_tmp_result_$user_num_session
 		where tmpresult_num=$tmpresult_num
 		group by document_origin_code order by document_origin_code";
 	$sel=oci_parse($dbh,$req);
@@ -604,7 +604,7 @@ function nb_document_document_origin_code ($tmpresult_num,$id_div) {
 
 
 function nb_nouveau_patients_service ($tmpresult_num,$id_div) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	$tableau_nb_nouveau_patient=array();
 	$tableau_nb_dejavu_patient=array();
 	$tableau_nb_patient=array();
@@ -613,8 +613,8 @@ function nb_nouveau_patients_service ($tmpresult_num,$id_div) {
 	$an_max=0;
 	$an_min=2012;
 	
-	$req="select department_str,  patient_num ,document_date from dwh_tmp_result, dwh_thesaurus_department where tmpresult_num=$tmpresult_num 
-		and dwh_tmp_result.department_num=dwh_thesaurus_department.department_num  order by document_date";
+	$req="select department_str,  patient_num ,document_date from dwh_tmp_result_$user_num_session, dwh_thesaurus_department where tmpresult_num=$tmpresult_num 
+		and dwh_tmp_result_$user_num_session.department_num=dwh_thesaurus_department.department_num  order by document_date";
 	$sel=oci_parse($dbh,$req);
 	oci_execute($sel) ;
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
@@ -715,7 +715,7 @@ function nb_nouveau_patients_service ($tmpresult_num,$id_div) {
 
 
 function nb_nouveau_patients_service_hors_mespatients ($tmpresult_num,$id_div) {
-	global $dbh,$liste_uf_session,$datamart_num,$liste_service_session;
+	global $dbh,$liste_uf_session,$datamart_num,$liste_service_session,$user_num_session;
 	$tableau_nb_nouveau_patient=array();
 	$tableau_nb_dejavu_patient=array();
 	$tableau_nb_patient=array();
@@ -728,7 +728,7 @@ function nb_nouveau_patients_service_hors_mespatients ($tmpresult_num,$id_div) {
 	}
 
 	if ($filtre_sql_service!='') {
-		$req="select department_str,  patient_num ,document_date from dwh_tmp_result, dwh_thesaurus_department where tmpresult_num=$tmpresult_num and dwh_thesaurus_department.department_num=dwh_tmp_result.department_num
+		$req="select department_str,  patient_num ,document_date from dwh_tmp_result_$user_num_session, dwh_thesaurus_department where tmpresult_num=$tmpresult_num and dwh_thesaurus_department.department_num=dwh_tmp_result_$user_num_session.department_num
 			  $filtre_sql_service order by document_date";
 		$sel=oci_parse($dbh,$req);
 		oci_execute($sel) ;
@@ -826,7 +826,7 @@ function nb_nouveau_patients_service_hors_mespatients ($tmpresult_num,$id_div) {
 }
 
 function nb_patient_sex ($tmpresult_num) {
-	global $dbh;
+	global $dbh,$user_num_session;
 			
 	$liste_valeur_m="{
                 name: '".get_translation('JS_MALE','M')."',
@@ -835,14 +835,9 @@ function nb_patient_sex ($tmpresult_num) {
                 name: '".get_translation('JS_FEMALE','F')."',
                 data: [";
                 
-	//$req="select count(distinct patient_num) as NB from dwh_tmp_result where TMPRESULT_NUM=$tmpresult_num ";
-	//$selage=oci_parse($dbh,$req);
-	//oci_execute($selage) ;
-	//$resselage=oci_fetch_array($selage,OCI_RETURN_NULLS+OCI_ASSOC);
-	//$nb_total=$resselage['NB'];
 	
-	$req="select sex,round(count(*)*100/$nb_total,0) as NB  from dwh_patient where exists (select * from dwh_tmp_result where TMPRESULT_NUM=$tmpresult_num and patient_num=dwh_patient.patient_num) group by sex";
-	$req="select sex,count(*) NB  from dwh_patient where exists (select * from dwh_tmp_result where TMPRESULT_NUM=$tmpresult_num and patient_num=dwh_patient.patient_num) group by sex";
+	$req="select sex,round(count(*)*100/$nb_total,0) as NB  from dwh_patient where exists (select * from dwh_tmp_result_$user_num_session where TMPRESULT_NUM=$tmpresult_num and patient_num=dwh_patient.patient_num) group by sex";
+	$req="select sex,count(*) NB  from dwh_patient where exists (select * from dwh_tmp_result_$user_num_session where TMPRESULT_NUM=$tmpresult_num and patient_num=dwh_patient.patient_num) group by sex";
 	$selage=oci_parse($dbh,$req);
 	oci_execute($selage) ;
 	while ($resselage=oci_fetch_array($selage,OCI_RETURN_NULLS+OCI_ASSOC)) {
@@ -897,17 +892,13 @@ function nb_patient_sex ($tmpresult_num) {
 }
 
 
-
 function nb_patient_per_unit_per_year_tableau ($tmpresult_num) {
-	global $dbh;
-	$tableau_patient_num_deja_vu_hopital=array();
-	$tableau_nb_nouveau_patient_hopital=array();
-	$tableau_nb_dejavu_patient_hopital=array();
-	$tableau_nb_patient=array();
+	global $dbh,$user_num_session;
 	$tableau_nb_patient_department=array();
 	$tableau_nb_nouveau_patient_department=array();
 	$tableau_nb_dejavu_patient_department=array();
 	$tableau_patient_num_deja_vu_department=array();
+	$tableau_patient_num_deja_vu_department_year=array();
 	$tableau_nb_patient_unit=array();
 	$tableau_nb_nouveau_patient_unit=array();
 	$tableau_nb_dejavu_patient_unit=array();
@@ -918,68 +909,77 @@ function nb_patient_per_unit_per_year_tableau ($tmpresult_num) {
 	
 	$year_max=date("Y");
 	
-	$req="select distinct unit_code,unit_num,department_num, to_char(entry_date,'YYYY') as year,  patient_num from 
+	$req="select distinct unit_num,department_num, to_char(entry_date,'YYYY') as year,  patient_num from 
 	dwh_patient_mvt 
-	where patient_num in (select patient_num  from dwh_tmp_result where tmpresult_num=$tmpresult_num) and type_mvt='C' and entry_date is not null order by to_char(entry_date,'YYYY') ";
+	where patient_num in (select patient_num  from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) 
+	and entry_date is not null 
+	order by to_char(entry_date,'YYYY') ";
 	$sel=oci_parse($dbh,$req);
 	oci_execute($sel) ;
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
-		$unit_code=$res['UNIT_CODE'];
 		$unit_num=$res['UNIT_NUM'];
 		$department_num=$res['DEPARTMENT_NUM'];
 		$year=$res['YEAR'];
 		$patient_num=$res['PATIENT_NUM'];
-		if ($tableau_patient_num_deja_vu_hopital[$patient_num]=='') {
-			$tableau_nb_nouveau_patient_hopital[$year]=$tableau_nb_nouveau_patient_hopital[$year]+0+1;
-		} else {
-			$tableau_nb_dejavu_patient_hopital[$year]=$tableau_nb_dejavu_patient_hopital[$year]+0+1;
+		if (intval($year)<2012) {
+			$year="<2012";
 		}
-		$tableau_nb_patient[$year]++;
-		$tableau_patient_num_deja_vu_hopital[$patient_num]='ok';
 		
 		if ($tableau_patient_num_deja_vu_department[$department_num][$patient_num]=='') {
-			$tableau_nb_nouveau_patient_department[$department_num][$year]=$tableau_nb_nouveau_patient_department[$department_num][$year]+0+1;
+			$tableau_nb_nouveau_patient_department[$department_num][$year]=intval($tableau_nb_nouveau_patient_department[$department_num][$year])+1;
+			$tableau_nb_patient_department[$department_num]++;
 		} else {
-			$tableau_nb_dejavu_patient_department[$department_num][$year]=$tableau_nb_dejavu_patient_department[$department_num][$year]+0+1;
+			if ($tableau_patient_num_deja_vu_department_year[$department_num][$patient_num][$year]=='') {
+				$tableau_nb_dejavu_patient_department[$department_num][$year]=intval($tableau_nb_dejavu_patient_department[$department_num][$year])+1;
+			} else {
+			}
 		}
-		$tableau_nb_patient_department[$department_num]++;
 		$tableau_patient_num_deja_vu_department[$department_num][$patient_num]='ok';
+		$tableau_patient_num_deja_vu_department_year[$department_num][$patient_num][$year]='ok';
 		
 		if ($tableau_patient_num_deja_vu_unit[$unit_num][$patient_num]=='') {
-			$tableau_nb_nouveau_patient_unit[$unit_num][$year]=$tableau_nb_nouveau_patient_unit[$unit_num][$year]+0+1;
+			$tableau_nb_nouveau_patient_unit[$unit_num][$year]=intval($tableau_nb_nouveau_patient_unit[$unit_num][$year])+1;
+			$tableau_nb_patient_unit[$unit_num]++;
 		} else {
-			$tableau_nb_dejavu_patient_unit[$unit_num][$year]=$tableau_nb_dejavu_patient_unit[$unit_num][$year]+0+1;
+			$tableau_nb_dejavu_patient_unit[$unit_num][$year]=intval($tableau_nb_dejavu_patient_unit[$unit_num][$year])+1;
 		}
-		$tableau_nb_patient_unit[$unit_num]++;
 		$tableau_patient_num_deja_vu_unit[$unit_num][$patient_num]='ok';
 		
-		//if ($year_min>$year) {
-		//	$year_min=$year;
-		//}
-		//if ($year_max<$year) {
-		//	$year_max=$year;
-		//}
 	}
-	
-	print "<h2>".get_translation('TABLE_NB_CONSULT_PER_DEPARTMENT_AND_YEAR','Nombre de patients par service et par an (hospit, consult, etc.)')."<h2>";	
-	print "<table border=\"1\" class=\"tablefin\" id=\"id_table_nb_consult_per_department_per_year_tableau\">
+		
+
+	print "<h2 onclick=\"plier_deplier('div_id_table_nb_patient_per_department_per_year_tableau');\" style=\"cursor:pointer\"><span id=\"plus_div_id_table_nb_patient_per_department_per_year_tableau\">+</span> ".get_translation('TABLE_NB_PATIENTS_PER_DEPARTMENT_AND_YEAR','Nombre de patients par service et par an (hospit, consult, etc.)')."<h2>";	
+	print "<div id=\"div_id_table_nb_patient_per_department_per_year_tableau\" style=\"display:none\">";
+	print "<table border=\"1\" class=\"tablefin\" id=\"id_table_nb_patient_per_department_per_year_tableau\">
 	<thead>
 	<tr><th rowspan=\"2\" >".get_translation('SERVICE','Service')."</th>";
+	print "<th colspan=\"2\">&lt;$year_min</th>";
 	for ($year=$year_min;$year<=$year_max;$year++) {
 		print "<th colspan=\"2\">$year</th>";
 	}
 	print "<th rowspan=\"2\">".get_translation('TOTAL','Total')."</th></tr>
 	<tr>";
+	print "<th>Seen</th><th>New</th>";
 	for ($year=$year_min;$year<=$year_max;$year++) {
 		print "<th>Seen</th><th>New</th>";
 	}
 	print "</tr>
 	</thead>
 	<tbody>";
-		
 	foreach ($tableau_nb_patient_department as $department_num => $nb_patient) {
                 $department_str=get_department_str ($department_num);    
 		print "<tr class=\"over_color\"><td nowrap>$department_str</td>";
+		$year_before="<$year_min";
+		if ($tableau_nb_dejavu_patient_department[$department_num][$year_before]=='') {
+			print "<td style=\"color:#cccccc\">0</td>";
+		} else {
+			print "<td>".$tableau_nb_dejavu_patient_department[$department_num][$year_before]."</td>";
+		}
+		if ($tableau_nb_nouveau_patient_department[$department_num][$year_before]=='') {
+			print "<td style=\"color:#cccccc\">0</td>";
+		} else {
+			print "<td>".$tableau_nb_nouveau_patient_department[$department_num][$year_before]."</td>";
+		}
 		for ($year=$year_min;$year<=$year_max;$year++) {
 			if ($tableau_nb_dejavu_patient_department[$department_num][$year]=='') {
 				print "<td style=\"color:#cccccc\">0</td>";
@@ -996,18 +996,22 @@ function nb_patient_per_unit_per_year_tableau ($tmpresult_num) {
 		print "</tr>";
 	}
 	print "</tbody></table>";
+	print "</div>";
 	
 	
 	
-	print "<h2>".get_translation('TABLE_NB_CONSULT_PER_UNIT_AND_YEAR','Nombre de patients par unité et par an (hospit, consult, etc.)')."<h2>";	
-	print "<table border=\"1\" class=\"tablefin\" id=\"id_table_nb_consult_per_unit_per_year_tableau\">
+	print "<h2 onclick=\"plier_deplier('div_id_table_nb_patient_per_unit_per_year_tableau');\" style=\"cursor:pointer\"><span id=\"plus_div_id_table_nb_patient_per_unit_per_year_tableau\">+</span> ".get_translation('TABLE_NB_PATIENTS_PER_UNIT_AND_YEAR','Nombre de patients par unité et par an (hospit, consult, etc.)')."<h2>";	
+	print "<div id=\"div_id_table_nb_patient_per_unit_per_year_tableau\" style=\"display:none\">";
+	print "<table border=\"1\" class=\"tablefin\" id=\"id_table_nb_patient_per_unit_per_year_tableau\">
 	<thead>
 	<tr><th rowspan=\"2\" >".get_translation('UNIT','Unité')."</th>";
+	print "<th colspan=\"2\">&lt;$year_min</th>";
 	for ($year=$year_min;$year<=$year_max;$year++) {
 		print "<th colspan=\"2\">$year</th>";
 	}
 	print "<th rowspan=\"2\">".get_translation('TOTAL','Total')."</th></tr>
 	<tr>";
+	print "<th>Seen</th><th>New</th>";
 	for ($year=$year_min;$year<=$year_max;$year++) {
 		print "<th>Seen</th><th>New</th>";
 	}
@@ -1018,6 +1022,17 @@ function nb_patient_per_unit_per_year_tableau ($tmpresult_num) {
 	foreach ($tableau_nb_patient_unit as $unit_num => $nb_patient) {
                 $unit_str=get_unit_str ($unit_num);    
 		print "<tr class=\"over_color\"><td nowrap>$unit_str</td>";
+		$year_before="<$year_min";
+		if ($tableau_nb_dejavu_patient_unit[$unit_num][$year_before]=='') {
+			print "<td style=\"color:#cccccc\">0</td>";
+		} else {
+			print "<td>".$tableau_nb_dejavu_patient_unit[$unit_num][$year_before]."</td>";
+		}
+		if ($tableau_nb_nouveau_patient_unit[$unit_num][$year_before]=='') {
+			print "<td style=\"color:#cccccc\">0</td>";
+		} else {
+			print "<td>".$tableau_nb_nouveau_patient_unit[$unit_num][$year_before]."</td>";
+		}
 		for ($year=$year_min;$year<=$year_max;$year++) {
 			if ($tableau_nb_dejavu_patient_unit[$unit_num][$year]=='') {
 				print "<td style=\"color:#cccccc\">0</td>";
@@ -1034,15 +1049,13 @@ function nb_patient_per_unit_per_year_tableau ($tmpresult_num) {
 		print "</tr>";
 	}
 	print "</tbody></table>";
+	print "</div>";
 		
 }
 
 
-
-
-
 function nb_consult_per_unit_per_year_tableau ($tmpresult_num) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	$tableau_nb_patient=array();
 	$tableau_nb_patient_department=array();
 	$tableau_nb_patient_unit=array();
@@ -1054,7 +1067,7 @@ function nb_consult_per_unit_per_year_tableau ($tmpresult_num) {
 	
 	$req="select  unit_code,unit_num,department_num, to_char(entry_date,'YYYY') as year,  patient_num from 
 	dwh_patient_mvt
-	where patient_num in (select patient_num  from dwh_tmp_result where tmpresult_num=$tmpresult_num)  and type_mvt='C'  and entry_date is not null ";
+	where patient_num in (select patient_num  from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)  and type_mvt='C'  and entry_date is not null ";
 	$sel=oci_parse($dbh,$req);
 	oci_execute($sel) ;
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
@@ -1075,65 +1088,65 @@ function nb_consult_per_unit_per_year_tableau ($tmpresult_num) {
 		if ($year_min>$year) {
 			$year_min=$year;
 		}
-		//if ($year_max<$year) {
-		//	$year_max=$year;
-		//}
 	}
 	
-	print "<h2>".get_translation('TABLE_NB_CONSULT_PER_DEPARTMENT_AND_YEAR','Nombre de consultations par service et par an')."<h2>";	
-	print "<table border=\"1\" class=\"tablefin\" id=\"id_table_nb_consult_per_department_per_year_tableau\">
-	<thead>
-	<tr><th>".get_translation('SERVICE','Service')."</th>";
-	for ($year=$year_min;$year<=$year_max;$year++) {
-		print "<th class=\"no-sort\">$year</th>";
-	}
-	print "<th>".get_translation('TOTAL','Total')."</th></tr>
-	</thead>
-	<tbody>";
-		
-	foreach ($tableau_nb_patient_department as $department_num => $nb_patient) {
-                $department_str=get_department_str ($department_num);    
-		print "<tr class=\"over_color\"><td nowrap>$department_str</td>";
+	print "<h2 onclick=\"plier_deplier('div_id_table_nb_consult_per_department_per_year_tableau');\" style=\"cursor:pointer\"><span id=\"plus_div_id_table_nb_consult_per_department_per_year_tableau\">+</span> ".get_translation('TABLE_NB_CONSULT_PER_DEPARTMENT_AND_YEAR','Nombre de consultations par service et par an')."<h2>";
+	print "<div id=\"div_id_table_nb_consult_per_department_per_year_tableau\" style=\"display:none\">";
+		print "<table border=\"1\" class=\"tablefin\" id=\"id_table_nb_consult_per_department_per_year_tableau\">
+		<thead>
+		<tr><th>".get_translation('SERVICE','Service')."</th>";
 		for ($year=$year_min;$year<=$year_max;$year++) {
-			if ($tableau_nb_patient_department_year[$department_num][$year]=='') {
-				print "<td style=\"color:#cccccc\">0</td>";
-			} else {
-				print "<td>".$tableau_nb_patient_department_year[$department_num][$year]."</td>";
-			}
+			print "<th class=\"no-sort\">$year</th>";
 		}
-		print "<td>$nb_patient</td>";
-		print "</tr>";
-	}
-	print "</tbody></table>";
-	
-	
-	
-	print "<h2>".get_translation('TABLE_NB_CONSULT_PER_UNIT_AND_YEAR','Nombre de consultations par unité et par an')."<h2>";	
-	print "<table border=\"1\" class=\"tablefin\" id=\"id_table_nb_consult_per_unit_per_year_tableau\">
-	<thead>
-	<tr><th>".get_translation('UNIT','Unité')."</th>";
-	for ($year=$year_min;$year<=$year_max;$year++) {
-		print "<th class=\"no-sort\">$year</th>";
-	}
-	print "<th>".get_translation('TOTAL','Total')."</th></tr>
-	</thead>
-	<tbody>";
+		print "<th>".get_translation('TOTAL','Total')."</th></tr>
+		</thead>
+		<tbody>";
+			
+		foreach ($tableau_nb_patient_department as $department_num => $nb_patient) {
+	                $department_str=get_department_str ($department_num);    
+			print "<tr class=\"over_color\"><td nowrap>$department_str</td>";
+			for ($year=$year_min;$year<=$year_max;$year++) {
+				if ($tableau_nb_patient_department_year[$department_num][$year]=='') {
+					print "<td style=\"color:#cccccc\">0</td>";
+				} else {
+					print "<td>".$tableau_nb_patient_department_year[$department_num][$year]."</td>";
+				}
+			}
+			print "<td>$nb_patient</td>";
+			print "</tr>";
+		}
+		print "</tbody></table>";
+	print "</div>";
 		
-	foreach ($tableau_nb_patient_unit as $unit_num => $nb_patient) {
-                $unit_str=get_unit_str ($unit_num);    
-		print "<tr class=\"over_color\"><td nowrap>$unit_str</td>";
+		
+		
+	print "<h2 onclick=\"plier_deplier('div_id_table_nb_consult_per_unit_per_year_tableau');\" style=\"cursor:pointer\"><span id=\"plus_div_id_table_nb_consult_per_unit_per_year_tableau\">+</span> ".get_translation('TABLE_NB_CONSULT_PER_UNIT_AND_YEAR','Nombre de consultations par unité et par an')."<h2>";	
+	print "<div id=\"div_id_table_nb_consult_per_unit_per_year_tableau\" style=\"display:none\">";
+		print "<table border=\"1\" class=\"tablefin\" id=\"id_table_nb_consult_per_unit_per_year_tableau\">
+		<thead>
+		<tr><th>".get_translation('UNIT','Unité')."</th>";
 		for ($year=$year_min;$year<=$year_max;$year++) {
-			if ($tableau_nb_patient_unit_year[$unit_num][$year]=='') {
-				print "<td style=\"color:#cccccc\">0</td>";
-			} else {
-				print "<td>".$tableau_nb_patient_unit_year[$unit_num][$year]."</td>";
-			}
+			print "<th class=\"no-sort\">$year</th>";
 		}
-		print "<td>$nb_patient</td>";
-		print "</tr>";
-	}
-	print "</tbody></table>";
-		
+		print "<th>".get_translation('TOTAL','Total')."</th></tr>
+		</thead>
+		<tbody>";
+			
+		foreach ($tableau_nb_patient_unit as $unit_num => $nb_patient) {
+	                $unit_str=get_unit_str ($unit_num);    
+			print "<tr class=\"over_color\"><td nowrap>$unit_str</td>";
+			for ($year=$year_min;$year<=$year_max;$year++) {
+				if ($tableau_nb_patient_unit_year[$unit_num][$year]=='') {
+					print "<td style=\"color:#cccccc\">0</td>";
+				} else {
+					print "<td>".$tableau_nb_patient_unit_year[$unit_num][$year]."</td>";
+				}
+			}
+			print "<td>$nb_patient</td>";
+			print "</tr>";
+		}
+		print "</tbody></table>";
+	print "</div>";
 }
 
 
@@ -1142,7 +1155,7 @@ function nb_consult_per_unit_per_year_tableau ($tmpresult_num) {
 
 
 function nb_hospit_per_unit_per_year_tableau ($tmpresult_num) {
-	global $dbh;
+	global $dbh,$user_num_session;
 	$tableau_nb_patient=array();
 	$tableau_nb_patient_department=array();
 	$tableau_nb_patient_unit=array();
@@ -1154,7 +1167,7 @@ function nb_hospit_per_unit_per_year_tableau ($tmpresult_num) {
 	
 	$req="select  unit_code,unit_num,department_num, to_char(out_date,'YYYY') as year,  patient_num from 
 	dwh_patient_mvt
-	where patient_num in (select patient_num  from dwh_tmp_result where tmpresult_num=$tmpresult_num) 
+	where patient_num in (select patient_num  from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) 
 	and type_mvt='H'  and out_date is not null
 	";
 	$sel=oci_parse($dbh,$req);
@@ -1182,7 +1195,8 @@ function nb_hospit_per_unit_per_year_tableau ($tmpresult_num) {
 		//}
 	}
 	
-	print "<h2>".get_translation('TABLE_NB_HOSPIT_PER_DEPARTMENT_AND_YEAR','Nombre d hospitalisations par service et par an')."<h2>";	
+	print "<h2 onclick=\"plier_deplier('div_id_table_nb_hospit_per_department_per_year_tableau');\" style=\"cursor:pointer\"><span id=\"plus_div_id_table_nb_hospit_per_department_per_year_tableau\">+</span> ".get_translation('TABLE_NB_HOSPIT_PER_DEPARTMENT_AND_YEAR','Nombre d hospitalisations par service et par an')."<h2>";	
+	print "<div id=\"div_id_table_nb_hospit_per_department_per_year_tableau\" style=\"display:none\">";
 	print "<table border=\"1\" class=\"tablefin\" id=\"id_table_nb_hospit_per_department_per_year_tableau\">
 	<thead>
 	<tr><th>".get_translation('SERVICE','Service')."</th>";
@@ -1207,10 +1221,12 @@ function nb_hospit_per_unit_per_year_tableau ($tmpresult_num) {
 		print "</tr>";
 	}
 	print "</tbody></table>";
+	print "</div>";
 	
 	
 	
-	print "<h2>".get_translation('TABLE_NB_HOSPIT_PER_UNIT_AND_YEAR','Nombre d hospitalisations par unité et par an')."<h2>";	
+	print "<h2 onclick=\"plier_deplier('div_id_table_nb_hospit_per_unit_per_year_tableau');\" style=\"cursor:pointer\"><span id=\"plus_div_id_table_nb_hospit_per_unit_per_year_tableau\">+</span> ".get_translation('TABLE_NB_HOSPIT_PER_UNIT_AND_YEAR','Nombre d hospitalisations par unité et par an')."<h2>";	
+	print "<div id=\"div_id_table_nb_hospit_per_unit_per_year_tableau\" style=\"display:none\">";
 	print "<table border=\"1\" class=\"tablefin\" id=\"id_table_nb_hospit_per_unit_per_year_tableau\">
 	<thead>
 	<tr><th>".get_translation('UNIT','Unité')."</th>";
@@ -1235,6 +1251,7 @@ function nb_hospit_per_unit_per_year_tableau ($tmpresult_num) {
 		print "</tr>";
 	}
 	print "</tbody></table>";
+	print "</div>";
 		
 }
 ?>

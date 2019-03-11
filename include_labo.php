@@ -32,7 +32,7 @@ include_once "fonctions_labo.php";
 <div id="id_div_resultat_tableau_all_exam"></div>
 <div id="id_div_labo_liste_patient">
 	<? 
-		$sel=oci_parse($dbh,"select distinct patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num");
+		$sel=oci_parse($dbh,"select distinct patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num");
 		oci_execute($sel);
 		while ($r=oci_fetch_array($sel)) {
 			$patient_num=$r['PATIENT_NUM'];

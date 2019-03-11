@@ -85,7 +85,7 @@ if ($argv[1]!='') {
 	$coef_freq=0;
 	$anonyme='';
 	
-	calcul_clustering ($distance,$nb_concept_commun,$limite_count_concept_par_patient_num,$limite_longueur_vecteur,$limite_valeur_similarite,$limite_min_nb_patient_par_code,"and patient_num in ( select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)");
+	calcul_clustering ($distance,$nb_concept_commun,$limite_count_concept_par_patient_num,$limite_longueur_vecteur,$limite_valeur_similarite,$limite_min_nb_patient_par_code,"and patient_num in ( select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)");
 	
 	$inF = fopen("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.dot","w");
 	fputs( $inF,"$fichier_dot");
