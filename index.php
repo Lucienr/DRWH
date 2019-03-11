@@ -43,8 +43,6 @@ session_write_close();
 	A clinician friendly data warehouse oriented toward narrative reports: Dr. Warehouse. J Biomed Inform. 2018 Apr;80:52-63. doi: 10.1016/j.jbi.2018.02.019. Epub 2018 Mar 1. PubMed PMID: 29501921
 	<a href="https://doi.org/10.1016/j.jbi.2018.02.019" target="_blank">https://doi.org/10.1016/j.jbi.2018.02.019</a> <a href="https://www.ncbi.nlm.nih.gov/pubmed/29501921" target="_blank">pubmed</a>.<br><br>
 	
-	<i>Nicolas Garcelon, Antoine Neuraz, Vincent Benoit, Rémi Salomon, Sven Kracker, Felipe Suarez, Nadia Bahi-Buisson, Smail Hadj-Rabia, Alain Fischer, Arnold Munnich, Anita Burgun.</i> 
-	Finding patients using similarity measures in a rare diseases-oriented clinical data warehouse: Dr. Warehouse and the needle in the needle stack, Journal of Biomedical Informatics, Volume 73, 2017, Pages 51-61, ISSN 1532-0464 <a href="http://dx.doi.org/10.1016/j.jbi.2017.07.016" target="_blank">http://dx.doi.org/10.1016/j.jbi.2017.07.016</a>.
 	<h1><? print get_translation('LAST_DATA_LOAD','Dernier chargement'); ?></h1>
 	<? afficher_etat_entrepot('last_chargement','600px','','',''); ?>
 </div>
@@ -87,8 +85,6 @@ session_write_close();
 </div>
 	
 
-
 <span style="clear:left;display:block"></span>
-
 
 <? include "foot.php"; ?>

@@ -29,6 +29,12 @@ include_once "fonctions_pmsi.php";
 <span class="bouton_bio">-</span> 
 <span class="bouton_bio" id="id_bouton_pmsi_patient"><a href="#" onclick="affiche_onglet_pmsi(<? print $tmpresult_num; ?>,'patient','ok','<? print $thesaurus_code_pmsi; ?>');return false;"><? print get_translation('SUR_TOUS_LES_SEJOURS_DES_PATIENTS_TROUVES','Sur tous les séjours des patients trouvés'); ?></a></span> 
 </div>
+
+<div style="width: 100%; ">
+	<table class="tablefin" id="id_div_affiche_tableau_pmsi" width="100%">
+	</table>
+</div>
+
 <?
 print "<div id=\"id_div_pmsi_precedent\"></div>";
 print "<div id=\"id_div_pmsi\" style=\"width:  100%; height:500px; border: 0px solid #ccc;\"><img src=\"images/chargement_mac.gif\"></div>";
@@ -38,7 +44,8 @@ print "<br>
 <div id=\"slider-range-max_pmsi\" style=\"width:300px;\"></div>
 <br><br>
 
-<div id=\"id_div_pmsi_niveau\" style=\"width: 100%; height:500px; border: 0px solid #ccc;\"><img src=\"images/chargement_mac.gif\"></div>";
+<div id=\"id_div_pmsi_niveau\" style=\"width: 100%; height:500px; border: 0px solid #ccc;\"><img src=\"images/chargement_mac.gif\"></div>
+";
 
 
 //$max_distance_pmsi=max_distance_pmsi ($tmpresult_num,'cim10');
@@ -60,4 +67,50 @@ $(function() {
 		}
 	});
 });
+
+
+function affiche_tableau_pmsi (tmpresult_num,type,thesaurus_code) {
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax.php",
+		method: 'post',
+		async:true,
+		contentType: 'application/x-www-form-urlencoded',
+		encoding: 'latin1',
+		data: {action:'affiche_tableau_pmsi',tmpresult_num:tmpresult_num,type:type,thesaurus_code:thesaurus_code},
+		beforeSend: function(requester){
+				if (tableau_table_cree['id_div_affiche_tableau_pmsi']=='ok') {
+					table_concepts['id_div_affiche_tableau_pmsi'].destroy();
+				}
+				document.getElementById('id_div_affiche_tableau_pmsi').innerHTML="";
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion("affiche_tableau_pmsi ('"+tmpresult_num+"','"+type+"') ");
+			} else { 
+				json=requester;
+				if (json!='') {
+					eval ("var dataSet=["+json+"]");
+					 table_concepts['id_div_affiche_tableau_pmsi']=jQuery("#id_div_affiche_tableau_pmsi").DataTable({
+				        		"data": dataSet,
+						        columns: [
+								{ title: "Diag","orderSequence": [ "desc","asc" ]  },
+								{ title: "Option","orderSequence": [ "desc","asc" ]  },
+								{ title: "Nb documents" ,"orderSequence": [ "desc","asc" ] },
+								{ title: "Nb patients","orderSequence": [ "desc","asc" ]  }
+						        ] ,
+						         "columnDefs": [ {
+							            "searchable": true,
+							            "orderable": true,
+							            "targets": 0
+							        } ],
+						        "order": [[ 2, "desc" ]]
+				    	});
+				}
+			}
+		},
+		error: function(){}
+	});
+}
+
 </script>

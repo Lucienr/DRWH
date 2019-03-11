@@ -252,6 +252,11 @@ pre {
 	 overflow: auto;  
 	 width: 100%;
 	 height: 300px;
+	 font-size:12px;
+}
+
+.afficher_document_patient {
+	 font-size:12px;
 }
 
 .ui-dialog .ui-dialog-title {
@@ -839,4 +844,41 @@ span.icone_ecrf {
 li.ecrf {
 display : list-item;
  list-style-image : url(images/mini_ecrf.png);
+}
+
+.tableau_solid_black { 
+	border:1px solid black;
+	border-collapse: collapse;
+	cellspacing:0px;
+	cellpadding:2px;
+}
+
+table.tableau_solid_black td { 
+	border:1px solid black; 
+	border-collapse: collapse;
+	font-size: 12px;
+}
+
+table.tableau_solid_black th { 
+	border:1px solid black; 
+	border-collapse: collapse;
+	font-size: 12px;
+}
+
+.link {
+
+    color: #036ba5;
+    outline: medium none;
+    text-decoration: none;
+    cursor:pointer;
+}
+
+ .link:hover{
+    color: #e00adb;
+    outline: medium none;
+    text-decoration: none;
+}
+
+.filtre_regexp {
+	font-family:courier new;
 }

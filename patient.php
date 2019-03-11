@@ -27,6 +27,7 @@ include "menu.php";
 session_write_close();
 include "fonctions_concepts.php";
 include "fonctions_patient.php";
+include "fonctions_ecrf.php";
 ?>
 <?
 	$patient_num=$_GET['patient_num'];
@@ -74,8 +75,7 @@ include "fonctions_patient.php";
 					success: function(requester){
 						var contenu=requester;
 						if (contenu=='deconnexion') {
-							afficher_connexion("afficher_document_patient ('"+document_num+"')");
-							jQuery("#id_div_voir_document").html(""); 
+							afficher_connexion("modify_hospital_patient_id ('"+patient_num+"','"+hospital_patient_id+"')");
 						} else {
 							jQuery("#id_h1_patient").html(contenu); 
 							jQuery("#id_div_modifier_patient").html("modification terminée"); 
@@ -92,14 +92,18 @@ include "fonctions_patient.php";
 		
 		
 		var id_tr_selectionne;
-		function afficher_document_patient (document_num) {
+		function afficher_document_patient (document_num,id_voir) {
 			jQuery(".tr_document_patient").css("backgroundColor","#ffffff");
 			jQuery(".tr_document_patient").css("fontWeight","normal");
 			jQuery(".tr_document_patient").css("color","black");
 			
-			jQuery("#id_document_patient_"+document_num).css("fontWeight","bold");
-			jQuery("#id_document_patient_"+document_num).css("color","#CB1B3E");
-			jQuery("#id_document_patient_"+document_num).css("backgroundColor","#dcdff5");
+		//	jQuery("#id_document_patient_"+document_num).css("fontWeight","bold");
+		//	jQuery("#id_document_patient_"+document_num).css("color","#CB1B3E");
+		//	jQuery("#id_document_patient_"+document_num).css("backgroundColor","#dcdff5");
+			
+			jQuery(".id_document_patient_"+document_num).css("fontWeight","bold");
+			jQuery(".id_document_patient_"+document_num).css("color","#CB1B3E");
+			jQuery(".id_document_patient_"+document_num).css("backgroundColor","#dcdff5");
 			id_tr_selectionne="id_document_patient_"+document_num;
 			requete=document.getElementById('id_input_filtre_patient_texte').value;
 			requete=requete.replace(/\+/g,';plus;');
@@ -110,15 +114,15 @@ include "fonctions_patient.php";
 				encoding: 'latin1',
 				data:{ action:'afficher_document_patient',document_num:document_num,requete:escape(requete)},
 				beforeSend: function(requester){
-					jQuery("#id_div_voir_document").html("<img src='images/chargement_mac.gif'>"); 
+					jQuery("#".id_voir).html("<img src='images/chargement_mac.gif'>"); 
 				},
 				success: function(requester){
 					var contenu=requester;
 					if (contenu=='deconnexion') {
-						afficher_connexion("afficher_document_patient ('"+document_num+"')");
-						jQuery("#id_div_voir_document").html(""); 
+						afficher_connexion("afficher_document_patient ('"+document_num+"','"+id_voir+"')");
+						jQuery("#"+id_voir).html(""); 
 					} else {
-						jQuery("#id_div_voir_document").html(contenu); 
+						jQuery("#"+id_voir).html(contenu); 
 						window.location='#ancre_entete';
 					}
 					
@@ -177,7 +181,7 @@ include "fonctions_patient.php";
 				    	document_num=id_tr_document.replace("id_document_patient_","");
 					if (document_num) {
 						if (sousgroupe=='text') {
-					    		afficher_document_patient (document_num);
+					    		afficher_document_patient (document_num,'id_div_voir_document');
 					    	}
 						if (sousgroupe=='biologie') {
 					    		afficher_document_patient_biologie (document_num);
@@ -234,27 +238,30 @@ include "fonctions_patient.php";
 			});
 		}
 		var tableau_onglet_deja_ouvert=new Array();
-		function voir_patient_onglet (onglet) {
+		function voir_patient_onglet (onglet,patient_num) {
 			$(".div_result").css("display","none");
 			$(".color-bullet").removeClass("current");
-			
 			document.getElementById('id_div_patient_'+onglet).style.display='inline';
 			$("#id_bouton_"+onglet).addClass("current");
 			
 			
 			if (onglet=='concepts' && tableau_onglet_deja_ouvert[onglet]!='ok') {
 				tableau_onglet_deja_ouvert[onglet]='ok';
-				afficher_onglet_concept_patient('<? print $patient_num; ?>');
+				afficher_onglet_concept_patient(patient_num);
 			}
 			if (onglet=='timeline' && tableau_onglet_deja_ouvert[onglet]!='ok') {
 				tableau_onglet_deja_ouvert[onglet]='ok';
-				document.getElementById('iframe_lignevie').src="include_lignevie.php?patient_num=<? print $patient_num; ?>";
+				document.getElementById('iframe_lignevie').src="include_lignevie.php?patient_num="+patient_num;
 			}
 			if (onglet=='similarite_patient' && tableau_onglet_deja_ouvert[onglet]!='ok') {
 				tableau_onglet_deja_ouvert[onglet]='ok';
-				afficher_onglet_similarite_patient('<? print $patient_num; ?>');
+				afficher_onglet_similarite_patient(patient_num);
 			}
 			
+			if (onglet=='ecrf_patient'  && tableau_onglet_deja_ouvert[onglet]!='ok') {
+				afficher_onglet_ecrf_patient(patient_num);
+				tableau_onglet_deja_ouvert[onglet]='ok';
+			}
 			
 			largeur=$("#id_tableau_patient").css("width");
 			$("#id_div_patient_timeline").css("width",largeur);
@@ -502,8 +509,6 @@ include "fonctions_patient.php";
 		function voir_patient_onglet_biologie (onglet) {
 			$(".div_result_bio").css("display","none");
 			$(".bouton_bio").removeClass("current");
-			
-			
 			document.getElementById('id_div_patient_'+onglet).style.display='block';
 			$("#id_bouton_"+onglet).addClass("current");
 		}
@@ -566,6 +571,187 @@ include "fonctions_patient.php";
 				}
 			});
 		}
+		
+		function afficher_onglet_ecrf_patient (patient_num) {
+			if (tableau_onglet_deja_ouvert['ecrf_patient']!='ok') {
+				tableau_onglet_deja_ouvert['ecrf_patient']='ok';
+				jQuery.ajax({
+					type:"POST",
+					url:"ajax_ecrf.php",
+					async:true,
+					encoding: 'latin1',
+					data:{ action:'afficher_onglet_ecrf_patient',patient_num:patient_num},
+					beforeSend: function(requester){
+						jQuery("#id_div_patient_ecrf_extract").html("<img src='images/chargement_mac.gif'>"); 
+					},
+					success: function(requester){	
+						var contenu=requester;
+						if (contenu=='deconnexion') {
+							afficher_connexion("afficher_onglet_ecrf_patient('"+patient_num+"')");
+						} else {
+							document.getElementById("id_div_patient_ecrf_extract").innerHTML=contenu;
+						}
+					}
+				});
+			}
+		}
+		
+		function start_process_extract_information_ecrf (patient_num) {
+			jQuery.ajax({
+				type:"POST",
+				url:"ajax_ecrf.php",
+				async:true,
+				encoding: 'latin1',
+				data:{ action:'start_process_information_ecrf'},
+				beforeSend: function(requester){
+				},
+				success: function(requester){
+					var contenu=requester;
+					if (contenu=='deconnexion') {
+						afficher_connexion("start_process_extract_information_ecrf ('"+patient_num+"')");
+					} else {
+						process_num=contenu;
+						get_process_extract_information_ecrf (process_num);
+						extract_information_ecrf (patient_num,process_num);
+					}
+				}
+			});
+		}
+		
+		function get_process_extract_information_ecrf (process_num) {
+			jQuery.ajax({
+				type:"POST",
+				url:"ajax_ecrf.php",
+				async:true,
+				encoding: 'latin1',
+				data:{ action:'get_process_extract_information_ecrf',process_num:process_num},
+				beforeSend: function(requester){
+				},
+				success: function(requester){
+					var contenu=requester;
+					if (contenu=='deconnexion') {
+						afficher_connexion("get_process_extract_information_ecrf ('"+process_num+"')");
+					} else {
+						tab=contenu.split(';');
+						status=tab[0];
+						message=tab[1];
+						if (status=='0') { 
+							jQuery("#id_div_result_map_ecrf_process").html(message); 
+							setTimeout("get_process_extract_information_ecrf('"+process_num+"')",1000);
+						} else {
+							jQuery("#id_div_result_map_ecrf_process").html(""); 
+						}
+					}
+				}
+			});
+		}
+		
+		function extract_information_ecrf (patient_num,process_num) {
+			
+			ecrf_num=document.getElementById("id_select_ecrf").value;
+			jQuery.ajax({
+				type:"POST",
+				url:"ajax_ecrf.php",
+				async:true,
+				encoding: 'latin1',
+				data:{ action:'extract_information_ecrf',ecrf_num:ecrf_num,patient_num:patient_num,process_num:process_num},
+				beforeSend: function(requester){
+					jQuery("#id_div_result_map_ecrf").html("<img src='images/chargement_mac.gif'>"); 
+				},
+				success: function(requester){
+					var contenu=requester;
+					if (contenu=='deconnexion') {
+						afficher_connexion("extract_information_ecrf ('"+patient_num+"')");
+					} else {
+						jQuery("#id_div_result_map_ecrf").html(contenu); 
+					}
+				}
+			});
+		}
+		
+		function getFormData($form){
+				console.log($form);
+		    var unindexed_array = $form.serializeArray();
+		    var indexed_array = {};
+		    $.map(unindexed_array, function(n, i){
+		    	//console.log(n['name'] + ": " + n['value']);
+		        indexed_array[n['name']] = n['value'];
+		    });
+
+		    return indexed_array;
+		}
+
+		function redcap_form () {
+			var form = document.getElementById( "id_ecrf_form" );
+			var json = "[" + JSON.stringify(getFormData($("#id_ecrf_form"))) + "]";
+			var ecrf_token = document.getElementById( "id_ecrf_token" ).value;
+			jQuery.ajax({
+				type:"POST",
+				url:"http://redcap.nck.aphp.fr/api/",
+				format:"json",
+				async:true,
+				encoding: 'latin1',
+				data:{token:ecrf_token,content:'record',format:'json',type:'flat',overwriteBehavior:'normal',forceAutoNumber:'true',data:json,returnContent:'count',returnFormat:'json'},
+				beforeSend: function(requester){
+					
+				},
+				success: function(requester){
+					var contenu=requester;
+					if (contenu=='deconnexion') {
+						afficher_connexion("redcap_form ()");
+					} else {
+						// TODO INCLUDE MULTILINGAL FRAMEWORK
+						document.getElementById("id_redcap_loading_message").innerHTML = "Chargement réussi";
+						setTimeout(function(){ 
+      						document.getElementById("id_redcap_loading_message").innerHTML = "";
+  						}, 3000);
+
+					}
+				},
+				error: function(requester){
+					var contenu=requester;
+					if (contenu=='deconnexion') {
+						afficher_connexion("redcap_form ()");
+					} else {
+						// TODO INCLUDE MULTILINGAL FRAMEWORK
+						var response = JSON.parse(contenu.responseText);
+						console.log(contenu);
+						document.getElementById("id_redcap_loading_message").innerHTML = "Erreur de chargement : " + contenu.responseText;
+					}
+				}
+			});
+		}
+		var selected_text;
+		function getSelectedText(){ 
+		    if(window.getSelection){
+		    	selectionObj = window.getSelection();
+		    	begin = selectionObj.anchorOffset;
+		    	end = selectionObj.focusOffset;
+		    	if(end < begin) {
+		    		a = begin;
+		    		begin = end;
+		    		end = a;
+		    	}
+		   // 	console.log(begin);
+		    //	console.log(end);
+		        return window.getSelection().toString(); 
+		    } 
+		    else if(document.getSelection){ 
+		        return document.getSelection(); 
+		    } 
+		    else if(document.selection){ 
+		        return document.selection.createRange().text; 
+		    } 
+		} 
+
+		function ecrf_justify_my_choice () {
+		}
+
+		$(document).ready(function(){
+		  $("#id_afficher_document_ecrf").mouseup(function(){
+		  	selected_text=getSelectedText();
+		  });
+		});
 	</script>
 			
 	<style>
@@ -631,16 +817,37 @@ include "fonctions_patient.php";
 	<a name="ancre_entete"> </a>
 	<div id="tabs" style="width:100%">
 		<ul id="tab-links">
-			<li class="current color-bullet" id="id_bouton_documents"><span class="li-content"><a href="#" onclick="voir_patient_onglet('documents');return false;"><? print get_translation('DOCUMENTS','Documents'); ?></a></span></li>
-			<li class="color-bullet" id="id_bouton_biologie"><span class="li-content"><a href="#" onclick="voir_patient_onglet('biologie');return false;"><? print get_translation('BIOLOGY','Biologie'); ?></a></span></li>
+		<? if ($_SESSION['dwh_droit_patient_documents']=='ok') {  ?>
+			<li class="current color-bullet" id="id_bouton_documents"><span class="li-content"><a href="#" onclick="voir_patient_onglet('documents',<? print $patient_num; ?>);return false;"><? print get_translation('DOCUMENTS','Documents'); ?></a></span></li>
+		<? } ?>
+		<? if ($_SESSION['dwh_droit_patient_labo']=='ok') {  ?>
+			<li class="color-bullet" id="id_bouton_biologie"><span class="li-content"><a href="#" onclick="voir_patient_onglet('biologie',<? print $patient_num; ?>);return false;"><? print get_translation('BIOLOGY','Biologie'); ?></a></span></li>
+		<? } ?>
+		
+		<? if ($_SESSION['dwh_droit_patient_family']=='ok') {  ?>
 			<? if ($resultat_famille!='') { ?>
-				<li class="color-bullet" id="id_bouton_famille"><span class="li-content"><a href="#" onclick="voir_patient_onglet('famille');return false;"><? print get_translation('FAMILY','Famille'); ?></a></span></li>
+				<li class="color-bullet" id="id_bouton_famille"><span class="li-content"><a href="#" onclick="voir_patient_onglet('famille',<? print $patient_num; ?>);return false;"><? print get_translation('FAMILY','Famille'); ?></a></span></li>
 			<? } ?>
-  			<li class="color-bullet" id="id_bouton_timeline"><span class="li-content"><a href="#" onclick="voir_patient_onglet('timeline');return false;"><? print get_translation('TIMELINE','TimeLine'); ?></a></span></li>
-			<li class="color-bullet" id="id_bouton_parcours"><span class="li-content"><a href="#" onclick="voir_patient_onglet('parcours');return false;"><? print get_translation('JOURNEY','Parcours'); ?></a></span></li>
-			<li class="color-bullet" id="id_bouton_cohorte"><span class="li-content"><a href="#" onclick="voir_patient_onglet('cohorte');return false;"><? print get_translation('COHORT','Cohorte'); ?></a></span></li>
-			<li class="color-bullet" id="id_bouton_concepts"><span class="li-content"><a href="#" onclick="voir_patient_onglet('concepts');return false;"><? print get_translation('CONCEPTS','Concepts'); ?></a></span></li>
-			<li class="color-bullet" id="id_bouton_similarite_patient"><span class="li-content"><a href="#" onclick="voir_patient_onglet('similarite_patient');return false;"><? print get_translation('SIMILARITY','Similarité'); ?></a></span></li>
+ 		<? } ?>
+ 		
+		<? if ($_SESSION['dwh_droit_patient_timeline']=='ok') {  ?>
+ 			<li class="color-bullet" id="id_bouton_timeline"><span class="li-content"><a href="#" onclick="voir_patient_onglet('timeline',<? print $patient_num; ?>);return false;"><? print get_translation('TIMELINE','TimeLine'); ?></a></span></li>
+		<? } ?>
+		<? if ($_SESSION['dwh_droit_patient_carepath']=='ok') {  ?>
+			<li class="color-bullet" id="id_bouton_parcours"><span class="li-content"><a href="#" onclick="voir_patient_onglet('parcours',<? print $patient_num; ?>);return false;"><? print get_translation('JOURNEY','Parcours'); ?></a></span></li>
+		<? } ?>
+		<? if ($_SESSION['dwh_droit_patient_cohort']=='ok') {  ?>
+			<li class="color-bullet" id="id_bouton_cohorte"><span class="li-content"><a href="#" onclick="voir_patient_onglet('cohorte',<? print $patient_num; ?>);return false;"><? print get_translation('COHORT','Cohorte'); ?></a></span></li>
+		<? } ?>
+		<? if ($_SESSION['dwh_droit_patient_concept']=='ok') {  ?>
+			<li class="color-bullet" id="id_bouton_concepts"><span class="li-content"><a href="#" onclick="voir_patient_onglet('concepts',<? print $patient_num; ?>);return false;"><? print get_translation('CONCEPTS','Concepts'); ?></a></span></li>
+		<? } ?>
+		<? if ($_SESSION['dwh_droit_patient_similarity']=='ok') {  ?>
+			<li class="color-bullet" id="id_bouton_similarite_patient"><span class="li-content"><a href="#" onclick="voir_patient_onglet('similarite_patient',<? print $patient_num; ?>);return false;"><? print get_translation('SIMILARITY','Similarité'); ?></a></span></li>
+		<? } ?>
+		<? if ($_SESSION['dwh_droit_patient_ecrf']=='ok') {  ?>
+			<li class="color-bullet" id="id_bouton_ecrf_patient"><span class="li-content"><a href="#" onclick="voir_patient_onglet('ecrf_patient',<? print $patient_num; ?>);return false;"><? print get_translation('ECRF','eCRF'); ?></a></span></li>
+		<? } ?>
 		</ul>
 	</div>
 	<br>
@@ -648,7 +855,9 @@ include "fonctions_patient.php";
 		<tr>
 		<td width="100%">
 			<div id="id_div_patient_documents" class="div_result" style="display:inline;" >
-				<input id="id_input_filtre_patient_texte" class="filtre_texte" type="text" value="" size="45" onkeypress="if(event.keyCode==13) {filtre_patient_texte('<? print $patient_num; ?>');}" onkeyup="if(this.value=='') {filtre_patient_texte('<? print "$patient_num"; ?>');}"><input class="form_submit" type="button" value="<? print get_translation('SEARCH','RECHERCHER'); ?>" onclick="filtre_patient_texte('<? print $patient_num; ?>');">
+				<form autocomplete="off">
+				<input name="input_filtre_patient_texte" id="id_input_filtre_patient_texte" class="filtre_texte" type="text" value="" size="45" onkeypress="if(event.keyCode==13) {filtre_patient_texte('<? print $patient_num; ?>');return false;}" onkeyup="if(this.value=='') {filtre_patient_texte('<? print "$patient_num"; ?>');}"><input class="form_submit" type="button" value="<? print get_translation('SEARCH','RECHERCHER'); ?>" onclick="filtre_patient_texte('<? print $patient_num; ?>');">
+				</form>
 				<table border="0" width="100%">
 					<tr>
 						<td style="vertical-align:top" width="500px">
@@ -659,7 +868,7 @@ include "fonctions_patient.php";
 							</div>
 						</td>
 						<td style="vertical-align:top">
-							<div id="id_div_voir_document">
+							<div id="id_div_voir_document" class="afficher_document_patient">
 							
 							</div>
 						</td>
@@ -679,9 +888,11 @@ include "fonctions_patient.php";
 						<tr>
 							<td style="vertical-align:top" width="500px">
 								<div id="id_div_tableau_biologie" style="height:500px;overflow-y:auto;">
+									<form autocomplete="off">
 									<?
 									affiche_liste_document_biologie($patient_num,"");
 									?>
+									</form>
 								</div>
 							</td>
 							<td style="vertical-align:top">
@@ -693,9 +904,11 @@ include "fonctions_patient.php";
 				</div>
 				
 				<div id="id_div_patient_biologie_tableau" class="div_result_bio" style="display:none;" >
+					<form autocomplete="off">
 						<?
 						affiche_tableau_biologie($patient_num);
 						?>
+					</form>
 				</div>
 				
 				<div id="id_div_patient_biologie_code" class="div_result_bio" style="display:none;" >
@@ -787,6 +1000,19 @@ include "fonctions_patient.php";
 				<div id="id_affiche_intersect" style="width:300px;height:500px;border:1px black solid;display:none;overflow-y: auto;position:absolute;background-color:white;"></div>
 			</div>
 		
+			<div id="id_div_patient_ecrf_patient" class="div_result" style="display:none;" >
+				<table border="0">
+				<tr><td style="vertical-align:top;width:50%">
+					<div id="id_div_patient_ecrf_extract">
+					</div>
+				</td>
+				<td style="vertical-align:top">document
+					<div id="id_afficher_document_ecrf">
+					</div>
+				</td>
+				</tr>
+				</table>
+			</div>
 		</td></tr>
 	</table>
 	<br>

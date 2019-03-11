@@ -53,7 +53,7 @@ function comparer_patient () {
 
 	jQuery.ajax({
 		type:"POST",
-		url:"ajax.php",
+		url:"ajax_outils.php",
 		async:true,
 		encoding: 'latin1',
 		data:{ action:'comparer_patient',patient_num_1:patient_num_1,patient_num_2:patient_num_2,distance:distance},
@@ -120,7 +120,7 @@ function comparer_cohorte () {
 	distance=document.getElementById('id_distance').value;
 	jQuery.ajax({
 		type:"POST",
-		url:"ajax.php",
+		url:"ajax_outils.php",
 		async:true,
 		encoding: 'latin1',
 		data:{ action:'comparer_cohorte',cohort_num_1:cohort_num_1,cohort_num_2:cohort_num_2,distance:distance,etat_patient_cohorte_1_inclu:etat_patient_cohorte_1_inclu,etat_patient_cohorte_1_exclu:etat_patient_cohorte_1_exclu,etat_patient_cohorte_1_doute:etat_patient_cohorte_1_doute,etat_patient_cohorte_2_inclu:etat_patient_cohorte_2_inclu,etat_patient_cohorte_2_exclu:etat_patient_cohorte_2_exclu,etat_patient_cohorte_2_doute:etat_patient_cohorte_2_doute},
@@ -160,7 +160,7 @@ function comparer_cohorte () {
 function afficher_outil (tool_num) {
 	jQuery.ajax({
 		type:"POST",
-		url:"ajax.php",
+		url:"ajax_outils.php",
 		async:true,
 		data: { action:'afficher_outil',tool_num:tool_num},
 		beforeSend: function(requester){
@@ -177,4 +177,27 @@ function afficher_outil (tool_num) {
 		error: function(){
 		}
 	});		
+}
+
+function mapper_patient () {
+	liste_patient=document.getElementById("id_textarea_mapper_patient").value;
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_outils.php",
+		async:true,
+		encoding: 'latin1',
+		data:{ action:'mapper_patient',liste_patient:escape(liste_patient)},
+		beforeSend: function(requester){
+				jQuery("#id_journal_mapping_patient").html("<img src='images/chargement_mac.gif'>"); 
+		},
+		success: function(requester){
+			var contenu=requester;
+			if (contenu=='deconnexion') {
+				afficher_connexion("mapper_patient ()");
+			} else {
+				jQuery("#id_journal_mapping_patient").html(contenu); 
+				
+			}
+		}
+	});
 }

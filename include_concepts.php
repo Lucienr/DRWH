@@ -83,7 +83,7 @@ $(function() {
 <?
 print "<div id=\"id_div_nuage_signes\" style=\"width: 850px; height: 350px; border: 0px solid #ccc;\"><img src=\"images/chargement_mac.gif\"></div>";
 
-print "<div id=\"id_div_nuage_signes\" style=\"width: 850px;  border: 0px solid #ccc;\">
+print "<div id=\"id_div_tableau_signes\" style=\"width: 850px;  border: 0px solid #ccc;\">
 	<table class=\"tablefin\" id=\"id_tableau_signes\" width=\"850px\">
 	</table>
 	</div>";

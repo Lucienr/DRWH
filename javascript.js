@@ -1456,129 +1456,6 @@ function supprimer_user(user_num,department_num) {
 }
 
 
-function supprimer_service(department_num) {
-	if (confirm (get_translation('ETES_VOUS_SUR_DE_VOULOIR_SUPPRIMER_CET_UF','Etes vous sûr de vouloir supprimer ce service')+' ?')) {
-		jQuery.ajax({
-		type:"POST",
-		url:"ajax.php",
-		async:true,
-		data: { action:'supprimer_service',department_num:department_num},
-		beforeSend: function(requester){
-		},
-		success: function(requester){
-			contenu=requester;
-			if (contenu=='deconnexion') {
-				afficher_connexion("supprimer_service("+department_num+")");
-			} else {
-				if (contenu=='erreur') {
-					alert(get_translation('JS_UNE_ERREUR_EST_SURVENUE','Une erreur est survenue'));
-				} else {
-					$("tr#id_tr_groupe_"+department_num).remove();
-				}
-			}
-		},
-		complete: function(requester){
-		},
-		error: function(){
-		}
-		});
-	}			
-
-}
-
-function ajouter_uf(department_num) {
-	unit_code=document.getElementById('id_input_unit_code_'+department_num).value;
-	unit_str=document.getElementById('id_input_unit_str_'+department_num).value;
-	unit_start_date=document.getElementById('id_input_date_deb_uf_'+department_num).value;
-	unit_end_date=document.getElementById('id_input_date_fin_uf_'+department_num).value;
-	jQuery.ajax({
-		type:"POST",
-		url:"ajax.php",
-		async:true,
-		data: { action:'ajouter_uf',unit_str:escape(unit_str),unit_code:escape(unit_code),department_num:department_num,unit_start_date:escape(unit_start_date),unit_end_date:escape(unit_end_date)},
-		beforeSend: function(requester){
-		},
-		success: function(requester){
-			contenu=requester;
-			if (contenu=='deconnexion') {
-				afficher_connexion("ajouter_uf("+department_num+")");
-			} else {
-				if (contenu=='erreur') {
-					alert(get_translation('JS_UNE_ERREUR_EST_SURVENUE','Une erreur est survenue'));
-				} else {
-					$('#id_tableau_uf_'+department_num).append(contenu);
-					document.getElementById('id_input_unit_code_'+department_num).value='';
-					document.getElementById('id_input_unit_str_'+department_num).value='';
-				}
-			}
-		},
-		complete: function(requester){
-		},
-		error: function(){
-		}
-	});		
-}
-
-
-function ajouter_service() {
-	department_str=document.getElementById('id_service_ajouter').value;
-	jQuery.ajax({
-		type:"POST",
-		url:"ajax.php",
-		async:true,
-		data: { action:'ajouter_service',department_str:escape(department_str)},
-		beforeSend: function(requester){
-		},
-		success: function(requester){
-			contenu=requester;
-			if (contenu=='deconnexion') {
-				afficher_connexion("ajouter_service()");
-			} else {
-				if (contenu=='erreur') {
-					alert(get_translation('JS_UNE_ERREUR_EST_SURVENUE','Une erreur est survenue'));
-				} else {
-					$('#id_table_groupe_utilisateur').append(contenu);
-					document.getElementById('id_service_ajouter').value='';
-				}
-			}
-		},
-		complete: function(requester){
-		},
-		error: function(){
-		}
-	});		
-}
-
-
-function supprimer_uf(unit_num,department_num) {
-	if (confirm (get_translation('ETES_VOUS_SUR_DE_VOULOIR_SUPPRIMER_CET_UF','Etes vous sûr de vouloir supprimer cette uf') + ' ?')) {
-		jQuery.ajax({
-		type:"POST",
-		url:"ajax.php",
-		async:true,
-		data: { action:'supprimer_uf',unit_num:unit_num,department_num:department_num},
-		beforeSend: function(requester){
-		},
-		success: function(requester){
-			contenu=requester;
-			if (contenu=='deconnexion') {
-				afficher_connexion("supprimer_uf("+unit_num+","+department_num+")");
-			} else {
-				if (contenu=='erreur') {
-					alert(get_translation('JS_UNE_ERREUR_EST_SURVENUE','Une erreur est survenue'));
-				} else {
-					$("tr#id_tr_uf_"+department_num+"_"+unit_num).remove();
-				}
-			}
-		},
-		complete: function(requester){
-		},
-		error: function(){
-		}
-		});
-	}
-}
-
 function modifier_passwd () {
 	mon_password1=document.getElementById('id_mon_password1').value;
 	mon_password2=document.getElementById('id_mon_password2').value;
@@ -1620,6 +1497,7 @@ function modifier_passwd () {
 		plier('id_span_passwd_2');
 	}
 }
+
 function modifier_user_phone_number () {
 	user_phone_number=document.getElementById('id_input_user_phone_number').value;
 	 jQuery.ajax({
@@ -2251,7 +2129,10 @@ function generer_resultat(query_num,tmpresult_num) {
 		async:true,
 		data: { action:'generer_resultat',tmpresult_num:tmpresult_num,query_num:query_num},
 		beforeSend: function(requester){
+			$('#tabs').css('pointer-events','none');
+			$('#tabs').css('opacity','0.5');
 			jQuery("#id_span_chargement").css('display','block');
+			jQuery("#id_span_afficher_suite").css('display','none');
 		},
 		success: function(requester){
 			result=requester;
@@ -2281,6 +2162,8 @@ function generer_resultat(query_num,tmpresult_num) {
 			}
 		},
 		complete: function(requester){
+			$('#tabs').css('pointer-events','auto');
+			$('#tabs').css('opacity','1');
 		},
 		error: function(){
 		}

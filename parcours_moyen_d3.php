@@ -101,9 +101,9 @@ if ($unit_or_department=='department') {
 	$coef_limite='2';
 }
 if ($patient_num_encounter_num=='') {
-	$req=oci_parse($dbh,"select round(count(distinct encounter_num)*$coef_limite/100) nb_encounter_num_total from dwh_tmp_result where tmpresult_num=$tmpresult_num and encounter_num is not null ");
+	$req=oci_parse($dbh,"select round(count(distinct encounter_num)*$coef_limite/100) nb_encounter_num_total from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and encounter_num is not null ");
 } else {
-	$req=oci_parse($dbh,"select round(count(distinct encounter_num)*$coef_limite/100) nb_encounter_num_total from dwh_patient_stay where patient_num in (select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num and patient_num is not null ) and out_date is not null ");
+	$req=oci_parse($dbh,"select round(count(distinct encounter_num)*$coef_limite/100) nb_encounter_num_total from dwh_patient_stay where patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and patient_num is not null ) and out_date is not null ");
 }
 oci_execute($req) ;
 $res=oci_fetch_array($req,OCI_ASSOC);

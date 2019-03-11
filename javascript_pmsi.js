@@ -43,6 +43,7 @@ function affiche_onglet_pmsi (tmpresult_num,type,refresh,thesaurus_code) {
 	document.getElementById('id_div_pmsi_precedent').innerHTML="";
 	if (tableau_table_cree_type['pmsi']!='ok' || refresh=='ok') {
 		tableau_table_cree_type['pmsi']='ok';
+		affiche_tableau_pmsi(tmpresult_num,type,thesaurus_code);
 		affiche_graph_pmsi ('id_div_pmsi',tmpresult_num,thesaurus_code,type,0,1);
 		$("#slider-range-max_pmsi").slider('value', 3);
 		document.getElementById("id_div_distance_pmsi").innerHTML=3;

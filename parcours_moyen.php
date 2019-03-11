@@ -63,7 +63,7 @@ $max_nb_mvt=$_GET['max_nb_mvt_'.$patient_num_encounter_num];
 
 if ($max_nb_mvt=='') {
 	$requete="select max(NB) as MAX_NB_MVT from (select a.department_num,b.department_num, count(*)  nb  from dwh_patient_mvt a,dwh_patient_mvt b where
-				exists ( select * from dwh_tmp_result where tmpresult_num=$tmpresult_num and dwh_tmp_result.$patient_num_encounter_num= a.$patient_num_encounter_num and dwh_tmp_result.encounter_num is not null) and
+				exists ( select * from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and dwh_tmp_result_$user_num_session.$patient_num_encounter_num= a.$patient_num_encounter_num and dwh_tmp_result_$user_num_session.encounter_num is not null) and
                 a.patient_num=b.patient_num  and
                 a.encounter_num=b.encounter_num and
                 a.mvt_order=b.mvt_order-1

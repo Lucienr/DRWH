@@ -303,7 +303,9 @@ if ($_POST['action']=='rechercher') {
 			<h1><? print get_translation('QUERIES_HISTORY','Historique requête'); ?></h1>
 			<!--<div id="id_div_liste_requete_temp" style="width:400px;height:400px;overflow-y:auto;">-->
 			<div id="id_div_liste_requete_temp" style="width:400px;">
-			<? print lister_requete_temp ($datamart_num); ?>
+			<form autocomplete="off">
+				<? print lister_requete_temp ($datamart_num); ?>
+			</form>
 			</div>
 		</div>
 		<?
@@ -400,6 +402,9 @@ if ($_POST['action']=='rechercher') {
 			<? } ?>
 			<? if ($_SESSION['dwh_droit_export_data']=='ok') { ?>
 			<li class="color-bullet" id="id_bouton_export_data"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('export_data');return false;"><? print"Export" ?></a></span></li>
+			<? } ?>
+			<? if ($_SESSION['dwh_droit_regexp']=='ok') { ?>
+			<li class="color-bullet" id="id_bouton_regexp"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('regexp');return false;"><? print"Extraction" ?></a></span></li>
 			<? } ?>
 			</ul>
 		</div>
@@ -568,9 +573,9 @@ if ($_POST['action']=='rechercher') {
 				print "<input type=\"hidden\" value=\"$nb_patient_user\" id=\"id_total_ligne\">";
 				print "<input type=\"hidden\" value=\"\" id=\"id_exclure_cohorte_resultat\">";
 				
-				print "<br><span id=\"id_span_afficher_suite\"><a href=\"#\" onclick=\"afficher_suite();return false;\" class=\"lien_afficher_suite\">".get_translation('DISPLAY_NEXT_DOCUMENTS','Afficher la suite')."</a></span>";
+				print "<br><span id=\"id_span_afficher_suite\" style=\"display:none;\"><a href=\"#\" onclick=\"afficher_suite();return false;\" class=\"lien_afficher_suite\">".get_translation('DISPLAY_NEXT_DOCUMENTS','Afficher la suite')."</a></span>";
 			?>
-				<span id="id_span_chargement" style="display: none;"><img src="images/chargement_mac.gif"></span>
+				<span id="id_span_chargement" style="display: none;"><img src="images/chargement_mac.gif"> Calcul en cours</span>
 			</div>
 		<? } ?>
 		
@@ -633,6 +638,13 @@ if ($_POST['action']=='rechercher') {
 			<div id="id_div_dwh_export_data" style="display:none;" class="div_result">
 				<? print $phrase_nb_patient_total; ?>
 				<? include "include_export_data.php"; ?>
+			</div>
+		<? } ?>
+		
+		<? if ($_SESSION['dwh_droit_regexp']=='ok') { ?>
+			<div id="id_div_dwh_regexp" style="display:none;" class="div_result">
+				<? print $phrase_nb_patient_total; ?>
+				<? include "include_regexp.php"; ?>
 			</div>
 		<? } ?>
 	<? } ?>

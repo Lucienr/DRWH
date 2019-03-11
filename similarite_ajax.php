@@ -114,7 +114,7 @@ if ($_POST['action']=='precalcul_nb_patient_similarite_patient') {
 	
         
         if ($verif_process_num=='') {
-		create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','debut du process'),'',"sysdate+2");
+		create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','debut du process'),'',"sysdate+2","similarity_patient");
 	} else {
 		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
 	}
@@ -181,7 +181,7 @@ if ($_POST['action']=='calculer_similarite_patient') {
 	
         
         if ($verif_process_num=='') {
-		create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','debut du process'),'',"sysdate+2");
+		create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','debut du process'),'',"sysdate+2","similarity_patient");
 	} else {
 		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
 	}
@@ -251,7 +251,7 @@ if ($_POST['action']=='affiche_intersect') {
 	$distance=$_POST['distance'];
 	
 	if ($tmpresult_num!='') {
-		$filtre_sql="and patient_num in ( select patient_num from dwh_tmp_result where tmpresult_num=$tmpresult_num)";
+		$filtre_sql="and patient_num in ( select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)";
 		/////////// calcul idf par concept /////////////////////
 		if ($distance==10) {
 			$requete=" select  concept_code, concept_str,patient_num,count(*) as TF 

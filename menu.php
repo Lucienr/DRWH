@@ -78,7 +78,7 @@
 					<div class="ui-widget" style="padding-left: 0px;width:260px;font-size:10px;display:inline;">
 						<span class="ui-helper-hidden-accessible" aria-live="polite" role="status"></span>
 						<span class="ui-helper-hidden-accessible" role="status" aria-live="polite"></span>
-						<form style="display:inline" action="patient.php" id="id_form_patient_quick_access"><input id="id_champs_patient_quick_access" onclick="if (this.value=='<? print get_translation('NAME_OR_PATIENT_ID','Nom / IPP'); ?>') {this.value='';}" class="form ui-autocomplete-input" type="text" size="15" name="patient_num" value="<? print get_translation('NAME_OR_PATIENT_ID','Nom / IPP'); ?>" style="font-size:10px;padding:0px;" autocomplete="off" onkeypress="recherche_encours();if(event.keyCode==13) {alert('Selecionnez un patient ci dessous');champs_patient_quick_access();return false;}">
+						<form style="display:inline" action="patient.php" id="id_form_patient_quick_access"><input id="id_champs_patient_quick_access" onclick="if (this.value=='<? print get_translation('NAME_OR_PATIENT_ID','Nom / IPP'); ?>') {this.value='';}" class="form ui-autocomplete-input" type="text" size="15" name="patient_num" value="<? print get_translation('NAME_OR_PATIENT_ID','Nom / IPP'); ?>" style="font-size:10px;padding:0px;" autocomplete="off" onkeypress="recherche_encours();if(event.keyCode==13) {champs_patient_quick_access();return false;}">
 						</form>
 					</div>
 					<style>

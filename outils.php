@@ -39,6 +39,7 @@ session_write_close();
 		<h1><? print get_translation('THE_TOOLS','Les outils'); ?></h1>
 		<h2><a href="outils.php?action=comparateur"><? print get_translation('PATIENTS_COMPARE','Comparateur de patients'); ?></a></h2>
 		<h2><a href="outils.php?action=comparateur_cohorte"><? print get_translation('COHORTS_COMPARE','Comparateur de cohortes'); ?></a></h2>
+		<h2><a href="outils.php?action=mapper_patient"><? print get_translation('MAPPING_PATIENT','Retrouver IPP des patients'); ?></a></h2>
 		<?
 			list_outil();
 		?>
@@ -176,6 +177,27 @@ session_write_close();
 		
 		<? } ?>
 		
+		
+		
+		<? if ($_GET['action']=='mapper_patient') { ?>
+			<h1>Mapper patient</h1>
+			<?
+				print get_translation('MANUAL_MAPPING_PATIENTS',"Pour mapper des patients")."<br>";
+				print get_translation('MANUAL_MAPPING_PATIENTS_COPY_PAST_LIST_OF_PATIENTS',"Copier coller une liste de patients")."<br>";
+				print get_translation('MANUAL_MAPPING_PATIENTS_RESPECT_ORDER_COLUMNS',"Respecter l'ordre des colonnes")." :<br>";
+				print get_translation('MANUAL_MAPPING_PATIENTSLIST_COLONNE',"LASTNAME;FIRSTNAME;DATE DE NAISSANCE")."<br>";
+				print get_translation('MANUAL_MAPPING_PATIENTS_SEPARATOR',"Utiliser comme séparateur le \";\" ou la \",\" ou la tabulation (un copier coller depuis Excel fonctionnera)")."<br>";
+				print "<pre>garcelon;nicolas;13/05/2007<br>garcelon	nicolas	13/05/2007<br>garcelon,nicolas,13/05/2007</pre><br>";
+				print "
+				<table border=\"0\">
+					<tr><td style=\"vertical-align:top;\"><textarea id=\"id_textarea_mapper_patient\"  style=\"width:500px;\" rows=\"10\"></textarea></td></tr>
+				</table>
+				<br>
+				<input type=\"button\" value=\"Mapper ces patients\" onclick=\"mapper_patient();\"> ";
+				
+				print "<br><br><div id=\"id_journal_mapping_patient\" style=\"width:100%;\" ></div>";
+			?>
+		<? } ?>
 		</div>
 	
 	</td>

@@ -282,14 +282,8 @@
 							$("#id_tr_patient_"+patient_num).css("backgroundColor","#E9CDCE");
 						}
 						if (status==2) {
-							$("#id_tr_patient_"+patient_num).css("backgroundColor","#E1E1DF");
+							$("#id_tr_patient_"+patient_num).css("backgroundColor","#ccf2ff");
 						}
-						//tableau_nb=requester.split(';');
-						//$('#id_nb_patient_cohorte_inclu').html(tableau_nb[0]);
-						//$('#id_nb_patient_cohorte_inclu_bis').html(tableau_nb[0]);
-						//$('#id_nb_patient_cohorte_exclu').html(tableau_nb[1]);
-						//$('#id_nb_patient_cohorte_doute').html(tableau_nb[2]);
-						//$('#id_nb_patient_cohorte_import').html(tableau_nb[3]);
 						
 						liste_patient_cohorte_encours(cohort_num_encours,1);
 						liste_patient_cohorte_encours(cohort_num_encours,0);
@@ -380,7 +374,7 @@
 	
 	function supprimer_commentaire_cohorte (cohort_result_comment_num,context,patient_num,cohort_num) {
 		if (cohort_result_comment_num!='') {
-			if (confirm ('Etes vous sûr de vouloir supprimer ce commentary ?')) {
+			if (confirm (get_translation('ETES_VOUS_SUR_DE_VOULOIR_SUPPRIMER_CE_COMMENTAIRE','Etes vous sûr de vouloir supprimer ce commentaire')+' ?')) {
 				jQuery.ajax({
 					type:"POST",
 					url:"ajax.php",
@@ -909,6 +903,27 @@
 				}
 			}
 		});
+	}
+	
+	function display_query_inclusion(patient_num,cohort_num,query_num_inclusion) {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_cohorte.php",
+			async:true,
+			encoding: 'latin1',
+			data:{ action:'display_query_inclusion',patient_num:patient_num,query_num_inclusion:query_num_inclusion,cohort_num:cohort_num},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				var contenu=requester;
+				if (contenu=='deconnexion') {
+					afficher_connexion("display_query_inclusion ('"+patient_num+"','"+cohort_num+"','"+query_num_inclusion+"')");
+				} else {
+					jQuery("#id_span_display_query_inclusion_cohort_"+patient_num).html(contenu); 
+				}
+			}
+		});
+	
 	}
 	
 </script>

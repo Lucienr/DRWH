@@ -90,6 +90,29 @@ print "
 		}";
 	graph_temps ($series,get_translation('JS_COUNT_CONNEXIONS_PER_MONTH',"Nb de connexions par mois à l'entrepôt"),"nb_connexion_mois","650px","300px",get_translation('JS_CONNEXIONS_COUNT','Nb connexions'));
 
+
+
+		
+	
+	$liste_nb_user='';
+	$requete="select  to_char(log_date,'YYYY') as year , to_char(log_date,'MM') as month ,count( distinct user_num) as nb_user from dwh_log_page where user_num !=1 and page='connexion' group by to_char(log_date,'YYYY'),to_char(log_date,'MM')  order by to_char(log_date,'YYYY'),to_char(log_date,'MM')";
+	$sel=oci_parse($dbh,$requete);
+	oci_execute($sel) || die ("erreur requete $requete\n");
+	while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		$year=$r['YEAR'];
+		$month=$r['MONTH']-1;
+		$nb_user=$r['NB_USER'];
+		$liste_nb_user.="[Date.UTC($year,$month), $nb_user],";
+	}
+	$liste_nb_user=substr($liste_nb_user,0,-1);
+	$series="{yAxis: 0,
+		name: \"".get_translation('JS_SEARCH','Recherche')."\",
+		type: 'column',
+		data: [$liste_nb_user],
+		color :'#0B3861'
+		}";
+	graph_temps ($series,get_translation('JS_COUNT_USERS_PER_MONTH',"Nb de utilisateurs distincts par mois"),"nb_user_distinct_mois","650px","300px",get_translation('JS_USERS_COUNT','Nb utilisateurs distincts'));
+
 print "</div>";	
 		
 print "

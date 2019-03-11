@@ -282,8 +282,6 @@
 						afficher_connexion("affiche_onglet_stat("+tmpresult_num+")");
 					} else {
 						document.getElementById('id_nb_patient_per_unit_per_year_tableau').innerHTML=data;
-						$("#id_table_nb_patient_per_unit_per_year_tableau").dataTable( {  "columnDefs": [ {"targets": 'no-sort',"orderable": false}],"order": [[ 0, "asc" ]],  "paging": false});
-						$("#id_table_nb_patient_per_department_per_year_tableau").dataTable( {  "columnDefs": [ {"targets": 'no-sort',"orderable": false}], "order": [[ 0, "asc" ]],"paging": false});
 					}
 				},
 				error: function(){
@@ -319,13 +317,10 @@
 	print "<div id=\"id_nb_nouveau_patients_service_hors_mespatients\" style=\"float:left; width:900px;height:800px;\"></div>";
 	
 	print "<h1  style=\"clear: left;padding-top:20px;\">Statistiques basées sur les passages des patients retrouvés  <a href=\"export_excel.php?tmpresult_num=$tmpresult_num&option=stat_movment\"><img src=\"images/excel_noir.png\" border=\"0\"></a></h1>";
-	print "<div id=\"id_nb_consult_per_unit_per_year_tableau\" style=\"float:left; \"></div>";
-	
-	print "<div id=\"id_nb_hospit_per_unit_per_year_tableau\" style=\"float:left; \"></div>";
-	
-	print "<div id=\"id_nb_stay_per_unit_per_year_tableau\" style=\"float:left; \"></div>";
-	
-	print "<div id=\"id_nb_patient_per_unit_per_year_tableau\" style=\"float:left; \"></div>";
+	print "<div id=\"id_nb_consult_per_unit_per_year_tableau\" style=\"float:none; \"></div>";
+	print "<div id=\"id_nb_hospit_per_unit_per_year_tableau\" style=\"float:none; \"></div>";
+	print "<div id=\"id_nb_patient_per_unit_per_year_tableau\" style=\"float:none; \"></div>";
+	print "<div id=\"id_nb_stay_per_unit_per_year_tableau\" style=\"float:none; \"></div>";
 	
 	
 	
