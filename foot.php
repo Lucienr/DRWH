@@ -45,6 +45,7 @@
 		<input type="hidden" id="id_commande_a_rejouer">
 		<input type="button" onclick="connecter();" value="<? print get_translation('CONNEXION','Connexion');?>">
 	</div>
+	
 	<script language="javascript">
 		jQuery(document).ready(function() { 
 			<? 
@@ -53,7 +54,7 @@
 			} 
 			?>
 			$(".chosen-select").chosen({width: "250px",max_selected_options: 50,allow_single_deselect: true,search_contains:true}); 
-			crontab_alerte_demande_acces () ;
+		//	crontab_alerte_demande_acces () ;
 			crontab_alerte_notification () ;
 			
 		});
