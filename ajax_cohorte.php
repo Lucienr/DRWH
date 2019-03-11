@@ -78,7 +78,7 @@ if ($_POST['action']=='precalcul_nb_patient_similarite_cohorte') {
 	
         
         if ($verif_process_num=='') {
-		create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','debut du process'),'',"sysdate+2");
+		create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','debut du process'),'',"sysdate+2","similarite_cohorte");
 	} else {
 		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
 	}
@@ -118,7 +118,7 @@ if ($_POST['action']=='calculer_similarite_cohorte') {
 	
         
         if ($verif_process_num=='') {
-		create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','debut du process'),'',"sysdate+7");
+		create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','debut du process'),'',"sysdate+7","similarite_cohorte");
 	} else {
 		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
 	}
@@ -190,6 +190,17 @@ if ($_POST['action']=='afficher_resultat_similarite_cohorte') {
 	
 	}
 	print $res;
+}
+
+if ($_POST['action']=='display_query_inclusion') {
+	$patient_num=$_POST['patient_num'];
+	$query_num_inclusion=$_POST['query_num_inclusion'];
+	$cohort_num=$_POST['cohort_num'];
+	if ($patient_num!='' && $cohort_num!='') {
+		$query_num_inclusion=get_query_inclusion ($cohort_num, $patient_num);
+	        $query_inclusion_patient=get_query_clear($query_num_inclusion);
+		print $query_inclusion_patient;
+	}
 }
 
 ?>
