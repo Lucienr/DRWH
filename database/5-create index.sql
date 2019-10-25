@@ -518,7 +518,7 @@ NOPARALLEL;
 
 
 CREATE INDEX DWH_TEXT_IDX1 ON DWH_TEXT
-(CONTEXT, CERTAINTY, DOCUMENT_NUM)
+(DOCUMENT_NUM, CONTEXT, CERTAINTY)
 LOGGING
 TABLESPACE TS_IDX
 NOPARALLEL;
@@ -834,4 +834,9 @@ TABLESPACE TS_IDX;
 CREATE INDEX DWH_DOC_ORIG_UPLOAD_ID ON DWH_DOCUMENT 
 (DOCUMENT_ORIGIN_CODE,SUBSTR(UPLOAD_ID,1,8)) 
 TABLESPACE TS_IDX;
+
+
+create index dwh_patient_opposition_i on dwh_patient_opposition (patient_num) tablespace ts_idx;
+
+create index dwh_data_minmaxdate on dwh_data (thesaurus_data_num,to_number(to_char(document_date,'YYYY'))) tablespace ts_idx
 
