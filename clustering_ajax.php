@@ -60,7 +60,7 @@ session_write_close();
 if ($_POST['action']=='executer_clustering') {
 	$tmpresult_num=$_POST['tmpresult_num'];
 	$limite_similarite=$_POST['limite_similarite'];
-	$process_num=uniqid();
+	$process_num=get_uniqid();
 	
 	create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','début du process'),'','sysdate+7',"clustering");
 	

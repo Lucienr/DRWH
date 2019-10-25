@@ -34,6 +34,7 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 	print benchmark ( 'debut 1' );
 	$tableau_code_nb_pat=array();
 	$tableau_code_libelle=array();
+	$tableau_patient_num=array();
 	$tableau_patient_num_code_nb_concept=array();
 	$tableau_patient_num_nb_concept_total=array();
 	$tableau_patient_num_tous_les_codes_nb_concept_par_code=array();
@@ -41,7 +42,7 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 	
 	
 	
-	update_process ($process_num,'0',get_translation('PROCESS_EXTRACT_PATIENTS','Extraction des patients'),'');
+	update_process ($process_num,'0',get_translation('PROCESS_EXTRACT_PATIENTS','Extraction des patients'),'',$user_num_session,"");
 	
 	// pour le calcul du TF/IDF
 	if ($distance==10) {
@@ -85,6 +86,7 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 			order by concept_code,certainty
 		      ";
 	}
+	$p=0;
 	print "\n$requete\n";
 	$sel=oci_parse($dbh, $requete);
 	oci_execute($sel);
@@ -93,6 +95,9 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 		$patient_num=$r['PATIENT_NUM'];
 		$tf=$r['TF'];
 		$certainty=$r['CERTAINTY'];
+		if ($tableau_patient_num[$patient_num]=='') {
+			$p++;
+		}
 		if ($tableau_code_autorise[$concept_code]!='') {
 			$tableau_code_nb_pat[$concept_code]++;
 			$tableau_patient_num_code_nb_concept[$patient_num][$concept_code]=$tf*$certainty;
@@ -101,6 +106,10 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 				$tableau_patient_num_liste_code[$patient_num].="$concept_code;";
 			}
 			$tableau_patient_num[$patient_num]='ok';
+		}
+		if ($p==10000) {
+			update_process ($process_num,'0',get_translation('PROCESS_EXTRACT_PATIENTS','Extraction des patients')." ".count($tableau_patient_num)." patients",'',$user_num_session,"");
+			$p=0;
 		}
 	}
 	$nb_pat_total=count($tableau_patient_num);
@@ -124,7 +133,7 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 	print "\n\n".benchmark ( 'debut 3' )."\n\n";
 	
 	
-	update_process ($process_num,'0',get_translation('PROCESS_PATIENTS_TO_VECTORS','Vectorisation des patients'),'');
+	update_process ($process_num,'0',get_translation('PROCESS_PATIENTS_TO_VECTORS','Vectorisation des patients'),'',$user_num_session,"");
 	
 	$tableau_longueur_vecteur=array();
 	$tableau_nb_concept_patient_num=array();
@@ -170,7 +179,7 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 	$tableau_weight=array();
 	$tableau_length=array();
 	//// Option pour calculer similarite a partir d'un patient principal ////
-	update_process ($process_num,'0',get_translation('PROCESS_COMPUTE_SIMILARITY_INDEX_PATIENT','Calcul de similarite avec le patient Index'),'');
+	update_process ($process_num,'0',get_translation('PROCESS_COMPUTE_SIMILARITY_INDEX_PATIENT','Calcul de similarite avec le patient Index'),'',$user_num_session,"");
 	foreach ($tableau_longueur_vecteur as $patient_num_2 => $longeur_v_2) {
 		if ($patient_num_principal!=$patient_num_2) {
 		
@@ -214,8 +223,9 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 		}
 	}
 	print "tableau_similarite nb patient_num: ".count($tableau_similarite)."<br>nbpatient_limite : $nbpatient_limite<br>"; 
-	update_process ($process_num,'0',get_translation('PROCESS_EXTRACT_PATIENTS','Extraction des patients'),'');
+	update_process ($process_num,'0',get_translation('PROCESS_TERMFREQUENCY','Calcul des frequences'),'',$user_num_session,"");
 	$i=0;
+	$table_type_semantic=array();
 	$tableau_patient_num_similaire=array();
 	$tableau_patient_num_similaire_code_nb_pat=array();
 	$tableau_patient_num_similaire_code_nb_concept=array();
@@ -277,6 +287,9 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 				$concept_code=$r['CONCEPT_CODE'];
 				$tf=$r['TF'];
 				$tableau_patient_num_tous_les_codes_nb_concept_par_code[$patient_num][$concept_code]=$tf;
+				if ($table_type_semantic[$concept_code]=='') {
+					$table_type_semantic[$concept_code]=get_semantic_type_concept ($concept_code,'list');
+				}
 				$tableau_patient_num_tous_les_codes_nb_concept_total[$patient_num]+=$tf;
 				//$tableau_patient_num_tous_les_codes_nb_pat[$concept_code]++;
 				$tableau_patient_num_similaire_code_nb_pat[$concept_code]++;
@@ -291,7 +304,7 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 
 	print "\n\n".benchmark ( 'debut 5' )."\n\n";
 
-	update_process ($process_num,'0',get_translation('PROCESS_GRAPH_CREATION','Création du graph'),'');
+	update_process ($process_num,'0',get_translation('PROCESS_GRAPH_CREATION','Création du graph'),'',$user_num_session,"");
 	///creation des vecteurs et calcul des longueurs de vecteur
 	foreach ($tableau_longueur_vecteur as $patient_num_1 => $longeur_v_1) {
 		foreach ($tableau_longueur_vecteur as $patient_num_2 => $longeur_v_2) {
@@ -342,7 +355,7 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 	}
 		
 	
-	update_process ($process_num,'0',get_translation('PROCESS_COMPUTE_DISPLAY_TABLE','Calcul du tableau d affichage'),'');
+	update_process ($process_num,'0',get_translation('PROCESS_COMPUTE_DISPLAY_TABLE','Calcul du tableau d affichage'),'',$user_num_session,"");
 	
 	$nb_patient_vp=0;
 	$nb_patient_doute=0;
@@ -351,7 +364,7 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 	$tableau_html_liste_patients="<br><br>
 	<img src=\"images/copier_coller.png\" onclick=\"plier_deplier('id_div_tableau_visualisation');plier_deplier('id_div_tableau_copier_coller');fnSelect('id_textarea_copier_coller');\" style=\"cursor:pointer;\" title=\"Copier Coller pour exporter dans excel\" alt=\"Copier Coller pour exporter dans excel\">
 	<div id=\"id_div_tableau_visualisation\" style=\"display:block\">
-	<table border=\"0\" class=\"tablefin\" id=\"id_tableau_similarite_patient\"><thead><th width=\"200px\">Patient</th><th width=\"10px\">Similarité</th><th width=\"40%\">Concepts communs</th><th>Concepts patient</th></thead><tbody>";
+	<table border=\"0\" class=\"tablefin\" id=\"id_tableau_similarite_patient\"><thead><th width=\"200px\">Patient</th><th width=\"10px\">Similarité</th><th width=\"10px\">Cohortes</th><th width=\"40%\">Concepts communs</th><th>Concepts patient</th></thead><tbody>";
 	foreach ($tableau_patient_num_similaire as $patient_num ) {
 		if ($anonyme=='non') {
 			$tableau_user_name[$patient_num]=afficher_patient ($patient_num,'lastname firstname','','','similarite');
@@ -362,30 +375,48 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 		$jpgraph_connexion.="$patient_num [label=\"".$tableau_user_name[$patient_num]."\",URL=\"patient.php?patient_num=$patient_num\",target=\"_blank\"] ;\n";
 
 		if ($patient_num!=$patient_num_principal) {
+			$tableau_tous_les_codes_nb_concept_par_code=array();
+			$tableau_tous_les_codes_nb_concept_par_code=$tableau_patient_num_tous_les_codes_nb_concept_par_code[$patient_num];
+		
+			arsort($tableau_tous_les_codes_nb_concept_par_code);
+			
 			$tableau_patient_num_code_1=explode(";",$tableau_patient_num_liste_code[$patient_num_principal]);
 			$tableau_patient_num_code_2=explode(";",$tableau_patient_num_liste_code[$patient_num]);
 			
 			$patient=$tableau_user_name[$patient_num];
 			/// liste mots en commun 
+			$nb_mot=0;
 			$intersect=array();
-			$intersect = array_intersect($tableau_patient_num_code_1,$tableau_patient_num_code_2);
+			$liste_concept_intersect_suite='';
 			$liste_concept_intersect='';
-			foreach ($intersect as $concept_code) {
-				if ($concept_code!='') {
+			$intersect = array_intersect($tableau_patient_num_code_1,$tableau_patient_num_code_2);
+			foreach ($tableau_tous_les_codes_nb_concept_par_code as $concept_code =>$nb_concept) {
+			//foreach ($intersect as $concept_code) {
+				if (in_array($concept_code, $intersect)) {
 					$sel=oci_parse($dbh, "select concept_str from dwh_thesaurus_enrsem where concept_code='$concept_code' and pref='Y'");
 					oci_execute($sel);
 					$r=oci_fetch_array($sel,OCI_ASSOC+OCI_RETURN_NULLS);
 					$concept_str=$r['CONCEPT_STR'];
-					$liste_concept_intersect.= "$concept_str, ";
+					$nb_mot++;
+					if ($nb_mot<=25) {
+						$liste_concept_intersect.= " $concept_str (x$nb_concept)<br>";
+					} else {
+						$liste_concept_intersect_suite.= " $concept_str (x$nb_concept)<br>";
+					}
 				}
 			}
-			$liste_concept_intersect=substr($liste_concept_intersect,0,-2);
-			
+			#$liste_concept_intersect=substr($liste_concept_intersect,0,-2);
+			if ($nb_mot>35) {
+				$liste_concept_intersect=$liste_concept_intersect."<a onclick=\"plier_deplier('id_liste_concept_intersect_suite_$patient_num');return false;\">display all the concepts</a><span style=\"display:none\"  id='id_liste_concept_intersect_suite_$patient_num'>$liste_concept_intersect_suite</span>";
+			} else {
+				$liste_concept_intersect=$liste_concept_intersect.$liste_concept_intersect_suite;
+			}
 			
 			/// liste mots pas en commun 
 			$max_tf_idf=0;
 			$tableau_calcul_tfidf=array();
-			foreach ($tableau_patient_num_tous_les_codes_nb_concept_par_code[$patient_num] as $concept_code =>$nb_concept) {
+			#foreach ($tableau_patient_num_tous_les_codes_nb_concept_par_code[$patient_num] as $concept_code =>$nb_concept) {
+			foreach ($tableau_tous_les_codes_nb_concept_par_code as $concept_code =>$nb_concept) {
 				if ($concept_code!='') {
 					$sel=oci_parse($dbh, "select concept_str,count_patient from dwh_thesaurus_enrsem where concept_code='$concept_code' and pref='Y'");
 					oci_execute($sel);
@@ -408,24 +439,107 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 				}
 			}
 			
-			$liste_concept_patient_hors_intersect='';
+			
+			
+			/// GENE OR GENOME
+			$liste_concept_patient_hors_intersect_gene='';
+			arsort($tableau_calcul_tfidf);
+			foreach ($tableau_calcul_tfidf as $concept_code =>$tf_idf) {
+				if ($tableau_patient_num_code_nb_concept[$patient_num_principal][$concept_code]=='') {
+					$score_normalise=round($tf_idf *5/$max_tf_idf,2); // calcul de la taile du text
+					if ($score_normalise<0.8) {
+						$score_normalise=0.8;
+					}
+					if ($table_type_semantic[$concept_code]=='Gene or Genome') {
+						$sel=oci_parse($dbh, "select concept_str from dwh_thesaurus_enrsem where concept_code='$concept_code' and pref='Y'");
+						oci_execute($sel);
+						$r=oci_fetch_array($sel,OCI_ASSOC+OCI_RETURN_NULLS);
+						$concept_str=$r['CONCEPT_STR'];
+						$liste_concept_patient_hors_intersect_gene.= "<span style=\"font-size:".$score_normalise."em;\">$concept_str</span><br>";
+					}
+				}
+			}
+			/// Disease or syndrome
+			
+			$nb_mot_disease_syndrome=0;
+			$liste_concept_patient_hors_intersect_disease_syndrome='';
+			$liste_concept_patient_hors_intersect_disease_syndrome_suite='';
+			arsort($tableau_calcul_tfidf);
 			foreach ($tableau_calcul_tfidf as $concept_code =>$tf_idf) {
 				if ($tableau_patient_num_code_nb_concept[$patient_num_principal][$concept_code]=='') {
 					$score_normalise=round($tf_idf *3/$max_tf_idf,2); // calcul de la taile du text
 					if ($score_normalise<0.8) {
 						$score_normalise=0.8;
 					}
-					$sel=oci_parse($dbh, "select concept_str from dwh_thesaurus_enrsem where concept_code='$concept_code' and pref='Y'");
-					oci_execute($sel);
-					$r=oci_fetch_array($sel,OCI_ASSOC+OCI_RETURN_NULLS);
-					$concept_str=$r['CONCEPT_STR'];
-					$liste_concept_patient_hors_intersect.= "<span style=\"font-size:".$score_normalise."em;\">$concept_str</span>, ";
+					if ($table_type_semantic[$concept_code]=='Disease or Syndrome') {
+						$nb_mot_disease_syndrome++;
+						$sel=oci_parse($dbh, "select concept_str from dwh_thesaurus_enrsem where concept_code='$concept_code' and pref='Y'");
+						oci_execute($sel);
+						$r=oci_fetch_array($sel,OCI_ASSOC+OCI_RETURN_NULLS);
+						$concept_str=$r['CONCEPT_STR'];
+						if ($nb_mot_disease_syndrome<=25) {
+							$liste_concept_patient_hors_intersect_disease_syndrome.= "<span style=\"font-size:".$score_normalise."em;\">$concept_str</span><br>";
+						} else {
+							$liste_concept_patient_hors_intersect_disease_syndrome_suite.= "<span style=\"font-size:".$score_normalise."em;\">$concept_str</span><br>";
+						}
+					}
 				}
 			}
-			$liste_concept_patient_hors_intersect=substr($liste_concept_patient_hors_intersect,0,-2);
+			
+			/// Sign
+			$liste_concept_patient_hors_intersect_sign='';
+			$liste_concept_patient_hors_intersect_sign_suite='';
+			$nb_mot_sign=0;
+			arsort($tableau_calcul_tfidf);
+			foreach ($tableau_calcul_tfidf as $concept_code =>$tf_idf) {
+				if ($tableau_patient_num_code_nb_concept[$patient_num_principal][$concept_code]=='') {
+					$score_normalise=round($tf_idf *3/$max_tf_idf,2); // calcul de la taile du text
+					if ($score_normalise<0.8) {
+						$score_normalise=0.8;
+					}
+					if ($table_type_semantic[$concept_code]!='Disease or Syndrome' && $table_type_semantic[$concept_code]!='Gene or Genome') {
+						$nb_mot_sign++;
+						$sel=oci_parse($dbh, "select concept_str from dwh_thesaurus_enrsem where concept_code='$concept_code' and pref='Y'");
+						oci_execute($sel);
+						$r=oci_fetch_array($sel,OCI_ASSOC+OCI_RETURN_NULLS);
+						$concept_str=$r['CONCEPT_STR'];
+						if ($nb_mot_sign<=25) {
+							$liste_concept_patient_hors_intersect_sign.= "<span style=\"font-size:".$score_normalise."em;\">$concept_str</span><br>";
+						} else {
+							$liste_concept_patient_hors_intersect_sign_suite.= "<span style=\"font-size:".$score_normalise."em;\">$concept_str</span><br>";
+						}
+					}
+				}
+			}
+			
+			$liste_concept_patient_hors_intersect= "<table border=\"0\" width=\"100%\"><tr style=\"background-color: transparent;\"><td style=\"vertical-align:top; border: 0px;width:33%;\">";
+			if ($liste_concept_patient_hors_intersect_gene!='') {
+				$liste_concept_patient_hors_intersect.= "<h3 class=\"similarity_subtitle\">Gene or Genome</h3>$liste_concept_patient_hors_intersect_gene";
+			}
+			$liste_concept_patient_hors_intersect.= "</td><td style=\"vertical-align:top; border: 0px;width:33%;\">";
+			if ($liste_concept_patient_hors_intersect_disease_syndrome!='') {
+				$liste_concept_patient_hors_intersect.=  "<h3 class=\"similarity_subtitle\">Disease or syndrome</h3>$liste_concept_patient_hors_intersect_disease_syndrome";
+				if ($nb_mot_disease_syndrome>35) {
+					$liste_concept_patient_hors_intersect.="<a onclick=\"plier_deplier('id_liste_concept_patient_hors_intersect_disease_syndrome_suite_$patient_num');return false;\">+Display all the concepts</a><span style=\"display:none\" id='id_liste_concept_patient_hors_intersect_disease_syndrome_suite_$patient_num'>$liste_concept_patient_hors_intersect_disease_syndrome_suite</span>";
+				} else {
+					$liste_concept_patient_hors_intersect.=$liste_concept_patient_hors_intersect_disease_syndrome_suite;
+				}
+			}
+			$liste_concept_patient_hors_intersect.= "</td><td style=\"vertical-align:top; border: 0px;width:33%;\">";
+			if ($liste_concept_patient_hors_intersect_sign!='') {
+				$liste_concept_patient_hors_intersect.=  "<h3 class=\"similarity_subtitle\">Sign</h3> $liste_concept_patient_hors_intersect_sign";
+				if ($nb_mot_sign>35) {
+					$liste_concept_patient_hors_intersect.="<a onclick=\"plier_deplier('id_liste_concept_patient_hors_intersect_sign_suite_$patient_num');return false;\">+Display all the concepts</a><span style=\"display:none\" id='id_liste_concept_patient_hors_intersect_sign_suite_$patient_num'>$liste_concept_patient_hors_intersect_sign_suite</span>";
+				} else {
+					$liste_concept_patient_hors_intersect.=$liste_concept_patient_hors_intersect_sign_suite;
+				}
+			}
+			
+			$liste_concept_patient_hors_intersect.= "</td></tr></table>";
+			
 			
 			/* cohorte d'inclusion pour évaluation */ 
-			$phrase_evaluation='';
+			$cohorte_inclusion='';
 			$vrai_positif=0;
 			$sel=oci_parse($dbh, "select dwh_cohort.cohort_num,status,title_cohort from dwh_cohort,dwh_cohort_result where patient_num=$patient_num and dwh_cohort.cohort_num=dwh_cohort_result.cohort_num"); 
 			oci_execute($sel);
@@ -433,25 +547,28 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 				$cohort_num=$r['COHORT_NUM'];
 				$status=$r['STATUS'];
 				$title_cohort=$r['TITLE_COHORT'];
-				$phrase_evaluation .= " <br>(status cohorte $title_cohort : $status )";
-				if ($cohort_num_vp==$cohort_num && $status==1) {
-					$nb_patient_vp++;
-					$vrai_positif=1;
+				if ($status=='1') {
+					$lib_status="inclu";
 				}
-				if ($cohort_num_vp==$cohort_num && $status==2) {
-					$nb_patient_doute++;
-					$vrai_positif=2;
+				if ($status=='2') {
+					$lib_status="en attente";
 				}
+				if ($status=='0') {
+					$lib_status="exclu";
+				}
+				$cohorte_inclusion .= " <br>$lib_status - $title_cohort";
 			}
 			/* -*---------------- */
 			
 			
-			$tableau_html_liste_patients.= "<tr><td>$patient$phrase_evaluation<br> <a target=\"_blank\" href=\"patient.php?patient_num=$patient_num\"><img border=\"0\" src=\"images/dossier_patient.png\"></a>
-			<br>
-			<a href=\"outils.php?action=comparateur&patient_num_1=$patient_num_principal&patient_num_2=$patient_num\" target=\"_blank\">".get_translation('DISPLAY_COMPARATOR','Afficher le comparateur')."</a></td>
-			<td>".$tableau_similarite["$patient_num_principal;$patient_num"]."</td>
-			<td>$liste_concept_intersect</td>
-			<td>$liste_concept_patient_hors_intersect</td>
+			$tableau_html_liste_patients.= "<tr>
+			<td style=\"vertical-align:top\">
+				$patient <a target=\"_blank\" href=\"patient.php?patient_num=$patient_num\"><img width=\"10px\" border=\"0\" src=\"images/dossier_patient.png\"></a><br>
+				<a href=\"outils.php?action=comparateur&patient_num_1=$patient_num_principal&patient_num_2=$patient_num\" target=\"_blank\">".get_translation('DISPLAY_COMPARATOR','Afficher le comparateur')."</a></td>
+			<td style=\"vertical-align:top\">".$tableau_similarite["$patient_num_principal;$patient_num"]."</td>
+			<td style=\"vertical-align:top\">$cohorte_inclusion</td>
+			<td style=\"vertical-align:top;width:40%\"><div style=\"column-count: 3;\">$liste_concept_intersect</div></td>
+			<td style=\"vertical-align:top;width:40%\"><div>$liste_concept_patient_hors_intersect</div></td>
 			</tr>";
 			$patient_copier_coller=afficher_patient ($patient_num,'cohorte_textarea','','','similarite');
 			$patient_copier_coller=trim($patient_copier_coller);
@@ -471,14 +588,12 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 	/* FIN evaluation */
 	
 	
-	$tableau_html_liste_concepts_patient_similaire.= "<table border=\"0\" class=\"tablefin\" id=\"id_tableau_liste_concepts_patient_similaire\"><thead><th>Concepts</th><th>nb concepts</th><th>nb pat</th>
+	/////// GENES ///////////////
+	$tableau_html_liste_concepts_patient_similaire.= "<table border=\"0\" class=\"tablefin\" id=\"id_tableau_liste_concepts_patient_similaire\"><thead><th>Concepts</th><th>Semantic type</th><th>nb concepts</th><th>nb pat</th>
 	<th>% nb pat / nb patient entrepot</th>
-	<th>Somme TF-IDF</th>
-	<th>100 * TF-IDF / NB pat</th>
-	<th>100 * TF-IDF * NB pat / NB_PAT_ENTREPOT</th>
+	<th>Relevance score</th>
 	</thead>
 	<tbody>";
-
 	foreach ($tableau_patient_num_similaire_code_nb_pat as $concept_code => $nb_pat) {
 		if ($tableau_code_autorise[$concept_code]=='') { // on ne garde que les concepts non communs
 			$count_concept=$tableau_patient_num_similaire_code_nb_concept[$concept_code];
@@ -490,18 +605,27 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 			$prev_patient=round(100*$nb_pat/$nb_patient,0);
 			$score_moyen=round(100*$tableau_score_total_par_code[$concept_code]/$nb_pat);
 			$score_tfidf_prevalence=round(100*$tableau_score_total_par_code[$concept_code] * $nb_pat/$nb_patient,5);
+			if ($table_type_semantic[$concept_code]=='Gene or Genome') {
+				$semantic_type=$table_type_semantic[$concept_code];
+			} else if ($table_type_semantic[$concept_code]=='Disease or Syndrome') {
+				$semantic_type=$table_type_semantic[$concept_code];
+			
+			} else {
+				$semantic_type="other";
+			}
 			$tableau_html_liste_concepts_patient_similaire.= "<tr>
 			<td>$concept_str</td>
+			<td>$semantic_type</td>
 			<td>$count_concept</td>
 			<td>$nb_pat</td>
 			<td>$prev_patient</td>
-			<td>$tableau_score_total_par_code[$concept_code]</td>
-			<td>$score_moyen</td>
 			<td>$score_tfidf_prevalence</td>
 			</tr>";
 		}
 	}
 	$tableau_html_liste_concepts_patient_similaire.= "</tbody></table>";	
+	
+	
 	
 	$fichier_dot= "	
 	strict  graph cluster_patient {
@@ -556,7 +680,7 @@ function calcul_clustering ($distance,$nb_concept_commun,$limite_count_concept_p
 	
 	
 	
-	update_process ($process_num,'0',get_translation('PROCESS_EXTRACT_PATIENTS','Extraction des patients'),'');
+	update_process ($process_num,'0',get_translation('PROCESS_EXTRACT_PATIENTS','Extraction des patients'),'',$user_num_session,"");
 	
 	// pour le calcul du TF/IDF
 	if ($distance==10) {
@@ -637,7 +761,7 @@ function calcul_clustering ($distance,$nb_concept_commun,$limite_count_concept_p
 	print "\n\n".benchmark ( 'debut 3' )."\n\n";
 	
 	
-	update_process ($process_num,'0',get_translation('PROCESS_PATIENTS_TO_VECTORS','Vectorisation des patients'),'');
+	update_process ($process_num,'0',get_translation('PROCESS_PATIENTS_TO_VECTORS','Vectorisation des patients'),'',$user_num_session,"");
 	
 	$tableau_longueur_vecteur=array();
 	$tableau_nb_concept_patient_num=array();
@@ -696,7 +820,7 @@ function calcul_clustering ($distance,$nb_concept_commun,$limite_count_concept_p
 
 
 	print "\n\n".benchmark ( 'debut 5' )."\n\n";
-	update_process ($process_num,'0',get_translation('PROCESS_GRAPH_CREATION','Création du graph'),'');
+	update_process ($process_num,'0',get_translation('PROCESS_GRAPH_CREATION','Création du graph'),'',$user_num_session,"");
 	$nb_patient_tt=0;
 	///creation des vecteurs et calcul des longueurs de vecteur
 	foreach ($tableau_longueur_vecteur as $patient_num_1 => $longeur_v_1) {
@@ -766,11 +890,11 @@ function calcul_clustering ($distance,$nb_concept_commun,$limite_count_concept_p
 			}
 		}	
 		$nb_patient_tt++;
-		update_process ($process_num,'0',"$nb_patient_tt ".get_translation('PROCESS_PATIENTS_TREATED_OUT_OF','patients traités sur')." $nb_patient_total_pris_en_compte",'');
+		update_process ($process_num,'0',"$nb_patient_tt ".get_translation('PROCESS_PATIENTS_TREATED_OUT_OF','patients traités sur')." $nb_patient_total_pris_en_compte",'',$user_num_session,"");
 	}
 		
 	
-	update_process ($process_num,'0',get_translation('PROCESS_COMPUTE_DISPLAY_TABLE','Calcul du tableau d affichage'),'');
+	update_process ($process_num,'0',get_translation('PROCESS_COMPUTE_DISPLAY_TABLE','Calcul du tableau d affichage'),'',$user_num_session,"");
 
 	$deja_patient_num=array();
 	$tableau_cluster=array();

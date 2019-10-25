@@ -93,7 +93,7 @@ $tableau_process=get_process ($process_num) ;
 
 $user_num_session=$tableau_process['USER_NUM'];
 
-update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
+update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'',$user_num_session,"");
 
 
 
@@ -116,6 +116,7 @@ if ($cohort_num!='') {
 	$sel_patient=oci_parse($dbh, $requete);
 	oci_execute($sel_patient);
 	
+	
 	$requete="insert into   dwh_temp_$process_num   select  concept_code,patient_num,certainty,count(*) as TF from dwh_enrsem
 	     where patient_num in ( select patient_num from dwh_cohort_result where cohort_num=$cohort_num and status in (0,1))
 	     	and patient_num not in ( select patient_num from dwh_temp_$process_num)
@@ -128,7 +129,7 @@ if ($cohort_num!='') {
 	
 	
 
-	$requete=" create index dwh_temp_".$process_num."_i on dwh_temp_$process_num (concept_code) tablespace idx  ";
+	$requete=" create index dwh_temp_".$process_num."_i on dwh_temp_$process_num (concept_code) tablespace ts_idx  ";
 	$sel_patient=oci_parse($dbh, $requete);
 	oci_execute($sel_patient);
 	
@@ -193,11 +194,13 @@ if ($cohort_num!='') {
 					$concept_code="NEGATION_$concept_code";
 				}
 				$tableau_code_autorise[$concept_code]=ok;
-				$tableau_patient_num_code_tf[$concept_code]=$tf;
+				//$tableau_patient_num_code_tf[$concept_code]=$tf;
 				if ($certainty==1) {
 					$nb_concept_distinct_non_negatif++; 
 				} 
 			}
+			$memory_get_usage=memory_get_usage();
+			print "memory_get_usage 0 $memory_get_usage\n";
 			
 			if ($nb_concept_distinct_non_negatif>=$limite_count_concept_par_patient_num) {
 				$filtre_sql=" ";
@@ -237,7 +240,27 @@ if ($cohort_num!='') {
 	}
 	$liste_patient_num=substr($liste_patient_num,0,-1);
 	
-	update_process ($process_num,'1',get_translation('PROCESS_END','process fini'),$liste_patient_num);
+	
+	$tab_patient=explode(";",$liste_patient_num);
+
+	$res="";
+	$res.= "<a href=\"$URL_DWH/export_process.php?process_num=$process_num\"><img src=\"$URL_DWH/images/excel_noir.png\" style=\"cursor:pointer;width:25px;\" title=\"Export Excel\" alt=\"Export Excel\" border=\"0\"></a> ";
+	$res.="<table border=0 id=\"id_tableau_similarite_cohorte\" class=\"tablefin\" width=\"800\">";
+	$res.="<thead><th>Patients similaires</th><th> Dans le top20 de N patients index </th><th>Similarité moyenne</th></thead><tbody>";
+	foreach ($tab_patient as $p) {
+		list($patient_num,$nb,$similarite)=explode(",",$p);
+		$patient=get_patient ($patient_num);
+		$patient_name=$patient['LASTNAME']." ".$patient['FIRSTNAME']." ".$patient['BIRTH_DATE'];
+		$res.= "<tr><td>$patient_name <a target=\"_blank\" href=\"$URL_DWH/patient.php?patient_num=$patient_num\"><img border=\"0\" src=\"$URL_DWH/images/dossier_patient.png\"></a></td><td>$nb</td><td>$similarite</td></tr>\n";
+	}
+	
+	$res.= "</tbody></table>";
+        $res.= "</div>";
+	
+	update_process ($process_num,'1',"Cohort similarity",$res,$user_num_session,"html");
+	sauver_notification ($user_num_session,$user_num_session,'process',"",$process_num);
+	
+	
 }
 
 
@@ -250,6 +273,7 @@ function calcul_similarite_tfidf_simplifie ($cohort_num,$process_num,$patient_nu
 	$r=oci_fetch_array($sel,OCI_ASSOC+OCI_RETURN_NULLS);
 	$nb_pat_total_entrepot=$r['COUNT_PATIENT'];
 	
+	$memory_get_usage=memory_get_usage();
 	print "debut  calcul_similarite_tfidf_simplifie memory_get_usage $memory_get_usage\n";
 	
 	print "\n\n".benchmark ( 'debut 1' )."\n\n";
@@ -258,7 +282,14 @@ function calcul_similarite_tfidf_simplifie ($cohort_num,$process_num,$patient_nu
 	$tableau_patient_num_nb_concept_total=array();
 	$tableau_patient_num_nb_concept_distinct_non_negatif=array();
 	
-	update_process ($process_num,'0',get_translation('PATIENT','patient')."  $nb_patient_principal - ".get_translation('PROCESS_EXTRACTION_CONCEPTS_FROM_ALL_PATIENTS','Extraction tous les patients et concepts'),'');
+	$memory_get_usage=memory_get_usage();
+	print "memory_get_usage 2 $memory_get_usage\n";
+	
+	
+	update_process ($process_num,'0',get_translation('PATIENT','patient')."  $nb_patient_principal - ".get_translation('PROCESS_EXTRACTION_CONCEPTS_FROM_ALL_PATIENTS','Extraction tous les patients et concepts'),'',$user_num_session,"");
+	
+	$memory_get_usage=memory_get_usage();
+	print "memory_get_usage 3 $memory_get_usage\n";
 	
 	$requete="  select  count( *) nb_a_traiter from dwh_temp_$process_num  where concept_code in (select concept_code from dwh_enrsem where patient_num=$patient_num_principal   )
 		     	and (patient_num not in (select patient_num from dwh_cohort_result where cohort_num=$cohort_num and status in (0,1) ) or patient_num=$patient_num_principal )";
@@ -286,14 +317,13 @@ function calcul_similarite_tfidf_simplifie ($cohort_num,$process_num,$patient_nu
 			$tableau_code_nb_pat[$concept_code]++;
 			$tableau_patient_num_code_nb_concept[$patient_num][$concept_code]=$tf;
 			$tableau_patient_num_nb_concept_total[$patient_num]+=$tf;
-			//$tableau_patient_num[$patient_num]='ok';
 			if ($certainty==1) {
 				$tableau_patient_num_nb_concept_distinct_non_negatif[$patient_num]++; 
 			} 
 		}
 		$i++;
 		if ($i % 1000==0) {
-			update_process ($process_num,'0',get_translation('PATIENT','patient')."  $nb_patient_principal - ".get_translation('PROCESS_EXTRACTION_CONCEPTS_FROM_ALL_PATIENTS','Extraction tous les patients et concepts')." : $i / $nb_a_traiter",'');
+			update_process ($process_num,'0',get_translation('PATIENT','patient')."  $nb_patient_principal - ".get_translation('PROCESS_EXTRACTION_CONCEPTS_FROM_ALL_PATIENTS','Extraction tous les patients et concepts')." : $i / $nb_a_traiter",'',$user_num_session,"");
 		}
 	}
 	$nb_pat_total=count($tableau_patient_num_nb_concept_total);
@@ -310,50 +340,48 @@ function calcul_similarite_tfidf_simplifie ($cohort_num,$process_num,$patient_nu
 		if ($tableau_patient_num_nb_concept_distinct_non_negatif[$patient_num] < $limite_count_concept_par_patient_num && $patient_num!=$patient_num_principal) {
 			unset($tableau_patient_num_code_nb_concept[$patient_num]);
 			unset($tableau_patient_num_nb_concept_total[$patient_num]);
-			//unset($tableau_patient_num[$patient_num]);
 			unset($tableau_patient_num_nb_concept_distinct_non_negatif[$patient_num]);
-		}
-	}	
+		} 
+	}
+	
 	$memory_get_usage=memory_get_usage();
 	print "apres unset memory_get_usage $memory_get_usage\n";
 	
-	update_process ($process_num,'0',get_translation('PATIENT','patient')." $nb_patient_principal - ".get_translation('PROCESS_PATIENTS_VECTORISATION','Vectorisation des patients'),'');
+	update_process ($process_num,'0',get_translation('PATIENT','patient')." $nb_patient_principal - ".get_translation('PROCESS_PATIENTS_VECTORISATION','Vectorisation des patients'),'',$user_num_session,"");
 
 	///creation des vecteurs et calcul des longueurs de vecteur 
 	foreach ($tableau_patient_num_nb_concept_total as $patient_num => $ok) {
-		//if ($tableau_patient_num_nb_concept_distinct_non_negatif[$patient_num]  >= $limite_count_concept_par_patient_num || $patient_num==$patient_num_principal) { 
+		$i=0;
+		$longueur_vecteur=0;
+		foreach ($tableau_code_nb_pat as $concept_code => $nb_pat) {
+			if ($tableau_patient_num_code_nb_concept[$patient_num][$concept_code]!='') {
+				$tf=$tableau_patient_num_code_nb_concept[$patient_num][$concept_code]/$tableau_patient_num_nb_concept_total[$patient_num];
+				$idf=log($nb_pat_total/$tableau_code_nb_pat[$concept_code]);
+				$tableau_patient_num_vecteur["$patient_num;$i"]=round($tf*$idf,3);
+			} else {
+				$tf=0;
+				$idf=0;
+			}
+			$longueur_vecteur+=$tableau_patient_num_vecteur["$patient_num;$i"]*$tableau_patient_num_vecteur["$patient_num;$i"];
+			$i++;
+		}
+		if ($longueur_vecteur>=$limite_longueur_vecteur || $patient_num==$patient_num_principal) {
+			$tableau_longueur_vecteur[$patient_num]=round(sqrt($longueur_vecteur),3);
+			
+		} else {
 			$i=0;
-			$longueur_vecteur=0;
 			foreach ($tableau_code_nb_pat as $concept_code => $nb_pat) {
-				if ($tableau_patient_num_code_nb_concept[$patient_num][$concept_code]!='') {
-					$tf=$tableau_patient_num_code_nb_concept[$patient_num][$concept_code]/$tableau_patient_num_nb_concept_total[$patient_num];
-					$idf=log($nb_pat_total/$tableau_code_nb_pat[$concept_code]);
-					$tableau_patient_num_vecteur["$patient_num;$i"]=round($tf*$idf,3);
-				} else {
-					$tf=0;
-					$idf=0;
-				}
-				$longueur_vecteur+=$tableau_patient_num_vecteur["$patient_num;$i"]*$tableau_patient_num_vecteur["$patient_num;$i"];
+				unset($tableau_patient_num_vecteur["$patient_num;$i"]);
+				unset($tableau_patient_num_code_nb_concept[$patient_num]);
 				$i++;
 			}
-			if ($longueur_vecteur>=$limite_longueur_vecteur || $patient_num==$patient_num_principal) {
-				$tableau_longueur_vecteur[$patient_num]=round(sqrt($longueur_vecteur),3);
-				
-			} else {
-				$i=0;
-				foreach ($tableau_code_nb_pat as $concept_code => $nb_pat) {
-					unset($tableau_patient_num_vecteur["$patient_num;$i"]);
-					unset($tableau_patient_num_code_nb_concept[$patient_num]);
-					$i++;
-				}
-			}
-		//} 
+		}
 	}
 	print "\n\n".benchmark ( 'debut 3' )."\n\n";
 
 	print "tableau_longueur_vecteur nb patient_num: ".count($tableau_longueur_vecteur)."<br>"; 
 	$tableau_similarite_patient_num_principal=array();
-	update_process ($process_num,'0',get_translation('PATIENT','PATIENT')." $nb_patient_principal - ".get_translation('PROCESS_COMPUTE_SIMILARITY_INDEX_PATIENT','Calcul de similarite avec le patient Index'),'');
+	update_process ($process_num,'0',get_translation('PATIENT','PATIENT')." $nb_patient_principal - ".get_translation('PROCESS_COMPUTE_SIMILARITY_INDEX_PATIENT','Calcul de similarite avec le patient Index'),'',$user_num_session,"");
 	
 	foreach ($tableau_longueur_vecteur as $patient_num_2 => $longeur_v_2) {
 		if ($patient_num_principal!=$patient_num_2) {

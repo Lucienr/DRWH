@@ -39,26 +39,35 @@ session_write_close();
 <div id="id_sous_menu_flottant"  align="center"  >
 	<table id="id_tableau_sous_menu_flottant" width="100%" height="25" border="0" cellspacing="0" cellpadding="0" bgcolor="#5F6589" style="border-top:0px white solid;border-bottom:1px white solid;">
 		<tr>
-			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=annuaire" nowrap=nowrap><? print get_translation('THE_HOSPITAL_DEPARTMENTS','Les services'); ?></a></td>
+			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=annuaire" nowrap=nowrap><? print get_translation('THE_HOSPITAL_DEPARTMENTS','Les services'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
-			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=admin_profil" nowrap=nowrap><? print get_translation('THE_PROFILES','Les profils'); ?></a></td>
+			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=admin_profil" nowrap=nowrap><? print get_translation('THE_PROFILES','Les profils'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
-			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=admin_user" nowrap=nowrap><? print get_translation('THE_USERS','Les utilisateurs'); ?></a></td>
+			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=admin_user" nowrap=nowrap><? print get_translation('THE_USERS','Les utilisateurs'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 <!--
-			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=datamart" nowrap=nowrap><? print get_translation('THE_DATAMART','Les datamart'); ?></a></td>
+			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=datamart" nowrap=nowrap><? print get_translation('THE_DATAMART','Les datamart'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 -->
-			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=opposition" nowrap=nowrap><? print get_translation('OPPOSITION','Opposition'); ?></a></td>
+			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=opposition" nowrap=nowrap><? print get_translation('OPPOSITION','Opposition'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 
-			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=admin_concepts" nowrap=nowrap><? print get_translation('THE_CONCEPTS','Les concepts'); ?></a></td>
+			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=admin_concepts" nowrap=nowrap><? print get_translation('THE_CONCEPTS','Les concepts'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
-			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=admin_etl" nowrap=nowrap><? print get_translation('ETL','ETL'); ?></a></td>
+
+			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=admin_thesaurus" nowrap=nowrap><? print get_translation('THE_THESAURUS','Les thesaurus'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
-  			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=analyse_requete" nowrap=nowrap><? print get_translation('QUERIES','Requêtes'); ?></a></td>
+			
+			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=admin_etl" nowrap=nowrap><? print get_translation('ETL','ETL'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
-			<td nowrap="nowrap" style="padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';">&nbsp;&nbsp;&nbsp;&nbsp;<a class="connexion" href="admin.php?action=outils" nowrap=nowrap><? print get_translation('THE_TOOLS','Les outils'); ?></a></td>
+			
+  			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=analyse_requete" nowrap=nowrap><? print get_translation('QUERIES','Requêtes'); ?></a></td>
+			<td class="connexion" width="1"> | </td>
+			
+			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=outils" nowrap=nowrap><? print get_translation('THE_TOOLS','Les outils'); ?></a></td>
+			<td class="connexion" width="1"> | </td>
+			
+			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=admin_cgu" nowrap=nowrap><? print get_translation('CGU','Les CGU'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 			<td width="100%">&nbsp;</td>
 		</tr>
@@ -128,6 +137,7 @@ if ($_GET['action']=='annuaire') {
 			<table class="tablefin" id="id_table_liste_profil_global_features">
 				<tr>
 					<th><? print get_translation('PROFILES','Profils'); ?></th>
+					<th><? print get_translation('NB_USERS','Nb Users'); ?></th>
 					<?
 					foreach ($tableau_user_droit as $right) { 
 						print "<th>$right</th>";
@@ -206,9 +216,10 @@ if ($_GET['action']=='annuaire') {
 	<tbody>
 	<tr>
 	<td style="vertical-align:top;">
-		<h2 style="cursor:pointer;" onclick="plier_deplier('id_admin_ajouter_user');plier('id_admin_ajouter_liste_user');plier('id_admin_modifier_user');"><span id="plus_id_admin_ajouter_user">+</span> <? print get_translation('ADD_USER','Ajouter un utilisateur'); ?></h2>
-		<h2 style="cursor:pointer;" onclick="plier_deplier('id_admin_ajouter_liste_user');plier('id_admin_ajouter_user');plier('id_admin_modifier_user');"><span id="plus_id_admin_ajouter_liste_user">+</span> <? print get_translation('ADD_USER_LIST',"Ajouter une liste d'utilisateurs"); ?><h2>
-		<h2 style="cursor:pointer;" onclick="plier_deplier('id_admin_modifier_user');plier('id_admin_ajouter_liste_user');plier('id_admin_ajouter_user');"><span id="plus_id_admin_modifier_user">+</span> <? print get_translation('USER_MODIFY','Modifier un utilisateur'); ?></h2>
+		<h2 style="cursor:pointer;" onclick="plier_deplier('id_admin_ajouter_user');plier('id_admin_modifier_expiration_date_group');plier('id_admin_ajouter_liste_user');plier('id_admin_modifier_user');"><span id="plus_id_admin_ajouter_user">+</span> <? print get_translation('ADD_USER','Ajouter un utilisateur'); ?></h2>
+		<h2 style="cursor:pointer;" onclick="plier_deplier('id_admin_ajouter_liste_user');plier('id_admin_modifier_expiration_date_group');plier('id_admin_ajouter_user');plier('id_admin_modifier_user');"><span id="plus_id_admin_ajouter_liste_user">+</span> <? print get_translation('ADD_USER_LIST',"Ajouter une liste d'utilisateurs"); ?><h2>
+		<h2 style="cursor:pointer;" onclick="plier_deplier('id_admin_modifier_user');plier('id_admin_modifier_expiration_date_group');plier('id_admin_ajouter_liste_user');plier('id_admin_ajouter_user');"><span id="plus_id_admin_modifier_user">+</span> <? print get_translation('USER_MODIFY','Modifier un utilisateur'); ?></h2>
+		<h2 style="cursor:pointer;" onclick="plier_deplier('id_admin_modifier_expiration_date_group');plier('id_admin_modifier_user');plier('id_admin_ajouter_liste_user');plier('id_admin_ajouter_user');"><span id="plus_id_admin_enddate_user">+</span> <? print get_translation('USER_MODIFY_ENDDATE',"Ajouter une date d'expiration à une liste d'utilisateurs"); ?></h2>
 	</td>
 	<td style="vertical-align:top;">
 		<div id="id_admin_ajouter_user"  class="div_admin" style="display:none;">
@@ -317,6 +328,20 @@ if ($_GET['action']=='annuaire') {
 			
 			<div id="id_div_resultat_modifier_user"></div>
 			
+		</div>
+		
+		<div id="id_admin_modifier_expiration_date_group"  class="div_admin" style="display:none;">
+			<h3><? print get_translation('ADD_USER_LIST_EXPIRATION_DATE',"Ajouter une date d'expiration aux utilisateurs"); ?></h3>
+			
+			<table>
+				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('LOGIN_LIST','Liste des identifiants hospitaliers'); ?> </td><td>
+					<textarea id="id_textarea_list_user_expiration_date_group" rows="6" cols="60" class="form"></textarea>
+				</td></tr>
+				<tr><td class="question_user"><? print get_translation('EXPIRATION_DATE','Date expiration'); ?> : </td><td><input type="text" size="11" id="id_modifier_expiration_date_group" class="form"> (dd/mm/yyyy)</td></tr>
+				
+			</table>
+			<input type="button" onclick="add_expiration_date_group_admin();" class="form" value="<? print get_translation('ADD','ajouter'); ?>">
+			<div id="id_div_resultat_add_expiration_date_group"></div>
 		</div>
 	</td>
 	</tr>
@@ -569,25 +594,13 @@ if ($_GET['action']=='analyse_requete') {
 ///////////////// OPPOSITIONS //////////////////
 if ($_GET['action']=='opposition') {
 
-	$req="select table_name from all_tables where table_name ='DWH_PATIENT_OPPOSITION' ";
-	$sel = oci_parse($dbh,$req);
-	oci_execute($sel);
-	$ligne = oci_fetch_array($sel);
-	$verif_opposition = $ligne['TABLE_NAME'];
-	if ($verif_opposition=='') {
-		$req="create table  DWH_PATIENT_OPPOSITION (hospital_patient_id varchar(100), origin_patient_id varchar(40), patient_num int,opposition_date date)  ";
-		$sel = oci_parse($dbh,$req);
-		oci_execute($sel);
-
-	}
-
 ?>
 
 	<div id="id_admin_ajouter_opposition"  class="div_admin">
 		<h1><? print get_translation('PATIENT_OPPOSITION',"Ajouter l'opposition d'un patient"); ?></h1>
 		<i><? print get_translation('AUTO_DELETE_DOCUMENT',"Tous les documents seront automatiquement supprimés de l'entrepôt"); ?></i>
 		<table>
-			<tr><td class="question_user"><? print get_translation('INDICATE_HOSPITAL_PATIENT_ID',"Précisez l'IPP du patient"); ?> : </td><td><input type="text" size="30" id="id_opposition_hospital_patient_id" class="form"></td></tr>
+			<tr><td class="question_user"><? print get_translation('INDICATE_HOSPITAL_PATIENT_ID',"Précisez l'IPP du patient"); ?> : </td><td><input type="text" size="30" id="id_opposition_term" class="form"></td></tr>
 		</table>
 		<input type="button" onclick="affiche_patient_opposition();" class="form" value="<? print get_translation('RESEARCH','Rechercher'); ?>">
 		<div id="id_div_resultat_opposition_list"></div>
@@ -765,7 +778,12 @@ if ($_GET['action']=='admin_concepts') {
 		<br>
 		<br>
 		<br>
-		<? print get_translation('ADD_LABEL_IN_NLP_THESAURUS','Ajouter un libellé dans thesaurus TAL'); ?> : <? print get_translation('CODE','Code'); ?> : <input type=text id=id_concept_code value=''> : <input type=text id=id_concept_code value=''> <? print get_translation('CONCEPT_STRING','Libellé'); ?> : <input type=text id=id_concept_libelle_new value=''>  <? print get_translation('SEMANTIC_TYPES','Type Sémantique'); ?> :  <input type=text id=id_type_semantic value=''> <input type=button onclick="ajouter_concepts();" value="value="<? print get_translation('DISPLAY','Afficher'); ?>"><br>
+		<? print get_translation('ADD_LABEL_IN_NLP_THESAURUS','Ajouter un libellé dans thesaurus TAL'); ?> : <br>
+		<? print get_translation('CODE','Code'); ?> : <input type=text id=id_concept_code value=''> <br>
+		<? print get_translation('CONCEPT_STRING','Libellé'); ?> : <input type=text id=id_concept_libelle_new value=''>  <br>
+		<? print get_translation('SEMANTIC_TYPES','Type Sémantique'); ?> :  <input type=text id=id_type_semantic value=''> <br>
+		<? print get_translation('MOTIF_ADD_CONCEPT','Motif ajout'); ?> :  <input type=text id=id_add_mode value='Manual'> <br>
+		<input type=button onclick="ajouter_concepts();" value="<? print get_translation('SAVE','Sauver'); ?>"><br>
 		<div id="id_div_ajouter_concepts"></div>
 		<br>
 		<br>
@@ -789,6 +807,116 @@ if ($_GET['action']=='admin_concepts') {
 
 
 
+
+<?
+///////////////// CONCEPT //////////////////
+if ($_GET['action']=='admin_thesaurus') {
+?>
+	<div id="id_admin_thesaurus"  class="div_admin">
+		<h1><? print get_translation('THESAURUS_MANAGE','Administrer Thesaurus'); ?></h1>
+		<? print get_translation('DISPLAY_CONCEPT_LIST','Afficher liste concepts'); ?> : 
+		<select id="id_thesaurus_code">
+			<option value=""></option>	
+		<?
+	      		$thesaurus=get_list_thesaurus_data();
+	      		foreach ($thesaurus as $thesaurus_code) {
+	      				print"<option value=\"$thesaurus_code\">$thesaurus_code</option>";	
+	      		}	
+      		?>
+		</select>
+		<input type=text id=id_thesaurus_data_search value=''>
+		<input type=button onclick="display_thesaurus();" value="<? print get_translation('DISPLAY','Afficher'); ?>"><br>
+		
+		<div id="id_div_result_thesaurus_data"></div>
+
+		<br>
+		<br>
+	
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+	</div>
+	
+<?
+}
+?>
+
+
+
+<?
+///////////////// CONCEPT //////////////////
+if ($_GET['action']=='admin_cgu') {
+?>
+	
+	<!-- Theme included stylesheets -->
+	<link href="quill/quill.snow.css" rel="stylesheet">
+	<!-- Include the Quill library -->
+	<script src="quill/quill.js"></script>
+	
+	<div id="id_admin_cgu"  class="div_admin">
+		<h1><? print get_translation('THESAURUS_MANAGE','Administrer les CGU'); ?></h1>
+		
+		<? print get_translation('WRITE_OR_MODIFY_LAST_CGU','Rédiger ou modifier le dernier CGU'); ?> : <br>
+		<? 
+			$cgu=get_last_cgu();
+			$cgu['cgu_text']=preg_replace("/<br>/","\n",$cgu['cgu_text']);
+		?>
+		
+		<div id="editor">
+		 <? print $cgu['cgu_text']; ?>
+		</div>
+		
+		<input type=button onclick="save_cgu();" value="<? print get_translation('SAVE','Sauver'); ?>"><br>
+		
+		
+		<br><br>Tant que le CGU n'est pas publié, il ne sera pas visible par les utilisateurs. <br>C'est le dernier CGU publié qui sera proposé aux utilisateurs.<br><br>
+		<div id="id_div_list_cgu">
+		</div>
+
+		<br>
+		<br>
+	
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+	</div>
+	
+<script language="javascript">
+	$(document).ready(function(){
+	    $('.autosizejs').autosize();   
+	    list_cgu ();
+	});
+	<!-- Initialize Quill editor -->
+	  var quill = new Quill('#editor', {
+	    theme: 'snow'
+	  });
+</script>
+	
+<?
+}
+?>
 
 
 

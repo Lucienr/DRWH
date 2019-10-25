@@ -93,7 +93,7 @@ $nb_patient_inclus_par_moi=$r['NB_PATIENT_INCLUS_PAR_MOI'];
 	<img style="vertical-align: middle" src="images/health7.png">
 	<? print get_translation('MY_PROFILE','Mon profile'); ?>
 	</h1>
-	<? afficher_mes_droits (); ?>
+	<? afficher_mes_droits ($user_num_session); ?>
 </div>
 
 

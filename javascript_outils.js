@@ -180,24 +180,60 @@ function afficher_outil (tool_num) {
 }
 
 function mapper_patient () {
+	process_num=create_process ('debut','sysdate+4','mapper_patient') ;
+	check_process_status (process_num,'id_journal_mapping_patient');
 	liste_patient=document.getElementById("id_textarea_mapper_patient").value;
+	option_limite=1;
+	if (document.getElementById("id_option_limite").checked) {
+		option_limite='2';
+	}
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_outils.php",
 		async:true,
 		encoding: 'latin1',
-		data:{ action:'mapper_patient',liste_patient:escape(liste_patient)},
+		data:{ action:'mapper_patient',liste_patient:escape(liste_patient),process_num:process_num,option_limite:option_limite},
 		beforeSend: function(requester){
-				jQuery("#id_journal_mapping_patient").html("<img src='images/chargement_mac.gif'>"); 
+				jQuery("#id_result_mapping_patient").html("<img src='images/chargement_mac.gif'>"); 
 		},
 		success: function(requester){
 			var contenu=requester;
 			if (contenu=='deconnexion') {
 				afficher_connexion("mapper_patient ()");
 			} else {
-				jQuery("#id_journal_mapping_patient").html(contenu); 
+				display_mapper_patient (process_num);
+				//jQuery("#id_result_mapping_patient").html(contenu); 
 				
 			}
 		}
 	});
 }
+
+	
+
+function display_mapper_patient (process_num) {
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_outils.php",
+		async:true,
+		encoding: 'latin1',
+		data:{ action:'display_mapper_patient',process_num:process_num},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			var contenu=requester;
+			if (contenu=='deconnexion') {
+				afficher_connexion("display_mapper_patient ('"+process_num+"')");
+			} else {
+				if (contenu=='') {
+					setTimeout("display_mapper_patient('"+process_num+"')",1000);
+				} else {
+					jQuery("#id_result_mapping_patient").html(contenu); 
+				}
+				
+			}
+		}
+	});
+}
+
+	

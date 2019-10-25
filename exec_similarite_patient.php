@@ -30,6 +30,7 @@ include_once "connexion_bdd.php";
 include_once("ldap.php");
 include_once("fonctions_droit.php");
 include_once("fonctions_dwh.php");
+include_once "fonctions_concepts.php"; 
 include_once "similarite_fonction.php"; 
 
 if ($argv[1]!='') {
@@ -126,7 +127,7 @@ if ($context_famille=='oui') {
 }
 
 
-update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
+update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'',$user_num_session,"");
 
 if ($patient_num_principal!='') {
 	$tableau_code_autorise=array();
@@ -214,11 +215,11 @@ if ($patient_num_principal!='') {
 	fputs( $inF,"$tableau_html_liste_concepts_patient_similaire");
 	fclose($inF);
 	
-	update_process ($process_num,'0',get_translation('PROCESS_GRAPH_CREATION','Création du graph'),'');
+	update_process ($process_num,'0',get_translation('PROCESS_GRAPH_CREATION','Création du graph'),'',$user_num_session,"");
 	
 	exec("/usr/bin/twopi \"$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num_principal.$process_num.dot\" -Gcharset=latin1 -Tcmapx -o \"$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num_principal.$process_num.map\"  -Tpng -o  \"$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num_principal.$process_num.png\"");
 	
 	
-	update_process ($process_num,'1',get_translation('PROCESS_END','process fini'),'');
+	update_process ($process_num,'1',get_translation('PROCESS_END','process fini'),'',$user_num_session,"");
 }
 ?>

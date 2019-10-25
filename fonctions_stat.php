@@ -105,11 +105,8 @@ function pyramide_age ($tmpresult_num,$tableau_interval,$liste_interval_libelle,
 	$list_values.="]}";
 	
 	
-	
-	
 	print "
 	
-		var categories = [$liste_interval_libelle];
 		$(document).ready(function () {
 	        $('#$id_pyramide_age').highcharts({
 	            chart: {
@@ -122,7 +119,7 @@ function pyramide_age ($tmpresult_num,$tableau_interval,$liste_interval_libelle,
 	                text: \"$title\"
 	            },
 	            xAxis: [{
-	                categories: categories,
+	                categories: [$liste_interval_libelle],
 	                reversed: false,
 	                labels: {
 	                    step: 1
@@ -130,7 +127,7 @@ function pyramide_age ($tmpresult_num,$tableau_interval,$liste_interval_libelle,
 	            }, { // mirror axis on right side
 	                opposite: true,
 	                reversed: false,
-	                categories: categories,
+	                categories: [$liste_interval_libelle],
 	                linkedTo: 0,
 	                labels: {
 	                    step: 1
@@ -293,8 +290,8 @@ function pyramide_age_vivant_dcd ($tmpresult_num,$tableau_interval,$liste_interv
 	
 	
 	
+	
 	print "
-		var categories = [$liste_interval_libelle];
 		$(document).ready(function () {
 	        $('#$id_pyramide_age').highcharts({
 	            chart: {
@@ -307,7 +304,7 @@ function pyramide_age_vivant_dcd ($tmpresult_num,$tableau_interval,$liste_interv
 	                text: \"$title\"
 	            },
 	            xAxis: [{
-	                categories: categories,
+	                categories: [$liste_interval_libelle],
 	                reversed: false,
 	                labels: {
 	                    step: 1
@@ -315,7 +312,7 @@ function pyramide_age_vivant_dcd ($tmpresult_num,$tableau_interval,$liste_interv
 	            }, { // mirror axis on right side
 	                opposite: true,
 	                reversed: false,
-	                categories: categories,
+	                categories: [$liste_interval_libelle],
 	                linkedTo: 0,
 	                labels: {
 	                    step: 1
@@ -723,12 +720,13 @@ function nb_nouveau_patients_service_hors_mespatients ($tmpresult_num,$id_div) {
 	$filtre_sql_service="";
         if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='') {
                 if ($liste_service_session!='') {
-                        $filtre_sql_service=" and patient_num not in (select patient_num from dwh_document where department_num in ($liste_service_session) ) ";
+                        $filtre_sql_service=" and patient_num not in (select patient_num from dwh_patient_department where department_num in ($liste_service_session) ) ";
                 }
 	}
 
 	if ($filtre_sql_service!='') {
-		$req="select department_str,  patient_num ,document_date from dwh_tmp_result_$user_num_session, dwh_thesaurus_department where tmpresult_num=$tmpresult_num and dwh_thesaurus_department.department_num=dwh_tmp_result_$user_num_session.department_num
+		$req="select department_str,  patient_num ,document_date from dwh_tmp_resultall_$user_num_session, dwh_thesaurus_department 
+		where tmpresult_num=$tmpresult_num and dwh_thesaurus_department.department_num=dwh_tmp_resultall_$user_num_session.department_num
 			  $filtre_sql_service order by document_date";
 		$sel=oci_parse($dbh,$req);
 		oci_execute($sel) ;
@@ -941,9 +939,12 @@ function nb_patient_per_unit_per_year_tableau ($tmpresult_num) {
 			$tableau_nb_nouveau_patient_unit[$unit_num][$year]=intval($tableau_nb_nouveau_patient_unit[$unit_num][$year])+1;
 			$tableau_nb_patient_unit[$unit_num]++;
 		} else {
-			$tableau_nb_dejavu_patient_unit[$unit_num][$year]=intval($tableau_nb_dejavu_patient_unit[$unit_num][$year])+1;
+			if ($tableau_patient_num_deja_vu_unit_year[$unit_num][$patient_num][$year]=='') {
+				$tableau_nb_dejavu_patient_unit[$unit_num][$year]=intval($tableau_nb_dejavu_patient_unit[$unit_num][$year])+1;
+			}
 		}
 		$tableau_patient_num_deja_vu_unit[$unit_num][$patient_num]='ok';
+		$tableau_patient_num_deja_vu_unit_year[$unit_num][$patient_num][$year]='ok';
 		
 	}
 		

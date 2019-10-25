@@ -121,10 +121,7 @@ if ($_POST['action']=='ajouter_liste_user_admin' && $_SESSION['dwh_droit_admin']
 						$mail=$ident[2];
 					}
 				
-					$sel_var1=oci_parse($dbh,"select dwh_seq.nextval user_num from dual  ");
-					oci_execute($sel_var1);
-					$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
-					$user_num=$r['USER_NUM'];
+					$user_num=get_uniqid();
 					
 					$req="insert into dwh_user  (user_num , lastname ,firstname ,mail ,login,passwd,creation_date,expiration_date) values ($user_num,'$lastname','$firstname','$mail','$login','',sysdate,to_date('$expiration_date','DD/MM/YYYY'))";
 					$sel_var1=oci_parse($dbh,$req);
@@ -156,6 +153,31 @@ if ($_POST['action']=='ajouter_liste_user_admin' && $_SESSION['dwh_droit_admin']
 
 
 
+if ($_POST['action']=='add_expiration_date_group_admin' && $_SESSION['dwh_droit_admin']!='') {
+	$list_user=$_POST['list_user'];
+	$expiration_date=trim(urldecode($_POST['expiration_date']));
+	$tableau_users=preg_split ("/\n|;|,|\s|\t/",$list_user);
+	foreach ($tableau_users as $login) {
+		$login=trim($login);
+		if ($login!='') {
+			$sel_var1=oci_parse($dbh,"select user_num from dwh_user where lower(login)=lower('$login')   ");
+			oci_execute($sel_var1);
+			$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
+			$user_num=$r['USER_NUM'];
+			if ($user_num=='') {
+				print "<strong style=\"color:red\">".get_translation('USER','Utilisateur')." $login ".get_translation('UNKNOWN','inconnu')."</strong><br>";
+			} else {
+			
+				$req="update dwh_user set expiration_date=to_date('$expiration_date','DD/MM/YYYY') where user_num=$user_num";
+				$sel=oci_parse($dbh,$req);
+				oci_execute($sel) || die ("<strong style=\"color:red\">erreur : $login patient non modifié</strong>");
+				print "<strong style=\"color:green\">".get_translation('USER','Utilisateur')." $login ".get_translation('MODIFIED','modifié')."</strong><br>";
+			}
+		}
+	}
+}
+
+
 if ($_POST['action']=='supprimer_user_admin' && $_SESSION['dwh_droit_admin']!='') {
 	$user_num=trim($_POST['user_num']);
 	$del=oci_parse($dbh,"delete from dwh_user where user_num=$user_num");
@@ -166,7 +188,9 @@ if ($_POST['action']=='supprimer_user_admin' && $_SESSION['dwh_droit_admin']!=''
 	oci_execute($del);
 	$del=oci_parse($dbh,"delete from dwh_query where user_num=$user_num");
 	oci_execute($del);
-	$del=oci_parse($dbh,"delete from dwh_tmp_result_$user_num_session where user_num=$user_num");
+	$del=oci_parse($dbh,"drop table dwh_tmp_result_$user_num_session");
+	oci_execute($del);
+	$del=oci_parse($dbh,"drop table dwh_tmp_resultall_$user_num_session");
 	oci_execute($del);
 }
 
@@ -232,6 +256,7 @@ if ($_POST['action']=='rafraichir_tableau_users' && $_SESSION['dwh_droit_admin']
 					<th class=\"question_user\">Departments</th>
 					<th class=\"question_user\">Creation date</th>
 					<th class=\"question_user\">Expiration date</th>
+					<th class=\"question_user\">Last click</th>
 					<th class=\"question_user\">Modify</th>
 					<th class=\"question_user\">Delete</th>
 				</tr>
@@ -248,7 +273,8 @@ if ($_POST['action']=='rafraichir_tableau_users' && $_SESSION['dwh_droit_admin']
 			$login=$r_p['LOGIN'];
 			$creation_date=$r_p['CREATION_DATE'];
 			$expiration_date=$r_p['EXPIRATION_DATE'];
-			
+			//$last_connexion_date_user=last_connexion_date_user ($user_num);
+			$last_click_date_user=last_click_date_user ($user_num);
 			print "<tr id=\"id_tr_user_$user_num\" onmouseover=\"this.style.backgroundColor='#dcdff5';\" onmouseout=\"this.style.backgroundColor='#ffffff';\">
 				<td>$login</td>
 				<td>$lastname $firstname</td>
@@ -278,6 +304,8 @@ if ($_POST['action']=='rafraichir_tableau_users' && $_SESSION['dwh_droit_admin']
 			print "</td>";
 			print "<td>$creation_date</td>";
 			print "<td>$expiration_date</td>";
+			//print "<td>$last_connexion_date_user</td>";
+			print "<td>$last_click_date_user</td>";
 			print "<td><span style=\"cursor:pointer\" class=\"action\" onclick=\"deplier('id_admin_modifier_user','block');plier('id_admin_ajouter_liste_user');plier('id_admin_ajouter_user');afficher_modif_user($user_num);\">Modifier</span></td>";
 			print "<td><span style=\"cursor:pointer\" class=\"action\" onclick=\"supprimer_user_admin($user_num);\">X</span></td>";
 			print "</tr>";
@@ -444,10 +472,7 @@ if ($_POST['action']=='ajouter_uf' && $_SESSION['dwh_droit_admin']=='ok') {
 			$r=oci_fetch_array($sel_var);
 			$unit_num=$r[0];
 			if ($unit_num=='') {
-			        $sel_var=oci_parse($dbh,"select dwh_seq.nextval from dual");
-				oci_execute($sel_var);
-				$r=oci_fetch_array($sel_var);
-				$unit_num=$r[0];
+				$unit_num=get_uniqid();
 			        $sel_var=oci_parse($dbh,"insert into   dwh_thesaurus_unit (unit_num,unit_code, unit_str, department_num,unit_start_date,unit_end_date) values ($unit_num,'$unit_code','$unit_str',$department_num,to_date('$unit_start_date','DD/MM/YYYY'),to_date('$unit_end_date','DD/MM/YYYY') )");
 				oci_execute($sel_var);
 			
@@ -486,10 +511,7 @@ if ($_POST['action']=='ajouter_service' && $_SESSION['dwh_droit_admin']=='ok') {
 	$r=oci_fetch_array($sel_var);
 	$department_num=$r[0];
 	if ($department_num=='') {
-	        $sel_var=oci_parse($dbh,"select dwh_seq.nextval from dual");
-		oci_execute($sel_var);
-		$r=oci_fetch_array($sel_var);
-		$department_num=$r[0];
+		$department_num=get_uniqid();
 	        $sel_var=oci_parse($dbh,"insert into dwh_thesaurus_department (department_num, department_str) values ($department_num,'$department_str')");
 		oci_execute($sel_var);
 	
@@ -512,48 +534,109 @@ if ($_POST['action']=='supprimer_service'  && $_SESSION['dwh_droit_admin']=='ok'
 
 
 if ($_POST['action']=='affiche_patient_opposition' && $_SESSION['dwh_droit_admin']=='ok') {
-    $hospital_patient_id=trim($_POST['hospital_patient_id']);
-    if ($hospital_patient_id!='') {
-        $sel = oci_parse($dbh, "select  patient_num  from dwh_patient_ipphist  where hospital_patient_id ='$hospital_patient_id' and origin_patient_id='SIH' ");   
-        oci_execute($sel);
-        while ($r = oci_fetch_array($sel, OCI_ASSOC)) {
-            $patient_num=$r['PATIENT_NUM'];
-            $tab_patient=get_patient ($patient_num);
-            print "
-    <div id=\"id_div_opposition_patient_$patient_num\">Patient N° $patient_num (<a href=\"patient.php?patient_num=$patient_num\">Accéder au dossier</a>)<br>
-    IPP :  ".$tab_patient['HOSPITAL_PATIENT_ID']."<br>
-    Nom :  ".$tab_patient['LASTNAME']."<br>
-    Prénom :  ".$tab_patient['FIRSTNAME']."<br>
-    Date naissance :  ".$tab_patient['BIRTH_DATE']."<br>
-    <input type=\"button\" onclick=\"valider_opposition_patient($patient_num);\" value=\"Confirmer opposition\">
-    <br>
-    </div><br>
-    ";
-        }
-    }
+	$term=supprimer_apost(trim(urldecode($_POST['term'])));
+	if ($term!='') {
+		$tab_patient_num=array();
+		$term=replace_accent($term);	
+		$json="";
+		$i=0;
+		$req_date_nais='';
+		if (preg_match("/[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9][0-9][0-9]/i",$term,$matches)) {
+			$date_nais=$matches[0];
+			$req_date_nais=" and birth_date=to_date('$date_nais','DD/MM/YYYY') ";
+			$term=trim(preg_replace("/[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9][0-9][0-9]/i"," ",$term));
+		} else if (preg_match("/[^0-9][0-9][0-9][0-9][0-9][^0-9]/i"," $term ")) {
+			$date_nais=preg_replace("/.*[^0-9]([0-9][0-9][0-9][0-9])[^0-9].*/i","$1"," $term ");
+			$req_date_nais=" and to_char(birth_date,'YYYY')='$date_nais' ";
+			$term=trim(preg_replace("/[^0-9][0-9][0-9][0-9][0-9][^0-9]/i"," "," $term "));
+		}
+		if (!preg_match("/[0-9][0-9][0-9][0-9][0-9]/i",$term) || $req_date_nais!='') {
+			$query_name=create_query_name ($term,"");
+			$sel=oci_parse($dbh,"select  patient_num,lastname,firstname, to_char(birth_date,'DD/MM/YYYY') as birth_date  from dwh_patient where $query_name $req_date_nais ");
+			oci_execute($sel);
+			while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+				$patient_num=$r['PATIENT_NUM'];
+				$tab_patient_num[]=$patient_num;
+				$i++;
+			}
+		} else {
+			$patient_num=get_patient_num ($term);
+			if ($patient_num!='') {
+				$tab_patient_num[]=$patient_num;
+				$i++;
+			}
+		}
+		if ($i==0 && preg_match("/[a-z]/i",$term)) {
+			$query_name=create_query_name ($term,"soundex");
+			$json_soundex='';
+			$sel=oci_parse($dbh,"select  patient_num from dwh_patient where $query_name $req_date_nais");
+			oci_execute($sel);
+			while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+				$patient_num=$r['PATIENT_NUM'];
+				$tab_patient_num[]=$patient_num;
+				$i++;
+			}
+		}
+		if ($i==0 && preg_match("/[a-z]/i",$term)) {
+			$query_name=create_query_name ($term,"ortho");
+			$json_ortho='';
+			$sel=oci_parse($dbh,"select patient_num from dwh_patient where $query_name $req_date_nais ");
+			oci_execute($sel);
+			while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+				$patient_num=$r['PATIENT_NUM'];
+				$tab_patient_num[]=$patient_num;
+				$i++;
+			}
+		}
+		foreach ($tab_patient_num as $patient_num) {
+			if ($patient_num!= '') {
+				$tab_patient=get_patient($patient_num);
+				print "
+			    <div id=\"id_div_opposition_patient_$patient_num\">Patient N° $patient_num (<a href=\"patient.php?patient_num=$patient_num\">Accéder au dossier</a>)<br>
+			    IPP :  ".$tab_patient['HOSPITAL_PATIENT_ID']."<br>
+			    Nom :  ".$tab_patient['LASTNAME']."<br>
+			    Prénom :  ".$tab_patient['FIRSTNAME']."<br>
+			    Date naissance :  ".$tab_patient['BIRTH_DATE']."<br>
+			    <input type=\"button\" onclick=\"validate_opposition($patient_num);\" value=\"Confirmer opposition\">
+			    <br>
+			    </div><br>
+			    ";
+			}
+	    	}
+	}
+    
 } 
 
 if ($_POST['action']=='list_patients_opposed' && $_SESSION['dwh_droit_admin']=='ok') {
     $tableau_list_patients_opposed=get_list_patients_opposed();
-    print "<table class=\"tablefin\"><thead><th>IPP</th><th>Origine</th><th>Date</th></thead><tbody>";
+    print "<table class=\"tablefin\"><thead><th>IPP</th><th>Origine</th><th>Date</th><th>".get_translation('CANCELLED','Annuler')."</th></thead><tbody>";
     foreach ($tableau_list_patients_opposed as $tab) {
         print "<tr>";
         print "<td>".$tab['hospital_patient_id']."</td>";
         print "<td>".$tab['origin_patient_id']."</td>";
         print "<td>".$tab['opposition_date_char']."</td>";
+        print "<td><a href=\"#\" onclick=\"cancel_opposition(".$tab['patient_num'].");return false;\">".get_translation('CANCELLED','Annuler')."</a></td>";
         print "</tr>";
     }
     print "</tbody></table>";
 }
 
-if ($_POST['action']=='valider_opposition_patient' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='validate_opposition' && $_SESSION['dwh_droit_admin']=='ok') {
     $patient_num=trim($_POST['patient_num']);
     if ($patient_num!='') {
             $result_validate=validate_opposition($patient_num);
-            print "Suppression du patient faite, son IPP est stocké dans la table DWH_PATIENT_OPPOSITION<br>";
+            print get_translation('OPPOSITION_CONFIRMED',"Suppression du patient faite, son IPP est stocké dans la table DWH_PATIENT_OPPOSITION")." <br>";
     }
 } 
     
+
+if ($_POST['action']=='cancel_opposition' && $_SESSION['dwh_droit_admin']=='ok') {
+    $patient_num=trim($_POST['patient_num']);
+    if ($patient_num!='') {
+            $result_validate=cancel_opposition($patient_num);
+            print get_translation('OPPOSITION_CANCELLED',"Annulation de l'opposition du patient faite ")." <br>";
+    }
+} 
     
 
 if ($_POST['action']=='insert_outil' && $_SESSION['dwh_droit_admin']=='ok') {
@@ -747,7 +830,7 @@ if ($_POST['action']=='afficher_concepts' && $_SESSION['dwh_droit_admin']=='ok')
 
 if ($_POST['action']=='exclure_concepts' && $_SESSION['dwh_droit_admin']=='ok') {
 	$liste_val=supprimer_apost(trim(urldecode($_POST['liste_val'])));
-	$process_num=uniqid();
+	$process_num=get_uniqid();
 	create_process ($process_num,$user_num_session,0,get_translation('PROCESS_ONGOING','process en cours'),'',"sysdate + 20","admin_concepts");
 	passthru( "php $CHEMIN_GLOBAL/exec_admin_exclure_enrsem.php \"$liste_val\"  \"$process_num\" \"$user_num_session\">> $CHEMIN_GLOBAL_LOG/log_exec_admin_exclure_enrsem.txt 2>&1 &");
 	print "$process_num";
@@ -768,41 +851,226 @@ if ($_POST['action']=='ajouter_concepts' && $_SESSION['dwh_droit_admin']=='ok') 
 	$concept_str=supprimer_apost(trim(urldecode($_POST['concept_libelle_new'])));
 	$concept_code=trim($_POST['concept_code']);
 	$semantic_type=supprimer_apost(trim(urldecode($_POST['semantic_type'])));
-	if ($concept_str!='' && $concept_code!='') {
+	$add_mode=supprimer_apost(trim(urldecode($_POST['add_mode'])));
 	
-		$sel=oci_parse($dbh,"select thesaurus_code,thesaurus_str,path_code,path_str from dwh_thesaurus_tal where concept_code='$concept_code'");
+	if ($concept_str!='' && $concept_code!='') {
+
+		$sel=oci_parse($dbh,"select thesaurus_tal_num from dwh_thesaurus_tal where upper(concept_str)=upper('$concept_str') ");
 		oci_execute($sel);
 		$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
-		$thesaurus_code=$r['THESAURUS_CODE'];
-		$thesaurus_str=$r['THESAURUS_STR'];
-		$path_code=$r['PATH_CODE'];
-		$path_str=supprimer_apost($r['PATH_STR']);
+		$verif_lib=$r['THESAURUS_TAL_NUM'];
+		print "verif_lib : $verif_lib";
+		if ($verif_lib=='') {
 		
-		if ($thesaurus_code=='') {
-			$thesaurus_code='UMLSMAIN';
-			$thesaurus_str='UMLS';
-			$path_code=$concept_code;
-			$path_str=$concept_str." /";
+			$sel=oci_parse($dbh,"select thesaurus_code,thesaurus_str,path_code,path_str from dwh_thesaurus_tal where concept_code='$concept_code'");
+			oci_execute($sel);
+			$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+			$thesaurus_code=$r['THESAURUS_CODE'];
+			$thesaurus_str=$r['THESAURUS_STR'];
+			$path_code=$r['PATH_CODE'];
+			$path_str=supprimer_apost($r['PATH_STR']);
+			
+			
+			if ($thesaurus_code=='') {
+				$thesaurus_code='UMLSMAIN';
+				$thesaurus_str='UMLS';
+				$path_code=$concept_code;
+				$path_str=$concept_str." /";
+			}
+			if ($add_mode=='') {
+				$add_mode='Manuel';
+			}
+			$thesaurus_tal_num=get_uniqid();
+			$sel_var1=oci_parse($dbh,"insert into dwh_thesaurus_tal (thesaurus_tal_num,thesaurus_code,thesaurus_str,path_code,path_str,concept_code,concept_str,add_date,new_code_str,add_mode) 
+									values ($thesaurus_tal_num,'$thesaurus_code','$thesaurus_str','$path_code','$path_str','$concept_code','$concept_str',sysdate,1,'$add_mode')");
+			oci_execute($sel_var1) || die ("erreur ajout dwh_thesaurus_tal");
+			
+			$sel_var1=oci_parse($dbh,"insert into dwh_thesaurus_typesemantic (concept_code,semantic_type) values ('$concept_code','$semantic_type')");
+			oci_execute($sel_var1) || die ("erreur ajout dwh_thesaurus_typesemantic");
+			
+			$cridx=oci_parse($dbh,"begin ctx_ddl.sync_index('DWH_THESAURUS_TAL_IDX', '200M'); end;");
+			oci_execute($cridx);
+			
+			print "ajout ok";
+		} else {
+			print "libelle deja dedans";
 		}
-		
-		$sel_var1=oci_parse($dbh,"select dwh_seq.nextval as THESAURUS_TAL_NUM from dual  ");
-		oci_execute($sel_var1);
-		$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
-		$thesaurus_tal_num=$r['THESAURUS_TAL_NUM'];
-		$sel_var1=oci_parse($dbh,"insert into dwh_thesaurus_tal (thesaurus_tal_num,thesaurus_code,thesaurus_str,path_code,path_str,concept_code,concept_str,add_date,new_code_str,mode_ajout) 
-								values ($thesaurus_tal_num,'$thesaurus_code','$thesaurus_str','$path_code','$path_str','$concept_code','$concept_str',sysdate,1,'manuel')");
-		oci_execute($sel_var1) || die ("erreur ajout");
-		
-		$sel_var1=oci_parse($dbh,"insert into dwh_thesaurus_typesemantic (concept_code,semantic_type) values ('$concept_code','$semantic_type')");
-		oci_execute($sel_var1) || die ("erreur ajout");
-		
-		$cridx=oci_parse($dbh,"begin ctx_ddl.sync_index('DWH_THESAURUS_TAL_IDX', '200M'); end;");
-		oci_execute($cridx);
-		
-		print "ajout ok";
 	}
 }
 
+
+
+
+
+if ($_POST['action']=='display_thesaurus' && $_SESSION['dwh_droit_admin']=='ok') {
+	$data_search=supprimer_apost(trim(urldecode($_POST['data_search'])));
+	$thesaurus_code=$_POST['thesaurus_code'];
+	
+	if ($data_search!='' || $thesaurus_code!='') {
+		print "<table class=tablefin id=\"id_table_list_thesaurus_data\">
+			<thead>
+				<tr>
+					<td>Data Thesaurus num</td>
+					<td>Thesaurus</td>
+					<td>Concept code</td>
+					<td>Label</td>
+					<td>Info complementaire</td>
+					<td>Unit</td>
+					<td>Value type</td>
+					<td>List values</td>
+					<td>Description</td>
+					<td>Code Parent</td>
+					<td>Count data used</td>
+					<td>Min date used</td>
+					<td>Max date used</td>
+				</tr>
+			</thead>
+			<tbody>";
+		$query_data='';
+		$query_thesaurus='';
+		
+		$data_search=preg_replace("/\s+/"," ",$data_search);
+		$data_search_sans_pourcent=preg_replace("/\s/"," and ",$data_search);
+		$data_search_avec_pourcent=preg_replace("/\s/","% and ",$data_search);
+		
+		if ($data_search!='') {
+			$query_data=" and  ( contains(description,'$data_search_avec_pourcent%')>0 or contains(description,'$data_search')>0  or concept_code='$data_search' ) ";
+		}
+		if ($thesaurus_code!='') {
+			$query_thesaurus=" and thesaurus_code='$thesaurus_code' ";
+		}
+			
+		$sel=oci_parse($dbh," select thesaurus_data_num,thesaurus_code,concept_code,concept_str,info_complement, measuring_unit, value_type, list_values, thesaurus_parent_num, description, count_data_used from dwh_thesaurus_data where 1=1 $query_data $query_thesaurus order by thesaurus_code,concept_code");
+		oci_execute($sel);
+		while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+			$thesaurus_data_num=$r['THESAURUS_DATA_NUM'];
+			$thesaurus_code=$r['THESAURUS_CODE'];
+			$concept_code=$r['CONCEPT_CODE'];
+			$concept_str=$r['CONCEPT_STR'];
+			$info_complement=$r['INFO_COMPLEMENT'];
+			$measuring_unit=$r['MEASURING_UNIT'];
+			$value_type=$r['VALUE_TYPE'];
+			$list_values=$r['LIST_VALUES'];
+			$thesaurus_parent_num=$r['THESAURUS_PARENT_NUM'];
+			$description=$r['DESCRIPTION'];
+			$count_data_used=$r['COUNT_DATA_USED'];
+			//list($min_date,$max_date)=get_min_max_date_used_data($thesaurus_data_num);
+			print "<tr onmouseout=\"this.style.backgroundColor='#ffffff';\" onmouseover=\"this.style.backgroundColor='#dcdff5';\">
+				<td>$thesaurus_data_num</td>
+				<td>$thesaurus_code</td>
+				<td>$concept_code</td>
+				<td>$concept_str</td>
+				<td>$info_complement</td>
+				<td>$measuring_unit</td>
+				<td>$value_type</td>
+				<td>$list_values</td>
+				<td>$description</td>
+				<td>$thesaurus_parent_num</td>
+				<td>$count_data_used</td>
+				<td>$min_date</td>
+				<td>$max_date</td>
+				</tr>";
+		}
+		
+		print "</tbody></table>";
+	}
+}
+
+
+if ($_POST['action']=='save_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
+	$cgu_text=trim(urldecode($_POST['cgu_text']));
+	if ($cgu_text!='') {
+		insert_cgu ($cgu_text);
+	}
+}
+
+if ($_POST['action']=='list_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
+	print "<table class=tablefin id=\"id_table_list_thesaurus_data\">
+	<thead>
+		<tr>
+			<th>Date CGU</th>
+			<th>CGU</th>
+			<th>Publié</th>
+			<th>Date publié / dépublié</th>
+			<th>list users</th>
+			<th>Publié</th>
+			<th>suppr</th>
+		</tr>
+	</thead>
+	<tbody>";
+	
+	$tableau_result=get_list_cgu();
+	foreach ($tableau_result as $cgu) {
+		$cgu_num=$cgu['cgu_num'];
+		$cgu_text=$cgu['cgu_text'];
+		$cgu_date=$cgu['cgu_date'];
+		$published=$cgu['published'];
+		$published_date=$cgu['published_date'];
+		$unpublished=$cgu['unpublished_date'];
+		
+		if ($published=='1') {
+			$published_date=$published_date;
+		} else {
+			if ($published_date!='') {
+				$published_date=$unpublished_date;
+			} else {
+				$published_date='';
+			}
+		}
+		$nb_user=get_nb_cgu_user($cgu_num);
+		$list_users='';
+		$list_cgu_user=get_list_cgu_user($cgu_num);
+		foreach ($list_cgu_user as $cgu_user) {
+			$user_num=$cgu_user['user_num'];
+			$date_signature=$cgu_user['date_signature'];
+			$firstname_lastname=get_user_information ($user_num,'pn');
+			$list_users.="$date_signature $firstname_lastname<br>";
+		}
+		
+		print "<tr id=\"id_tr_cgu_$cgu_num\" onmouseout=\"this.style.backgroundColor='#ffffff';\" onmouseover=\"this.style.backgroundColor='#dcdff5';\">
+			<td style=\"vertical-align:top;padding:15px;\">$cgu_date</td>
+			<td style=\"vertical-align:top;padding:15px;max-width:700px\">$cgu_text</td>
+			<td style=\"vertical-align:top;padding:15px;\">$published</td>
+			<td style=\"vertical-align:top;padding:15px;\">$published_date</td>
+			<td style=\"vertical-align:top;padding:15px;\">$nb_user signatures <br>
+			<a href=\"#\" onclick=\"plier_deplier('id_div_list_users_cgu_$cgu_num');return false;\"><span id=\"plus_id_div_list_users_cgu_$cgu_num\">+</span> Visualiser</a><div id=\"id_div_list_users_cgu_$cgu_num\" style=\"display:none\">$list_users</div></td>";
+		if ($published=='1') {
+			print "<td style=\"vertical-align:top;padding:15px;\"><input type=button onclick=\"unpublished_cgu($cgu_num);\" value='depublier'></td>";
+		} else {
+			print "<td style=\"vertical-align:top;padding:15px;\"><input type=button onclick=\"published_cgu($cgu_num);\" value='publier'></td>";
+		}
+		if ($published=='0') {
+			print "<td style=\"vertical-align:top;padding:15px;\"><input type=button onclick=\"delete_cgu($cgu_num);\" value='supprimer'></td>";
+		} else {
+			print "<td style=\"vertical-align:top;padding:15px;\"></td>";
+		}
+		print "</tr>";
+	}
+	
+	print "</tbody></table>";
+}
+
+
+if ($_POST['action']=='delete_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
+	$cgu_num=$_POST['cgu_num'];
+	if ($cgu_num!='') {
+		delete_cgu ($cgu_num);
+	}
+}
+
+if ($_POST['action']=='published_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
+	$cgu_num=$_POST['cgu_num'];
+	if ($cgu_num!='') {
+                update_cgu ($cgu_num,1);
+	}
+}
+
+if ($_POST['action']=='unpublished_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
+	$cgu_num=$_POST['cgu_num'];
+	if ($cgu_num!='') {
+                update_cgu ($cgu_num,0);
+	}
+}
 
 
 ?>

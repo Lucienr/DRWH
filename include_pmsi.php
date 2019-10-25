@@ -30,8 +30,8 @@ include_once "fonctions_pmsi.php";
 <span class="bouton_bio" id="id_bouton_pmsi_patient"><a href="#" onclick="affiche_onglet_pmsi(<? print $tmpresult_num; ?>,'patient','ok','<? print $thesaurus_code_pmsi; ?>');return false;"><? print get_translation('SUR_TOUS_LES_SEJOURS_DES_PATIENTS_TROUVES','Sur tous les séjours des patients trouvés'); ?></a></span> 
 </div>
 
-<div style="width: 100%; ">
-	<table class="tablefin" id="id_div_affiche_tableau_pmsi" width="100%">
+<div style="width:800px">
+	<table class="tablefin" id="id_div_affiche_tableau_pmsi" width="800px">
 	</table>
 </div>
 
@@ -69,6 +69,8 @@ $(function() {
 });
 
 
+var tableau_pmsi_table_cree=new Array();
+var tableau_pmsi_table_concepts=new Array();
 function affiche_tableau_pmsi (tmpresult_num,type,thesaurus_code) {
 	jQuery.ajax({
 		type:"POST",
@@ -79,8 +81,8 @@ function affiche_tableau_pmsi (tmpresult_num,type,thesaurus_code) {
 		encoding: 'latin1',
 		data: {action:'affiche_tableau_pmsi',tmpresult_num:tmpresult_num,type:type,thesaurus_code:thesaurus_code},
 		beforeSend: function(requester){
-				if (tableau_table_cree['id_div_affiche_tableau_pmsi']=='ok') {
-					table_concepts['id_div_affiche_tableau_pmsi'].destroy();
+				if (tableau_pmsi_table_cree['id_div_affiche_tableau_pmsi']=='ok') {
+					tableau_pmsi_table_concepts['id_div_affiche_tableau_pmsi'].destroy();
 				}
 				document.getElementById('id_div_affiche_tableau_pmsi').innerHTML="";
 		},
@@ -91,13 +93,13 @@ function affiche_tableau_pmsi (tmpresult_num,type,thesaurus_code) {
 				json=requester;
 				if (json!='') {
 					eval ("var dataSet=["+json+"]");
-					 table_concepts['id_div_affiche_tableau_pmsi']=jQuery("#id_div_affiche_tableau_pmsi").DataTable({
+					 tableau_pmsi_table_concepts['id_div_affiche_tableau_pmsi']=jQuery("#id_div_affiche_tableau_pmsi").DataTable({
 				        		"data": dataSet,
 						        columns: [
 								{ title: "Diag","orderSequence": [ "desc","asc" ]  },
-								{ title: "Option","orderSequence": [ "desc","asc" ]  },
-								{ title: "Nb documents" ,"orderSequence": [ "desc","asc" ] },
-								{ title: "Nb patients","orderSequence": [ "desc","asc" ]  }
+								{ width:"200px",title: "Option","orderSequence": [ "desc","asc" ]  },
+								{ width:"100px",title: "Nb documents" ,"orderSequence": [ "desc","asc" ] },
+								{ width:"100px",title: "Nb patients","orderSequence": [ "desc","asc" ]  }
 						        ] ,
 						         "columnDefs": [ {
 							            "searchable": true,
@@ -106,6 +108,7 @@ function affiche_tableau_pmsi (tmpresult_num,type,thesaurus_code) {
 							        } ],
 						        "order": [[ 2, "desc" ]]
 				    	});
+				    	tableau_pmsi_table_cree['id_div_affiche_tableau_pmsi']='ok';
 				}
 			}
 		},

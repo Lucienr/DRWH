@@ -33,10 +33,7 @@ if ($_POST['action']=='ajouter_cohorte' ) {
 	$num_datamart_cohorte=$_POST['num_datamart_cohorte'];
 	
 	if ($title_cohort!='') {
-		$sel_var1=oci_parse($dbh,"select dwh_seq.nextval cohort_num from dual  ");
-		oci_execute($sel_var1);
-		$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
-		$cohort_num_ajout=$r['COHORT_NUM'];
+		$cohort_num_ajout=get_uniqid();
 		
 		$req="insert into dwh_cohort  (cohort_num , title_cohort ,description_cohort ,cohort_date,user_num,datamart_num ) 
 					values ($cohort_num_ajout,'$title_cohort','$description_cohort',sysdate,$user_num_session,$num_datamart_cohorte)";
@@ -75,10 +72,7 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 	$num_datamart_cohorte=0;
 	
 	if ($title_cohort!='') {
-		$sel_var1=oci_parse($dbh,"select dwh_seq.nextval cohort_num from dual  ");
-		oci_execute($sel_var1);
-		$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
-		$cohort_num_ajout=$r['COHORT_NUM'];
+		$cohort_num_ajout=get_uniqid();
 		
 		$req="insert into dwh_cohort  (cohort_num , title_cohort ,description_cohort ,cohort_date,user_num,datamart_num ) 
 					values ($cohort_num_ajout,'$title_cohort','$description_cohort',sysdate,$user_num_session,$num_datamart_cohorte)";
@@ -148,7 +142,7 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 		<div id="id_div_liste_cohorte">
 		<?
 		
-		  lister_mes_cohortes_tableau($user_num_session);
+		  display_user_cohorts_table($user_num_session);
 		?>
 		</div>
 		
@@ -195,7 +189,7 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 						<td>
 							<select id="id_fusionner_select_cohorte1" class="form chosen-select" name="cohort_num1" data-placeholder="Choisissez une cohorte">
 							<?
-								lister_mes_cohortes_option ($user_num_session,'id_fusionner_select_cohorte1');
+								display_user_cohorts_option ($user_num_session,'id_fusionner_select_cohorte1');
 							?>
 							</select>
 						</td>
@@ -206,7 +200,7 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 						<td>
 							<select id="id_fusionner_select_cohorte2" class="form chosen-select" name="cohort_num2" data-placeholder="Choisissez une cohorte">
 							<?
-								lister_mes_cohortes_option ($user_num_session,'id_fusionner_select_cohorte2');
+								display_user_cohorts_option ($user_num_session,'id_fusionner_select_cohorte2');
 							?>
 							</select>
 						</td>
@@ -295,6 +289,10 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 					}
 					print "</h2>";
 					print "<input type=\"hidden\" value=\"$cohort_num_voir\" id=\"id_cohort_num_voir\">";
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					//////////////////////////////////// ONGLET MENU COHORT  /////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 					print "
 					<div id=\"tabs\" style=\"width:100%\">
 						<ul id=\"tab-links\">
@@ -329,7 +327,15 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 					</div>
 					<br>
 					<br>";
+					
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////// GENERAL PRESENTATION //////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 					print "<div id=\"id_div_cohorte_presentation_generale\" class=\"div_result\" style=\"display:inline;width:100%;\" >";
+					
+						///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+						print "<h3>".get_translation("COHORT_INFORMATION","Description de la cohorte")."</h3>";
 						if ($autorisation_cohorte_modifier=='ok') {
 							print "<div id=\"id_div_cohorte_description\"  style=\"display:inline;width:100%;\"  onclick=\"plier('id_div_cohorte_description');deplier('id_div_cohorte_description_modifier','inline');\">
 								$description_cohort_voir
@@ -349,7 +355,12 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 							print get_translation('ON_THE_DATAMART','sur le datamart')." $title_datamart<br>";
 						}
 						print "<br><br>";
-						print "<div id=\"id_tableau_liste_user_cohorte\">";
+						
+						
+						////////////// /////////////////////////////////////////////////////////////////////////////////////
+						print "<div id=\"id_div_liste_user_cohorte\">
+							<h3>".get_translation("MANAGE_COHORT_USERS","Gestion des utilisateurs")."</h3>
+						<div id=\"id_tableau_liste_user_cohorte\">";
 						affiche_liste_user_cohorte($cohort_num_voir,$user_num_session);
 						print "</div>";
 						if ($autorisation_cohorte_modifier=='ok') {
@@ -366,21 +377,51 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 							}
 							print "</select>";
 						}
+						print "</div>";
+						
+						
+						///////////// QUERIES /////////////////////////////////////////////////////////////////////////////////
+						print "<div id=\"id_tableau_liste_queries_cohort\">
+							<h3>".get_translation("QUERIES_ON_COHORT","Les requêtes sur la cohorte")."</h3>
+							<i><a href=\"moteur.php?action=rechercher_dans_cohorte&cohort_num=$cohort_num_voir\" target=\"_blank\">Rechercher sur la cohorte <img src=\"images/search.png\" border=\"0\" style=\"vertical-align:middle\"></a></i><br><br>
+							<i>Pour ajouter des requêtes ici, il suffit de les <img src=\"images/pin.png\"> dans l'historique du moteur de recherche</i><br><br>
+						";
+						$lister_requete_cohort= lister_requete_cohort ($cohort_num_voir);
+						print "$lister_requete_cohort</div>";
+							
+						
 					print "</div>";
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					/////////////////////////////// PATIENT INCLUDED ////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 					print "<div id=\"id_div_cohorte_patient_inclu\" class=\"div_result\" style=\"display:none;width:100%;\" >
 						<br><br>
 						<div id=\"id_liste_patient_cohorte_encours1\" style=\"width:100%;\" ></div>";
 					print "</div>";
 					
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					////////////////////////////// PATIENT EXCLUDED /////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					
 					print "<div id=\"id_div_cohorte_patient_exclu\" class=\"div_result\" style=\"display:none;width:100%;\" >";
 						print "<br><br><div id=\"id_liste_patient_cohorte_encours0\" style=\"width:100%;\" ></div>";
 					print "</div>";
 					
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					/////////////////////////////// PATIENT WAITING LIST //////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 					print "<div id=\"id_div_cohorte_patient_doute\" class=\"div_result\" style=\"display:none;width:100%;\" >";
 						print "<br><br><div id=\"id_liste_patient_cohorte_encours2\" style=\"width:100%;\" ></div>";
 					print "</div>";
 					
 					
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					//////////////////////////////// IMPORTED PATIENTS ////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 					print "<div id=\"id_div_cohorte_patient_import\" class=\"div_result\" style=\"display:none;width:100%;\" >";
 						print get_translation('MANUAL_IMPORT_PATIENTS_COHORT',"Pour importer des patients")."<br>";
 						print get_translation('MANUAL_IMPORT_PATIENTS_COHORT_COPY_PAST_LIST_OF_PATIENTS',"Copier coller une liste de patients")."<br>";
@@ -403,15 +444,29 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 						print "<br><br><div id=\"id_liste_patient_cohorte_encours3\" style=\"width:100%;\" ></div>";
 					print "</div>";
 					
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					////////////////////////// COMMENTS ////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 					print "<div id=\"id_div_cohorte_patient_commentaire\" class=\"div_result\" style=\"display:none;width:100%;\" >";
 						print "<br><br><div id=\"id_lister_tous_les_commentaires_patient_cohorte\" style=\"width:100%;\" >";
 							print lister_tous_les_commentaires_patient_cohorte($cohort_num_voir);
 						print "</div>";
 					print "</div>";
 					
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					/////////////////////// CONCEPTS /////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 					print "<div id=\"id_div_cohorte_concepts\" class=\"div_result\" style=\"display:none;\" ></div>";
-					?>	
 							
+					
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					/////////////////////// SIMILAR PATIENTS  /////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					?>	
+					
 					<div id="id_div_cohorte_patient_similaire" class="div_result" style="display:none;" >
 						<div  style="display:none;">
 							<h2><? print get_translation('FIRST_STEP','1ère étape'); ?> : </h2>
@@ -428,11 +483,11 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 						<? print get_translation('COMPUTE_SIMILARITY_COHORTE_IMPORTED_PATIENTS_ONLY','Calculer la similarité uniquement sur les patients importés dans la cohorte'); ?> : <input type="checkbox" value="1" id="id_checkbox_similarite_sur_patients_importes"><br>
 						<? print get_translation('EXCLUDE_PATIENTS_INCLUDED_EXCLUDED_FROM_THESE_COHORTS','Exclure les patients inclus ou exclus de ces cohortes');?> : 
 				             	   <select  id="id_select_filtre_cohorte_exclue" name="cohorte_exclue[]" class="chosen-select "  data-placeholder="<? print get_translation('CHOOSE_1_N_COHORTS','Choisissez une ou plusieurs cohortes'); ?>" multiple>";
-				                           <?    lister_mes_cohortes_option ($user_num_session,'id_select_filtre_cohorte_exclue'); ?>
+				                           <?    display_user_cohorts_option ($user_num_session,'id_select_filtre_cohorte_exclue'); ?>
 				                  </select><br>
 							<input type="hidden" id="id_input_nbpatient_limite" value="20">
-							<input type="hidden" id="id_input_limite_count_concept_par_patient_num" value="9">
-							<? $process_num=uniqid(); ?>
+							<input type="hidden" id="id_input_limite_count_concept_par_patient_num" value="40">
+							<? $process_num=get_uniqid(); ?>
 							<input type="hidden" id="id_process_num" value="<? print $process_num; ?>">
 						<br>
 						<input type="button" onclick="calculer_similarite_cohorte('<? print $cohort_num_voir; ?>');" value="calculer">
@@ -453,22 +508,23 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 
 </table>
 <script language="javascript">
-
- 	jQuery('#id_tableau_liste_cohortes').dataTable( { 
-			paging: false,
-			"order": [[ 1, "asc" ]],
-			   "bInfo" : false,
-			   "bDestroy" : true
-	} );
-	
-	
 	jQuery(document).ready(function() {
+		jQuery.fn.dataTable.moment('DD/MM/YYYY');
+	
+	 	jQuery('#id_tableau_liste_cohortes').dataTable( { 
+				paging: false,
+				"order": [[ 2, "desc" ]],
+				   "bInfo" : false,
+				   "bDestroy" : true
+		} );
+		
 		<? if ($cohort_num_voir != '') { ?>
 			liste_patient_cohorte_encours(<? print "$cohort_num_voir"; ?> ,0) ;
 			liste_patient_cohorte_encours(<? print "$cohort_num_voir"; ?> ,1) ;
 			liste_patient_cohorte_encours(<? print "$cohort_num_voir"; ?> ,2) ;
 			liste_patient_cohorte_encours(<? print "$cohort_num_voir"; ?> ,3) ;
 		<? } ?>
+		
 	} );
 	
 	

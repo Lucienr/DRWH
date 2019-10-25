@@ -36,16 +36,28 @@
 	<div style="display:none;position:fixed;background-color:white;border:1px black solid;  padding:30px;top:300px;left:400px;" id="id_div_connexion">
 		<h1><? print get_translation('PLEASE_RECONNECT','Veuillez vous reconnecter :');?> </h1>
 		<h2 id="id_message_erreur"></h2>
+		<form method="post">
 		<table border="0">
 			<tbody>
 			<tr><th><? print get_translation('LOGIN','Identifiant');?> : </th><td><input type="text" size="30" value="" name="login" class="form" id="id_login"></td></tr>
 			<tr><th><? print get_translation('PASSWORD','Mot de passe');?> : </th><td><input type="password" size="30" value="" name="passwd" class="form" id="id_passwd"></td></tr>
 			</tbody>
 		</table>
+		</form>
 		<input type="hidden" id="id_commande_a_rejouer">
 		<input type="button" onclick="connecter();" value="<? print get_translation('CONNEXION','Connexion');?>">
 	</div>
 	
+	<div style="display:none;position:fixed;background-color:white;border:1px black solid;  padding:30px;top:300px;left:400px;" id="id_div_alerte_info2">
+		<h1><? print get_translation('ALERT','Alerte:');?> </h1>
+		<h2 id="id_message_erreur"> Nous devons redémarrer l'index sur la recherche en texte libre<br>
+		 Cela signifie que la recherche textuelle est désactivée pendant 2 heures.</h2>
+		veuillez nous excuser pour le désagrément.<br>
+		Cela vous permettra de faire des recherches plus présises dans le texte.<br>
+		par exemple, avant vous ne pouviez pas rechercher avec des mots du type "ne", "par", "nulle" etc. <br>
+		Grâce à cette mise à jour, il ira bien rechercher tous les termes que vous écrivez !<br><br>
+		<span onclick="plier('id_div_alerte_info2');" style="cursor:pointer;font-weight:bold;">X Fermer cette fenêtre</span>
+	</div>
 	<script language="javascript">
 		jQuery(document).ready(function() { 
 			<? 

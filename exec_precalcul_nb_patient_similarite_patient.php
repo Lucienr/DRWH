@@ -40,10 +40,11 @@ $patient_num_principal=$argv[1];
 $process_num=$argv[2];
 $requete=nettoyer_pour_requete($argv[3]);
 $requete_exclure=nettoyer_pour_requete($argv[4]);
+$user_num_session=$argv[5];
 
 $tab_patient_num_deja=array();
 
-update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
+update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'',$user_num_session,"");
 
 $ins= oci_parse($dbh,"delete from dwh_process_patient where process_num='$process_num' " );   
 oci_execute($ins);
@@ -79,5 +80,5 @@ if ($tab_patient_num_deja[$patient_num_principal]=='') {
 	oci_execute($ins);
 }
 
-update_process ($process_num,'1',get_translation('PROCESS_END','process fini'),'');
+update_process ($process_num,'1',get_translation('PROCESS_END','process fini'),'',$user_num_session,"");
 ?>

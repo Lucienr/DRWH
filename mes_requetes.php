@@ -48,18 +48,16 @@ session_write_close();
 				$query_num_voir=$_GET['query_num_voir'];
 				$autorisation_requete_voir=autorisation_requete_voir ($query_num_voir,$user_num_session);
 				if ($autorisation_requete_voir=='ok') {
-					
-					$sel_vardroit=oci_parse($dbh,"select title_query,user_num,datamart_num,XML_QUERY,crontab_query,crontab_periode from dwh_query where user_num=$user_num_session  and query_num=$query_num_voir");
-				        oci_execute($sel_vardroit);
-				        $r=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
-			                $title_query=$r['TITLE_QUERY'];
-			                $user_num=$r['USER_NUM'];
-			                $num_datamart_requete=$r['DATAMART_NUM'];
-					if ($r['XML_QUERY']) {
-						$xml=$r['XML_QUERY']->load();
-					}
-			                $crontab_periode=$r['CRONTAB_PERIODE'];
-			                $crontab_query=$r['CRONTAB_QUERY'];
+					$query=get_query ($query_num_voir,$user_num_session);
+#					$sel_vardroit=oci_parse($dbh,"select title_query,user_num,datamart_num,XML_QUERY,crontab_query,crontab_periode from dwh_query where user_num=$user_num_session  and query_num=$query_num_voir");
+#				        oci_execute($sel_vardroit);
+#				        $r=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
+			                $title_query=$query['TITLE_QUERY'];
+			                $user_num=$query['USER_NUM'];
+			                $num_datamart_requete=$query['DATAMART_NUM'];
+					$xml=$query['XML_QUERY'];
+			                $crontab_periode=$query['CRONTAB_PERIODE'];
+			                $crontab_query=$query['CRONTAB_QUERY'];
 			                $readable_query=readable_query ($xml) ;
 			                
 			                if ($crontab_query==1) {

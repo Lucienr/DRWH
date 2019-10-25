@@ -78,9 +78,13 @@ h2 {
     position: relative;
     width:400px;
     padding:5px;
-    background-color:#d6e3e7
+    background-color:#d6e3e7;
 }
 
+.div_filtre td {
+    font-size:11px;
+    }
+    
 .filtre_texte {
     background: none repeat scroll 0 0 padding-box #fff;
     border: 1px solid #95a6ad;
@@ -191,6 +195,24 @@ a {
 }
 
 
+.form_submit_activated {
+    background: none repeat scroll 0 0 padding-box #00b2d7;
+    border: medium none;
+    border-radius: 5px;
+    box-shadow: 1px 1px 2px 0 rgba(0, 0, 0, 0.26);
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 15px;
+    margin: 0 2px 2px 0;
+    padding: 9px 14px;
+    position: relative;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
 .form_submit_wait {
     background: none repeat scroll 0 0 padding-box #D24D56;
     border: medium none;
@@ -212,6 +234,19 @@ a {
 .form_submit_wait:hover {
     background: none repeat scroll 0 0 padding-box #9E818E;
     background-color:#00b2d7;
+}
+
+.form {
+    font-size: 11px;
+}
+
+textarea.form {
+    font-family:courier new;
+}
+
+.li_ecrf {
+	padding-left: 10px;
+	margin-top: 0px;
 }
 
 .bouton_sauver {
@@ -881,4 +916,39 @@ table.tableau_solid_black th {
 
 .filtre_regexp {
 	font-family:courier new;
+	font-size: 14px;
+    	padding: 5px;
+}
+
+.log_result_div {
+	color:green;
+}
+
+.chosen-container .chosen-results li.group-result{
+	font-weight:bold;
+	color: #274b6d;
+	font-size: 14px;
+}
+
+
+.similarity_subtitle {
+    font-size: 14px;
+    color: #274b6d;
+    margin-bottom: 5px;
+}
+
+td.cohorte  {
+font-size:13px;
+}
+
+.tableau_document {
+	font-size:12px;
+}
+
+
+#id_tableau_liste_requete tr {
+	cursor:pointer
+}
+.pattern_found {
+    color: #00b2d7;
 }

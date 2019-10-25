@@ -290,33 +290,59 @@ function affiche_tableau_pmsi ($tmpresult_num,$thesaurus_code,$type) {
 		$req_type="  dwh_data.patient_num in  ( select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num  )  ";
 	}
 
-	$req_nb="SELECT thesaurus_data_num,val_text,count(*),count(distinct patient_num) as nb from dwh_data where thesaurus_code='$thesaurus_code' and $req_type  group by  thesaurus_data_num,val_text";
+	$req_nb="SELECT thesaurus_data_num,val_text,count(*) as nb_code,count(distinct patient_num) as nb from dwh_data where thesaurus_code='$thesaurus_code' and $req_type  group by  thesaurus_data_num,val_text";
 	$sel_nb=oci_parse($dbh,"$req_nb ");
 	oci_execute($sel_nb);
 	while ($r=oci_fetch_array($sel_nb,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$thesaurus_data_num=$r['THESAURUS_DATA_NUM'];
 		$val_text=$r['VAL_TEXT'];
   		$nb=$r['NB'];
-		$tableau_nb_code[$thesaurus_data_num][$val_text]="$nb";
+  		$nb_code=$r['NB_CODE'];
+		$tableau_nb_code[$thesaurus_data_num][$val_text]="$nb_code";
 		$tableau_nb_patients[$thesaurus_data_num][$val_text]="$nb";
 	}
 	
+	$req_nb="SELECT thesaurus_data_num,count(*) as NB_CODE,count(distinct patient_num) as nb from dwh_data where thesaurus_code='$thesaurus_code' and $req_type  group by  thesaurus_data_num";
+	$sel_nb=oci_parse($dbh,"$req_nb ");
+	oci_execute($sel_nb);
+	while ($r=oci_fetch_array($sel_nb,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		$thesaurus_data_num=$r['THESAURUS_DATA_NUM'];
+		$val_text=$r['VAL_TEXT'];
+  		$nb=$r['NB'];
+  		$nb_code=$r['NB_CODE'];
+		$tableau_nb_code[$thesaurus_data_num]['total']=0+$nb_code+$tableau_nb_code[$thesaurus_data_num]['total'];
+		$tableau_nb_patients[$thesaurus_data_num]['total']=0+$nb+$tableau_nb_patients[$thesaurus_data_num]['total'];
+	}
+	
 	$json_tableau='';
-	$req="select thesaurus_data_num,concept_str,list_values from  dwh_thesaurus_data  where  thesaurus_code='$thesaurus_code' ";
+	$req="select thesaurus_data_num,concept_str,list_values,concept_code from  dwh_thesaurus_data  where  thesaurus_code='$thesaurus_code' ";
 	$selval=oci_parse($dbh,"$req ");
 	oci_execute($selval);
 	while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$thesaurus_data_num=$res['THESAURUS_DATA_NUM'];
 		$concept_str=$res['CONCEPT_STR'];
 		$list_values=$res['LIST_VALUES'];
-		if ($tableau_nb_code[$thesaurus_data_num][$val_text]!='') {
+		$concept_code=$res['CONCEPT_CODE'];
+		$tab_list_values=explode(";",$list_values);
+		$concept_str=preg_replace("/\n/"," ",$concept_str);
+		foreach ($tab_list_values as $val_text) {
+			if ($tableau_nb_code[$thesaurus_data_num][$val_text]!='') {
+					$json_tableau.= " [
+						     \"$concept_code-$concept_str\",
+						     \"$val_text\",
+						 \"".$tableau_nb_code[$thesaurus_data_num][$val_text]."\",
+						 \"".$tableau_nb_patients[$thesaurus_data_num][$val_text]."\"
+					    ],";
+			}
+		}
+		if ($tableau_nb_code[$thesaurus_data_num]['total']!='') {
 				$json_tableau.= " [
-					     \"$concept_str\",
-					     \"$val_text\",
-					 \"".$tableau_nb_code[$thesaurus_data_num][$val_text]."\",
-					 \"".$tableau_nb_patients[$thesaurus_data_num][$val_text]."\"
+					     \"$concept_code-$concept_str\",
+					     \"total\",
+					 \"".$tableau_nb_code[$thesaurus_data_num]['total']."\",
+					 \"".$tableau_nb_patients[$thesaurus_data_num]['total']."\"
 				    ],";
-		}	
+		}
 	}
 	$json_tableau=substr($json_tableau,0,-1);
 	

@@ -21,140 +21,65 @@
     75015 Paris
     France
 */
+
 ?>
-
-<div id="map_pays_google" style="width:100%;height:600px">
-	<iframe id="id_iframe_google_map" style="width: 100%; height: 100%; border: 0px none;" scrolling="no" src=""></iframe>
-</div>
-<br><br>
-
-
-
+<style>
+#mapid { height: 600px; width:1000px; }
+</style>
+ <link rel="stylesheet" href="leaflet/leaflet.css" /> 
+ <!-- Make sure you put this AFTER Leaflet's CSS -->
+ <script src="leaflet/leaflet.js" ></script>
+ <script type="text/javascript" src="leaflet/leaflet.markercluster.js"></script>
+<link rel="stylesheet" href="leaflet/MarkerCluster.Default.css" />
+<div id="mapid" ></div>
 <div id="id_div_repartition_par_pays"></div>
-<br><br>
 
-
-
-<?
-$liste_ville='';
-$liste_nb_enr='';
-
-$req="select residence_city, residence_latitude,residence_longitude, count(distinct dwh_tmp_result_$user_num_session.patient_num) nb_patient from dwh_tmp_result_$user_num_session, dwh_patient where tmpresult_num=$tmpresult_num and dwh_tmp_result_$user_num_session.patient_num=dwh_patient.patient_num 
-and residence_city is not null and residence_longitude is not null and residence_latitude is not null group by residence_city, residence_latitude,residence_longitude";
-$sel=oci_parse($dbh,$req);
-oci_execute($sel) ;
-while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
-	$residence_city=str_replace("'"," ",$res['RESIDENCE_CITY']);
-	$residence_latitude=str_replace(",",".",$res['RESIDENCE_LATITUDE']);
-	$residence_longitude=str_replace(",",".",$res['RESIDENCE_LONGITUDE']);
-	$nb_patient=$res['NB_PATIENT'];
-	if ($residence_longitude!='-' && $residence_latitude!='-') {
-		$liste_ville.="{latLng: [$residence_latitude, $residence_longitude], name: '$residence_city #$nb_patient'},";
-		$liste_nb_enr.="$nb_patient,";
-	}
-}
-$liste_ville=substr($liste_ville,0,-1);
-$liste_nb_enr=substr($liste_nb_enr,0,-1);
-
-
-?>
-
-
-<link href="map/jquery-jvectormap.css" media="all" rel="stylesheet"></link>
-<script src="map/jquery-jvectormap.js"></script>
-<script src="map/jquery-mousewheel.js"></script>
-<script src="map/lib/jvectormap.js"></script>
-<script src="map/lib/abstract-element.js"></script>
-<script src="map/lib/abstract-canvas-element.js"></script>
-<script src="map/lib/abstract-shape-element.js"></script>
-<script src="map/lib/svg-element.js"></script>
-<script src="map/lib/svg-group-element.js"></script>
-<script src="map/lib/svg-canvas-element.js"></script>
-<script src="map/lib/svg-shape-element.js"></script>
-<script src="map/lib/svg-path-element.js"></script>
-<script src="map/lib/svg-circle-element.js"></script>
-<script src="map/lib/vml-element.js"></script>
-<script src="map/lib/vml-group-element.js"></script>
-<script src="map/lib/vml-canvas-element.js"></script>
-<script src="map/lib/vml-shape-element.js"></script>
-<script src="map/lib/vml-path-element.js"></script>
-<script src="map/lib/vml-circle-element.js"></script>
-<script src="map/lib/vector-canvas.js"></script>
-<script src="map/lib/simple-scale.js"></script>
-<script src="map/lib/ordinal-scale.js"></script>
-<script src="map/lib/numeric-scale.js"></script>
-<script src="map/lib/color-scale.js"></script>
-<script src="map/lib/data-series.js"></script>
-<script src="map/lib/proj.js"></script>
-<script src="map/lib/world-map.js"></script>
-<script src="map/lib/jquery-jvectormap-world-merc-en.js"></script>
-
-
-<div id="map_pays" style="width:900px;height:500px"></div>
-<script language="javascript">
-function generer_map() {
-	document.getElementById('map_pays').innerHTML='';
-	jQuery(function(){
-		var map,
-		markers = [
-		<? print $liste_ville; ?>
-		],
-		map = new jvm.WorldMap({
-			container: jQuery('#map_pays'),
-			map: 'world_merc_en',
-			zoomMax:500,
-			regionsSelectable: true,
-			markersSelectable: true,
-			markers: markers,
-			markerStyle: {
-				initial: {
-					fill: '#F8BAF8'
-				},
-				selected: {
-					fill: '#DA3DCA'
+<script language=javascript>
+function generer_map(tmpresult_num) {
+	if (tableau_table_cree_type['generer_map']!='ok') {
+		tableau_table_cree_type['generer_map']='ok';
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax.php",
+			method: 'post',
+			async:true,
+			contentType: 'application/x-www-form-urlencoded',
+			encoding: 'latin1',
+			data: {action:'generer_map',tmpresult_num:tmpresult_num},
+			beforeSend: function(requester){
+				document.getElementById('mapid').innerHTML="<img src=\"images/chargement_mac.gif\">";
+			},
+			success: function(requester){
+				if (requester=='deconnexion') {
+					afficher_connexion("generer_map()");
+				} else { 
+					var map = L.map('mapid').setView([<? print $GEO_CENTRE; ?>], 6);
+					var stamenToner = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+						attribution: 'Map tiles by <a href="https://stamen.com">Stamen Design</a>, <a href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+						subdomains: 'abcd',
+						minZoom: 0,
+						maxZoom: 20,
+						ext: 'png'
+					});
+					map.addLayer(stamenToner);
+				
+					var markersCluster = new L.MarkerClusterGroup();
+					var points = eval(requester);
+					for (var i = 0; i < points.length; i++) {
+						var latLng = new L.LatLng(points[i][1], points[i][2]);
+						var marker = new L.Marker(latLng, {title: points[i][0]});
+						markersCluster.addLayer(marker);
+					}
+					map.addLayer(markersCluster);
 				}
 			},
-			regionStyle: {
-				initial: {
-					fill: '#D0DCEE'
-				},
-				selected: {
-					fill: '#F4A582'
-				}
-			},
-			series: {
-				markers: [{
-					attribute: 'r',
-					scale: [5, 25],
-					values: [<? print $liste_nb_enr; ?>]
-				}]
-			},
-			onRegionSelected: function(){
-				if (window.localStorage) {
-					window.localStorage.setItem(
-						'jvectormap-selected-regions',
-						JSON.stringify(map.getSelectedRegions())
-					);
-				}
-			},
-			onMarkerSelected: function(){
-				if (window.localStorage) {
-					window.localStorage.setItem(
-						'jvectormap-selected-markers',
-						JSON.stringify(map.getSelectedMarkers())
-					);
-				}
-			}
+			error: function(){}
 		});
-		map.setSelectedRegions( JSON.parse( window.localStorage.getItem('jvectormap-selected-regions') || '[]' ) );
-		map.setSelectedMarkers( JSON.parse( window.localStorage.getItem('jvectormap-selected-markers') || '[]' ) );
-	});
-	
-	
+		
+	}
 	
 	
 	if (tableau_table_cree_type['affichage_par_pays']!='ok') {
-		document.getElementById('id_iframe_google_map').src="google_map.php?tmpresult_num=<? print $tmpresult_num; ?>";
 		tableau_table_cree_type['affichage_par_pays']='ok';
 		jQuery.ajax({
 			type:"POST",
@@ -163,24 +88,22 @@ function generer_map() {
 			async:true,
 			contentType: 'application/x-www-form-urlencoded',
 			encoding: 'latin1',
-			data: {action:'afficher_repartition_par_pays',tmpresult_num:<? print $tmpresult_num; ?>},
+			data: {action:'afficher_repartition_par_pays',tmpresult_num:tmpresult_num},
 			beforeSend: function(requester){
-				document.getElementById('id_div_repartition_par_pays').innerHTML="<img src=\"images/chargement_mac.gif\">";
+				jQuery('#id_div_repartition_par_pays').html("<img src=\"images/chargement_mac.gif\">");
 			},
 			success: function(requester){
 				if (requester=='deconnexion') {
 					afficher_connexion("generer_map()");
 				} else { 
-					document.getElementById('id_div_repartition_par_pays').innerHTML=requester;
+					jQuery('#id_div_repartition_par_pays').html(requester);
 					$("#id_tableau_repartition_par_pays").dataTable( {paging: false, "order": [[ 0, "asc" ]]});
 				}
 			},
 			error: function(){}
 		});
-	
 	}
+
 }
 </script>
 
-
-<br><br>

@@ -22,8 +22,7 @@
     France
 */
 
-
-function parcours_patient ($patient_num) {
+function parcours_patient_ancien ($patient_num) {
 	global $dbh,$CHEMIN_GLOBAL,$CHEMIN_GLOBAL_UPLOAD,$URL_UPLOAD;
 	
 	parcours_sejour_uf ('','',$patient_num,'patient_num',0);
@@ -71,7 +70,6 @@ function parcours_patient ($patient_num) {
 	if ($parcours_complet_unit=='ok') {print "<div id=\"id_div_img_parcours_complet_unit\" style=\"display:none\"><img src=\"$URL_UPLOAD/tmp_graphviz_parcours_complet_$patient_num"."unit0.png\"></div> ";}
 
 }
-
 
 $tableau_patient_num_deja_traite=array();
 $tableau_patient_num_lien_deja_traite=array();
@@ -193,7 +191,7 @@ function affiche_tableau_biologie($patient_num) {
 	$tableau_year=array();
 	$tableau_month=array();
 	$tableau_day=array();
-	$req=oci_parse($dbh,"select thesaurus_data_num,lower_bound,upper_bound,to_char(document_date,'DD/MM/YYYY HH24:MI') date_document_char, document_date, val_numeric
+	$req=oci_parse($dbh,"select thesaurus_data_num,lower_bound,upper_bound,to_char(document_date,'DD/MM/YYYY HH24:MI') document_date_char, document_date, val_numeric
 	,to_char(document_date,'YYYY') year
 	,to_char(document_date,'MM') month
 	,to_char(document_date,'DD') day
@@ -203,7 +201,7 @@ function affiche_tableau_biologie($patient_num) {
 		$thesaurus_data_num=$res['THESAURUS_DATA_NUM'];
 		$borne_inf=str_replace(",",".",$res['LOWER_BOUND']);
 		$borne_sup=str_replace(",",".",$res['UPPER_BOUND']);
-		$date_document_char=$res['DATE_DOCUMENT_CHAR'];
+		$document_date_char=$res['DOCUMENT_DATE_CHAR'];
 		$val_numeric=$res['VAL_NUMERIC'];
 		$val_numeric_point=str_replace(",",".",$res['VAL_NUMERIC']);
 		$year=$res['YEAR'];
@@ -212,9 +210,9 @@ function affiche_tableau_biologie($patient_num) {
 		if (preg_match("/^,/",$val_numeric)) {
 			$val_numeric="0".$val_numeric;
 		}
-		if ($liste_date[$date_document_char]=='') {
-			$liste_date[$date_document_char]='ok';
-			$tableau_date_ordre[$i]=$date_document_char;
+		if ($liste_date[$document_date_char]=='') {
+			$liste_date[$document_date_char]='ok';
+			$tableau_date_ordre[$i]=$document_date_char;
 			$i++;
 			
 			$tableau_year[$year]++;
@@ -232,8 +230,8 @@ function affiche_tableau_biologie($patient_num) {
 				$color='#FFAAB0';
 			}
 		}
-		$tableau_date_data_valeur[$date_document_char][$thesaurus_data_num]=$val_numeric;
-		$tableau_date_data_color[$date_document_char][$thesaurus_data_num]=$color;
+		$tableau_date_data_valeur[$document_date_char][$thesaurus_data_num]=$val_numeric;
+		$tableau_date_data_color[$document_date_char][$thesaurus_data_num]=$color;
 	}
 	
 	
@@ -257,8 +255,8 @@ function affiche_tableau_biologie($patient_num) {
 		print "</tr>";
 		print "<tr>";
 			print "<th id=\"id_colonne_examen\">".get_translation('EXAMS','Examens')."</th>";
-			foreach ($tableau_date_ordre as $date_document_char) {
-				$t=explode(' ',$date_document_char);
+			foreach ($tableau_date_ordre as $document_date_char) {
+				$t=explode(' ',$document_date_char);
 				$heure=$t[1];
 				print "<th>$heure</th>";
 			}
@@ -281,7 +279,7 @@ function affiche_tableau_biologie($patient_num) {
 			
 				print "<tr style=\"background-color:black;color:white;\">
 					<td nowrap=\"nowrap\" class=\"class_libelle_examen\"><strong>$code_libelle_parent</strong></td>";
-				foreach ($tableau_date_ordre as $date_document_char) {
+				foreach ($tableau_date_ordre as $document_date_char) {
 					print "<td></td>";
 				}
 				print "</tr>";
@@ -300,8 +298,8 @@ function affiche_tableau_biologie($patient_num) {
 					print" ($measuring_unit)";
 				}
 				print " $info_complement</td>";
-				foreach ($tableau_date_ordre as $date_document_char) {
-					print "<td bgcolor=\"".$tableau_date_data_color[$date_document_char][$thesaurus_data_num]."\">".$tableau_date_data_valeur[$date_document_char][$thesaurus_data_num]."</td>";
+				foreach ($tableau_date_ordre as $document_date_char) {
+					print "<td bgcolor=\"".$tableau_date_data_color[$document_date_char][$thesaurus_data_num]."\">".$tableau_date_data_valeur[$document_date_char][$thesaurus_data_num]."</td>";
 				}
 				print "</tr>";
 			}
@@ -322,8 +320,8 @@ function affiche_tableau_biologie($patient_num) {
 				print" ($measuring_unit)";
 			}
 			print " $info_complement</td>";
-			foreach ($tableau_date_ordre as $date_document_char) {
-				print "<td bgcolor=\"".$tableau_date_data_color[$date_document_char][$thesaurus_data_num]."\">".$tableau_date_data_valeur[$date_document_char][$thesaurus_data_num]."</td>";
+			foreach ($tableau_date_ordre as $document_date_char) {
+				print "<td bgcolor=\"".$tableau_date_data_color[$document_date_char][$thesaurus_data_num]."\">".$tableau_date_data_valeur[$document_date_char][$thesaurus_data_num]."</td>";
 			}
 			print "</tr>";
 		}
@@ -362,5 +360,22 @@ function affiche_liste_code_biologie($patient_num) {
 	print "</table>";
 	
 }
+
+function get_query_patient_user($patient_num,$user_num) {
+	global $dbh;
+	$tableau_query=array();
+	if ($patient_num!='') {
+		$req_patient=" and patient_num=$patient_num";
+	} else {
+		$req_patient="";
+	}
+	$sel=oci_parse($dbh,"select  xml_query,log_date from dwh_log_query where query_context='patient' and user_num=$user_num $req_patient and xml_query is not null order by log_date desc");
+	oci_execute($sel) ;
+	while ($r=oci_fetch_array($sel,OCI_ASSOC)) {
+		$tableau_query[$r['XML_QUERY']-> load()]=1;
+	}
+	return $tableau_query;	
+}
+
 
 ?>

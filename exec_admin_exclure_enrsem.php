@@ -32,7 +32,7 @@ if ($argv[1]!='') {
 
 	$liste_val=$argv[1];
 	$process_num=$argv[2];
-	$user_num=$argv[3];
+	$user_num_session=$argv[3];
 	
 	
 	$tableau_val=explode(';',$liste_val);
@@ -59,7 +59,7 @@ if ($argv[1]!='') {
 				$req="update  dwh_thesaurus_tal set excluded=1,exclusion_date=sysdate where concept_code='$concept_code' and lower( concept_str)=lower('$concept_str')";
 				$sel=oci_parse($dbh,$req);
 				oci_execute($sel) || die("erreur $req\n");
-				update_process ($process_num,0,get_translation('PROCESS_DELETE_CONCEPTS_UPD_ENRTEXTE','Suppression des concepts et mise à jour des textes enrichis'),'');
+				update_process ($process_num,0,get_translation('PROCESS_DELETE_CONCEPTS_UPD_ENRTEXTE','Suppression des concepts et mise à jour des textes enrichis'),'',$user_num_session,"");
 				
 
 				$sel=oci_parse($dbh,"select document_num,context,certainty from dwh_enrsem where concept_code='$concept_code'  and  lower( concept_str_found)=lower('$concept_str')");
@@ -70,26 +70,24 @@ if ($argv[1]!='') {
 					$certainty=$r['CERTAINTY'];
 					$nb_doc++;
 					if ($nb_doc % 100==0) {
-						update_process ($process_num,0,"$nb_doc ".get_translation('PROCESS_N_TEXT_UPDATED','textes mis à jour'),'');
+						update_process ($process_num,0,"$nb_doc ".get_translation('PROCESS_N_TEXT_UPDATED','textes mis à jour'),'',$user_num_session,"");
 					}
 					$req_doc="delete from dwh_enrsem  where document_num=$document_num and context='$context' and certainty=$certainty and concept_code='$concept_code' and   lower( concept_str_found)=lower('$concept_str')";
 					$selreq_doc=oci_parse($dbh,$req_doc);
 					oci_execute($selreq_doc) || die("erreur $req_doc\n");
 					
-					//$req_doc="update from dwh_document set enrichtext_done_flag=null  where document_num=$document_num  ";
-					//$selreq_doc=oci_parse($dbh,$req_doc);
-					//oci_execute($selreq_doc) || die("erreur $req_doc\n");
 					update_column_enrich_text($document_num,$context,$certainty);
 				}			
 
-				update_process ($process_num,0,get_translation('PROCESS_UPDATE_THESAURUS','mise à jour du thesaurus'),'');
+				update_process ($process_num,0,get_translation('PROCESS_UPDATE_THESAURUS','mise à jour du thesaurus'),'',$user_num_session,"");
 				print "update_preferred_term ($concept_code);<br>";
 				update_preferred_term ($concept_code);
 			}
 		}
 	}
-	update_process ($process_num,0,get_translation('PROCESS_UPDATE_INDEX','mise à jour des index'),'');
-	update_process ($process_num,1,'end','');
+	update_process ($process_num,0,get_translation('PROCESS_UPDATE_INDEX','mise à jour des index'),'',$user_num_session,"");
+	update_process ($process_num,1,'end','',$user_num_session);
+	sauver_notification ($user_num_session,$user_num_session,'process',"",$process_num);
 	$cridx=oci_parse($dbh,"begin ctx_ddl.sync_index('DWH_TEXT_ENRICH_IDX', '200M'); end;");
 	oci_execute($cridx);
 }

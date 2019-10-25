@@ -148,7 +148,71 @@ if ($_POST['action']=='rechercher') {
 			$xml_unitaire.="</time_constraint>";
 			$xml.=$xml_unitaire;
 		}
+		if ($_POST['query_type_'.$i]=='mvt' && $_POST['query_key_'.$i]!='') {
+			$exclude=trim($_POST['exclure_'.$i]);
+			$num_filtre=trim($_POST['num_filtre_'.$i]);
+			$mvt_department=trim($_POST['mvt_department_'.$i]);
+			$mvt_unit=trim($_POST['mvt_unit_'.$i]);
+			$type_mvt=trim($_POST['type_mvt_'.$i]);
+			
+			$encounter_duration_min=trim($_POST['encounter_duration_min_'.$i]);
+			$encounter_duration_max=trim($_POST['encounter_duration_max_'.$i]);
+			
+			$mvt_duration_min=trim($_POST['mvt_duration_min_'.$i]);
+			$mvt_duration_max=trim($_POST['mvt_duration_max_'.$i]);
+			
+			$mvt_nb_min=trim($_POST['mvt_nb_min_'.$i]);
+			$mvt_nb_max=trim($_POST['mvt_nb_max_'.$i]);
+			
+			$stay_nb_min=trim($_POST['stay_nb_min_'.$i]);
+			$stay_nb_max=trim($_POST['stay_nb_max_'.$i]);
+			
+			$mvt_date_start=trim($_POST['mvt_date_start_'.$i]);
+			$mvt_date_end=trim($_POST['mvt_date_end_'.$i]);
+			$periode_mvt=trim($_POST['periode_mvt_'.$i]);
+			$mvt_ageyear_start=trim($_POST['mvt_ageyear_start_'.$i]);
+			$mvt_ageyear_end=trim($_POST['mvt_ageyear_end_'.$i]);
+			$mvt_agemonth_start=trim($_POST['mvt_agemonth_start_'.$i]);
+			$mvt_agemonth_end=trim($_POST['mvt_agemonth_end_'.$i]);
+		
+			$mvt_agemonth_end=trim($_POST['mvt_agemonth_end_'.$i]);
+			
+			$xml_unitaire="<mvt_filter>";
+			$xml_unitaire.="<query_type>mvt</query_type>
+<mvt_department>$mvt_department</mvt_department>
+<mvt_unit>$mvt_unit</mvt_unit>
+<type_mvt>$type_mvt</type_mvt>
+<encounter_duration_min>$encounter_duration_min</encounter_duration_min>
+<encounter_duration_max>$encounter_duration_max</encounter_duration_max>
+<mvt_duration_min>$mvt_duration_min</mvt_duration_min>
+<mvt_duration_max>$mvt_duration_max</mvt_duration_max>
+<mvt_nb_min>$mvt_nb_min</mvt_nb_min>
+<mvt_nb_max>$mvt_nb_max</mvt_nb_max>
+<stay_nb_min>$stay_nb_min</stay_nb_min>
+<stay_nb_max>$stay_nb_max</stay_nb_max>
+<mvt_date_start>$mvt_date_start</mvt_date_start>
+<mvt_date_end>$mvt_date_end</mvt_date_end>
+<mvt_ageyear_start>$mvt_ageyear_start</mvt_ageyear_start>
+<mvt_ageyear_end>$mvt_ageyear_end</mvt_ageyear_end>
+<mvt_agemonth_start>$mvt_agemonth_start</mvt_agemonth_start>
+<mvt_agemonth_end>$mvt_agemonth_end</mvt_agemonth_end>
+<datamart_text_num>$datamart_num</datamart_text_num>
+<filter_num>$num_filtre</filter_num>
+<exclude>$exclude</exclude>
+";
+			if ($_POST['texte_nbresult_'.$i]=='') {
+				$requete_sql_filtre_mvt=creer_requete_sql_filtre_mvt("$xml_unitaire</mvt_filter>","patient_num");
+				$nb=calcul_nb_resultat_filtre($requete_sql_filtre_mvt);
+				$xml_unitaire.="<count_result>$nb</count_result>";
+			} else {
+				$xml_unitaire.="<count_result>".trim($_POST['texte_nbresult_'.$i])."</count_result>";
+			}
+			$xml_unitaire.="</mvt_filter>";
+			$xml.=$xml_unitaire;
+		}
 	}
+	
+	
 	$xml.="<datamart_num>$datamart_num</datamart_num>";
 	$xml.="<sex>".trim($_POST['sex'])."</sex>";
 	$xml.="<age_start>".trim($_POST['age_deb'])."</age_start>";
@@ -198,7 +262,7 @@ if ($_POST['action']=='rechercher') {
 			$xml_unitaire.="<datamart_text_num>$datamart_num</datamart_text_num>";
 			$xml_unitaire.="<hospital_department_list></hospital_department_list>";
 			$xml_unitaire.="<count_result></count_result>";
-			$xml_unitaire.="<query_type></query_type>";
+			$xml_unitaire.="<query_type>text</query_type>";
 		$xml_unitaire.="</text_filter>";
 		
 		$xml="<query>";
@@ -230,15 +294,16 @@ if ($_POST['action']=='rechercher') {
 				<?
 					if ($xml=='') {
 						$max_num_filtre=1;
-						ajouter_formulaire_texte_vierge($max_num_filtre,'text');
+						add_atomic_query($max_num_filtre,'text');
 					} else {
 						ajouter_filtre_texte($xml);
 					}
 					
 				?>
 			</div>
-			<h2 style="cursor:pointer;" onclick="ajouter_formulaire_texte_vierge('text');">+ <? print get_translation('ADD_FULLTEXT_FILTER','Ajouter un filtre Full text'); ?></h2>
-			<h2 style="cursor:pointer;" onclick="ajouter_formulaire_texte_vierge('code');">+ <? print get_translation('ADD_STRUCTURED_FILTER','Ajouter un filtre structuré'); ?></h2>
+			<h2 style="cursor:pointer;" onclick="add_atomic_query('text');">+ <? print get_translation('ADD_FULLTEXT_FILTER','Ajouter un filtre Full text'); ?></h2>
+			<h2 style="cursor:pointer;" onclick="add_atomic_query('code');">+ <? print get_translation('ADD_STRUCTURED_FILTER','Ajouter un filtre structuré'); ?></h2>
+			<h2 style="cursor:pointer;" onclick="add_atomic_query_mvt();">+ <? print get_translation('ADD_MOVMENT_FILTER','Ajouter un filtre mouvement'); ?></h2>
 			
 			<h2 style="cursor:pointer;" onclick="ajouter_filtre_select_contrainte ();plier_deplier('id_div_formulaire_contrainte_temporelle');"><span id="plus_id_div_formulaire_contrainte_temporelle">+</span> <? print get_translation('TEMPORAL_CONSTRAINTS','Contraintes temporelles'); ?></h2>
 			<div id="id_div_formulaire_contrainte_temporelle" class="div_filtre" style="display:none;">
@@ -271,7 +336,7 @@ if ($_POST['action']=='rechercher') {
 		
 			function pre_calcul_total() {
 				nb_num_filtre_en_cours=0;
-				max_num_filtre=document.getElementById('id_input_max_num_filtre').value;
+				max_num_filtre=jQuery('#id_input_max_num_filtre').val();
 				for (num_filtre=1;num_filtre<=max_num_filtre;num_filtre++) {
 					if (document.getElementById('id_input_filtre_texte_'+num_filtre)) {
 						calcul_nb_resultat_filtre(num_filtre,true);
@@ -279,12 +344,17 @@ if ($_POST['action']=='rechercher') {
 					if (document.getElementById('id_div_filtre_contrainte_temporelle_'+num_filtre)) {
 						calcul_nb_resultat_contrainte_temporelle(num_filtre,true);
 					}				
+					if (document.getElementById('id_div_filtre_mvt_'+num_filtre)) {
+						calcul_nb_resultat_filtre_mvt(num_filtre,true);
+					}
+					
+						
 				}
 				valider_quand_precalcul_termine();
 			}
 			function valider_quand_precalcul_termine() {
-				document.getElementById('id_button_bouton_attendre_moteur').value='<? print get_translation('JS_SEARCH_WILL_START_WHEN_PRECOMPUTING_FINISHED','La recherche se lancera une fois le précalcul terminé'); ?>';
-				document.getElementById('id_button_bouton_attendre_moteur').style.backgroundColor='red';
+				jQuery('#id_button_bouton_attendre_moteur').val('<? print get_translation('JS_SEARCH_WILL_START_WHEN_PRECOMPUTING_FINISHED','La recherche se lancera une fois le précalcul terminé'); ?>');
+				jQuery('#id_button_bouton_attendre_moteur').css('background-color','red');
 				if (nb_num_filtre_en_cours==0) {
 					document.getElementById('id_form_moteur').submit();
 				} else {
@@ -299,13 +369,13 @@ if ($_POST['action']=='rechercher') {
 				<? print lister_requete_sauve ($datamart_num); ?>
 			</div>
 		</div>
-		<div id="id_liste_requete_temp" style="width:450px;">
+		<div id="id_list_query_history" style="width:450px;">
 			<h1><? print get_translation('QUERIES_HISTORY','Historique requête'); ?></h1>
-			<!--<div id="id_div_liste_requete_temp" style="width:400px;height:400px;overflow-y:auto;">-->
-			<div id="id_div_liste_requete_temp" style="width:400px;">
-			<form autocomplete="off">
-				<? print lister_requete_temp ($datamart_num); ?>
-			</form>
+			<!--<div id="id_div_list_query_history" style="width:400px;height:400px;overflow-y:auto;">-->
+			<div id="id_div_list_query_history" style="width:400px;">
+			       <table border="0" class="tableau_liste_requete" id="id_tableau_liste_requete" width="400px">
+			        <thead><th style="width:18px;padding:2px;">&nbsp;</th><th><? print get_translation('DATE','date'); ?></th><th><? print get_translation('QUERIES','Requêtes'); ?></th></thead>
+			       </table>
 			</div>
 		</div>
 		<?
@@ -313,9 +383,10 @@ if ($_POST['action']=='rechercher') {
 			print "<script language=\"javascript\">";
        			 $max_num_filtre=0;
 			peupler_filtre_texte($xml);
+			peupler_filtre_mvt($xml);
 			peupler_contrainte_temporelle($xml);
 			peupler_filtre_patient($xml);
-       			print "document.getElementById('id_input_max_num_filtre').value=\"$max_num_filtre\";";
+       			print "jQuery('#id_input_max_num_filtre').val(\"$max_num_filtre\");";
 			print "</script>";
 		}
 		?>
@@ -335,7 +406,7 @@ if ($_POST['action']=='rechercher') {
 		$display_detail='none';
 		$class_menu_detail='';
 		$afficher_result="
-		generer_resultat('$query_num','$tmpresult_num') ;
+		generer_resultat('$query_num','$tmpresult_num','$datamart_num') ;
 		";
 		if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') {
 			$display_detail='block';
@@ -392,7 +463,7 @@ if ($_POST['action']=='rechercher') {
 					<li class="color-bullet" id="id_bouton_genes"><span class="li-content"><img src="images/adn2.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('genes'); affiche_onglet_genes(<? print $tmpresult_num; ?>);return false;"><? print get_translation('GENES','Genes'); ?></a></span></li>
 			<? } ?>
 			<? if ($_SESSION['dwh_droit_see_map'.$datamart_num]=='ok') { ?>
-					<li class="color-bullet" id="id_bouton_map"><span class="li-content"><img src="images/map.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('map');generer_map();return false;"><? print get_translation('MAP','Map'); ?></a></span></li>
+					<li class="color-bullet" id="id_bouton_map"><span class="li-content"><img src="images/map.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('map');generer_map(<? print $tmpresult_num; ?>);return false;"><? print get_translation('MAP','Map'); ?></a></span></li>
 			<? } ?>
 			<? if ($_SESSION['dwh_droit_see_clustering'.$datamart_num]=='ok') { ?>
 					<li class="color-bullet" id="id_bouton_clustering"><span class="li-content"><img src="images/clustering.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('clustering'); return false;"><? print get_translation('CLUSTERING','Clustering'); ?></a></span></li>
@@ -401,10 +472,13 @@ if ($_POST['action']=='rechercher') {
 					<li class="color-bullet" id="id_bouton_admin_datamart"><span class="li-content"><img src="images/datamart.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('admin_datamart');return false;"><? print get_translation('DATAMART','Datamart'); ?></a></span></li>
 			<? } ?>
 			<? if ($_SESSION['dwh_droit_export_data']=='ok') { ?>
-			<li class="color-bullet" id="id_bouton_export_data"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('export_data');return false;"><? print"Export" ?></a></span></li>
+			<li class="color-bullet" id="id_bouton_export_data"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('export_data');return false;"><? print get_translation('EXPORT_DATA','EXport données'); ?></a></span></li>
 			<? } ?>
 			<? if ($_SESSION['dwh_droit_regexp']=='ok') { ?>
-			<li class="color-bullet" id="id_bouton_regexp"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('regexp');return false;"><? print"Extraction" ?></a></span></li>
+			<li class="color-bullet" id="id_bouton_regexp"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('regexp');return false;"><? print get_translation('EXTRACTION','Extraction'); ?></a></span></li>
+			<? } ?>
+			<? if ($_SESSION['dwh_droit_extract_ecrf_on_result']=='ok') { ?>
+			<li class="color-bullet" id="id_bouton_extract_ecrf_on_result"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('extract_ecrf_on_result');return false;"><? print get_translation('ECRF','ECRF'); ?></a></span></li>
 			<? } ?>
 			</ul>
 		</div>
@@ -415,38 +489,40 @@ if ($_POST['action']=='rechercher') {
 	
 	<?
 		if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='' || !preg_match("/'tout'/i","$liste_document_origin_code_session"))  {
+			$phrase_nb_patient_detail='';
 			if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='') { 
-				$phrase_nb_patient_detail= "<strong>".get_translation('ON_YOUR_HOSPITAL_DEPARTMENTS','Sur Vos services')." :</strong> <br>";
+				$phrase_nb_patient_detail.= "<strong>".get_translation('ON_YOUR_HOSPITAL_DEPARTMENTS','Sur Vos services')."</strong> <br>";
 			} 
 			if (!preg_match("/'tout'/i","$liste_document_origin_code_session"))  {
 				$liste_document_origin_code=preg_replace("/'/","","$liste_document_origin_code_session");
-				$phrase_nb_patient_detail= "<strong>".get_translation('ON_YOUR_AUTHORIZED_DOCUMENTS_ORIGIN','Sur Vos types de document')." ($liste_document_origin_code) :</strong> <br>";
+				$phrase_nb_patient_detail.= "<strong>".get_translation('ON_YOUR_AUTHORIZED_DOCUMENTS_ORIGIN','Sur Vos types de document')." ($liste_document_origin_code)</strong> <br>";
 			} 
 			
-			$phrase_nb_patient_detail.= "<span id=\"id_span_nb_patient_detail_user\"></span>  ".get_translation('X_OUT_OF_Y_PATIENTS','sur')." <span id=\"id_span_nb_patient_detail\"></span> Patients<br>";
-			$phrase_nb_patient_detail.= "<span id=\"id_span_nb_document_detail_user\"></span> ".get_translation('X_OUT_OF_Y_PATIENTS','sur')." <span id=\"id_span_nb_document_detail\"></span> Documents<br><br>";
+			$phrase_nb_patient_detail.= "<span id=\"id_span_nb_patient_detail_user\"><img src=\"images/chargement_mac.gif\" width=\"15\"></span>  ".get_translation('X_OUT_OF_Y_PATIENTS','sur')." 
+							<span id=\"id_span_nb_patient_detail\"><img src=\"images/chargement_mac.gif\" width=\"15\"></span> ".get_translation('PATIENTS','Patients')."<br>";
+			$phrase_nb_patient_detail.= "<span id=\"id_span_nb_document_detail_user\"><img src=\"images/chargement_mac.gif\" width=\"15\"></span> ".get_translation('X_OUT_OF_Y_PATIENTS','sur')." 
+							<span id=\"id_span_nb_document_detail\"><img src=\"images/chargement_mac.gif\" width=\"15\"></span> ".get_translation('DOCUMENTS','Documents')."<br>";
+			$phrase_nb_patient_detail.= "<span id=\"id_span_nb_mvt_detail_user\"><img src=\"images/chargement_mac.gif\" width=\"15\"></span> ".get_translation('X_OUT_OF_Y_PATIENTS','sur')." 
+							<span id=\"id_span_nb_mvt_detail\"><img src=\"images/chargement_mac.gif\" width=\"15\"></span> ".get_translation('MOVMENTS','Mouvements')."<br><br>";
+			
 		} else {
-			$phrase_nb_patient_detail= "<span id=\"id_span_nb_patient_detail\"></span> ".get_translation('PATIENTS','Patients')."<br>";
-			$phrase_nb_patient_detail.= "<span id=\"id_span_nb_document_detail\"></span> ".get_translation('DOCUMENTS','Documents')."<br><br>";
+			$phrase_nb_patient_detail= "<strong>".get_translation('ON_THE_ENTIRE_HOSPITAL',"Sur tout l'hôpital")." :</strong> <br>";
+			$phrase_nb_patient_detail= "<span id=\"id_span_nb_patient_detail\"><img src=\"images/chargement_mac.gif\" width=\"15\"></span> ".get_translation('PATIENTS','Patients')."<br>";
+			$phrase_nb_patient_detail.= "<span id=\"id_span_nb_document_detail\"><img src=\"images/chargement_mac.gif\" width=\"15\"></span> ".get_translation('DOCUMENTS','Documents')."<br>";
+			$phrase_nb_patient_detail.= "<span id=\"id_span_nb_mvt_detail\"><img src=\"images/chargement_mac.gif\" width=\"15\"></span> ".get_translation('MOVMENTS','Mouvements')."<br><br>";
 		}
-		
-		$phrase_nb_patient_total= "<strong>".get_translation('ON_THE_ENTIRE_HOSPITAL',"Sur tout l'hôpital")." :</strong> <br>";
-		$phrase_nb_patient_total.= "<span class=\"id_span_nb_patient_total\"></span> ".get_translation('PATIENTS','Patients')."<br>";
-		$phrase_nb_patient_total.= "<span class=\"id_span_nb_document_total\"></span> ".get_translation('DOCUMENTS','Documents')."<br><br>";
-		
+		//$phrase_nb_patient_total= "<strong>".get_translation('ON_THE_ENTIRE_HOSPITAL',"Sur tout l'hôpital")." :</strong> <br>";
+		//$phrase_nb_patient_total.= "<span class=\"id_span_nb_patient_total\"></span> ".get_translation('PATIENTS','Patients')."<br>";
+		//$phrase_nb_patient_total.= "<span class=\"id_span_nb_document_total\"></span> ".get_translation('DOCUMENTS','Documents')."<br><br>";
 		
 		
+		
+		 print $phrase_nb_patient_detail; 
 		
 		?>
 		<? if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_resultat_detail" class="div_result">
-				<? print $phrase_nb_patient_detail; ?>
 				
-					<? 
-                			if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='') {
-                			//	lister_services_nbpatient_manager_department ($tmpresult_num,$query_num); 
-                			}
-                			?>
 				<table border="0">
 					<tr>
 						<td>
@@ -488,13 +564,14 @@ if ($_POST['action']=='rechercher') {
 				</div>
 				<div id="id_div_filtre_resultat_texte" style="width:550px;display:none;font-size:13px">
 					<h3><? print get_translation('FILTER_RESULT','Filtrer le résultat'); ?></h3>
-					<? print get_translation('FULLTEXT_SEARCH_QUERY','Requête plein texte'); ?> : <input type="text" size="40" class="input_texte" id="id_filtre_resultat_texte" onkeyup="if (this.value=='') {filtrer_resultat();} if(event.keyCode==13) {filtrer_resultat();}"><input type="button" value="ok" onclick="filtrer_resultat();"><input type="button" value="annuler" onclick="document.getElementById('id_filtre_resultat_texte').value='';filtrer_resultat();">
+					<? print get_translation('FULLTEXT_SEARCH_QUERY','Requête plein texte'); ?> : <input type="text" size="40" class="input_texte" id="id_filtre_resultat_texte" onkeyup="if (this.value=='') {filtrer_resultat();} if(event.keyCode==13) {filtrer_resultat();}"><input type="button" value="ok" onclick="filtrer_resultat();"><input type="button" value="annuler" onclick="jQuery('#id_filtre_resultat_texte').val('');filtrer_resultat();">
 				</div>
 				<div id="id_div_export_excel" style="width:550px;display:none;font-size:13px">
 					<h3><? print get_translation('EXPORT_EXCEL','Export Excel'); ?></h3>
 					<strong><a href="export_excel.php?tmpresult_num=<? print "$tmpresult_num"; ?>&option=patient"><? print get_translation('PATIENT_LIST','La liste des patients'); ?></a></Strong><br>
-					<strong><a href="export_excel.php?tmpresult_num=<? print "$tmpresult_num"; ?>&option=encounter_result"><? print get_translation('ENCOUNTER_LIST_RESULT','La liste des séjours trouvés'); ?></a></strong><br>
-					<strong><a href="export_excel.php?tmpresult_num=<? print "$tmpresult_num"; ?>&option=encounter_all"><? print get_translation('ENCOUNTER_LIST_ALL','La liste de tous les séjours des patients trouvés'); ?></a></strong><br>
+					<strong><a href="export_excel.php?tmpresult_num=<? print "$tmpresult_num"; ?>&option=patient_document"><? print get_translation('PATIENT_LIST_AND_DOCUMENT','La liste des patients et le titre des comptes rendus'); ?></a></Strong><br>
+					<strong><a href="export_excel.php?tmpresult_num=<? print "$tmpresult_num"; ?>&option=encounter_result"><? print get_translation('ENCOUNTER_LIST_RESULT','La liste des séjours associés à des documents trouvés'); ?></a></strong><br>
+					<strong><a href="export_excel.php?tmpresult_num=<? print "$tmpresult_num"; ?>&option=encounter_all"><? print get_translation('ENCOUNTER_LIST_ALL','La liste de tous les séjours / consultations / HDJ des patients trouvés'); ?></a></strong><br>
 				</div>
 				<div id="id_div_partager_requete" style="width:550px;display:none;font-size:13px">
 					<h3><? print get_translation('SHARE_SEARCH_QUERY','Partager votre requête'); ?></h3>
@@ -519,7 +596,7 @@ if ($_POST['action']=='rechercher') {
 				
 				<div id="id_div_alimenter_cohorte" style="width:550px;display:none;font-size:13px">
 					<? include_once "javascript_cohorte.php"; ?>
-					<h3 onclick="plier_deplier('id_div_liste_creer_cohorte');" style="cursor:pointer;"><span id="plus_id_div_liste_creer_cohorte">+</span> <? print get_translation('CREATE_COHORT','Créer une cohorte'); ?></h3>
+					<h3 onclick="plier_deplier('id_div_liste_creer_cohorte');plier('id_div_list_choose_cohort');" class="link"><span id="plus_id_div_liste_creer_cohorte">+</span> <? print get_translation('ADD_PATIENT_IN_NEW_COHORT','Ajouter des patients dans un nouvelle cohorte'); ?></h3>
 					<div id="id_div_liste_creer_cohorte" style="display:none;">
 						<table border="0">
 							<tr><td><? print get_translation('TITLE','Titre'); ?> : </td><td><input type="text" size="50" id="id_ajouter_titre_cohorte" class="form"></td></tr>
@@ -546,11 +623,12 @@ if ($_POST['action']=='rechercher') {
 						<div id="id_div_resultat_ajouter_cohorte"></div>
 					</div>
 			
-					<h3><? print get_translation('OR_SELECT_EXISTING_COHORT',"Ou Sélectionner une cohorte existante pour l'alimenter en patients"); ?> : 
+					<h3 onclick="plier('id_div_liste_creer_cohorte');plier_deplier('id_div_list_choose_cohort');" class="link"><span id="plus_id_div_list_choose_cohort">+</span> <? print get_translation('ADD_PATIENT_IN_EXISTING_COHORT',"Ajouter des patients dans une cohorte existante"); ?></h3>
+					<div id="id_div_list_choose_cohort" style="display:none;">
 						<select  id="id_select_cohorte_pour_alimentation" class="chosen-select" onchange="select_cohorte(this.value);"  data-placeholder="<? print get_translation('JS_SELECT_COHORT','Choisissez une cohorte'); ?>" >
-							<? lister_mes_cohortes_option ($user_num_session,'id_select_cohorte_pour_alimentation'); ?>
+							<? display_user_cohorts_option ($user_num_session,'id_select_cohorte_pour_alimentation'); ?>
 						</select>
-                               		</h3>
+					</div>
 				</div>
 				
 				<div class="icone_cohorte" style="display: none;">
@@ -581,70 +659,77 @@ if ($_POST['action']=='rechercher') {
 		
 		<? if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_cohorte_encours" style="display:none;" class="div_result">
-				<? print $phrase_nb_patient_total; ?>
+				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_cohorte_encours.php"; ?>
 			</div>
 		<? } ?>
 		<? if ($_SESSION['dwh_droit_see_stat'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_stat" style="display:<? print $display_stat; ?>;" class="div_result">
-				<? print $phrase_nb_patient_total; ?>
+				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_stat.php"; ?>
 			</div>
 		<? } ?>
 		<? if ($_SESSION['dwh_droit_see_concept'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_concepts" style="display:none;" class="div_result">
-				<? print $phrase_nb_patient_total; ?>
+				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_concepts.php"; ?>
 			</div>
 		<? } ?>
 		<? if ($_SESSION['dwh_droit_see_drg'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_pmsi" style="display:<? print $display_pmsi; ?>;" class="div_result">
-				<? print $phrase_nb_patient_total; ?>
+				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_pmsi.php"; ?>
 			</div>
 		<? } ?>
 		<? if ($_SESSION['dwh_droit_see_biology'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_labo" style="display:none;" class="div_result">
-				<? print $phrase_nb_patient_total; ?>
+				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_labo.php"; ?>
 			</div>
 		<? } ?>
 		<? if ($_SESSION['dwh_droit_see_genetic'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_genes" style="display:none;" class="div_result">
-				<? print $phrase_nb_patient_total; ?>
+				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_genes.php"; ?>
 			</div>
 		<? } ?>
 		<? if ($_SESSION['dwh_droit_see_clustering'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_clustering" style="display:none;" class="div_result">
-				<? print $phrase_nb_patient_total; ?>
+				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_clustering.php"; ?>
 			</div>
 		<? } ?>
 		<? if ($_SESSION['dwh_droit_see_map'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_map" style="display:none;" class="div_result">
-				<? print $phrase_nb_patient_total; ?>
+				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_map.php"; ?>
 			</div>
 		<? } ?>
 		<? if ($_SESSION['dwh_droit_admin_datamart0']=='ok') { ?>
 			<div id="id_div_dwh_admin_datamart" style="display:none;" class="div_result">
-				<? print $phrase_nb_patient_total; ?>
+				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_datamart.php"; ?>
 			</div>
 		<? } ?>
 		
 		<? if ($_SESSION['dwh_droit_export_data']=='ok') { ?>
 			<div id="id_div_dwh_export_data" style="display:none;" class="div_result">
-				<? print $phrase_nb_patient_total; ?>
+				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_export_data.php"; ?>
 			</div>
 		<? } ?>
 		
 		<? if ($_SESSION['dwh_droit_regexp']=='ok') { ?>
 			<div id="id_div_dwh_regexp" style="display:none;" class="div_result">
-				<? print $phrase_nb_patient_total; ?>
+				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_regexp.php"; ?>
+			</div>
+		<? } ?>
+		
+		<? if ($_SESSION['dwh_droit_extract_ecrf_on_result']=='ok') { ?>
+			<div id="id_div_dwh_extract_ecrf_on_result" style="display:none;" class="div_result">
+				<? //print $phrase_nb_patient_total; ?>
+				<? include "include_extract_ecrf_on_result.php"; ?>
 			</div>
 		<? } ?>
 	<? } ?>
@@ -657,18 +742,9 @@ if ($_POST['action']=='rechercher') {
 
 
 $(document).ready(function(){
-	//$.fn.dataTable.moment( 'HH:mm MMM D, YY' );
-	//$.fn.dataTable.moment( 'dddd, MMMM Do, YYYY' );
 	$.fn.dataTable.moment( 'DD/MM/YYYY HH:mm' );
- 	jQuery('#id_tableau_liste_requete').dataTable( { 
-	 		"scrollY": "500px",
-			  "scrollCollapse": true,
-			  "paging": false,
-			"order": [[ 0, "asc" ]],
-			   "bInfo" : false,
-			   "bDestroy" : true
-		} );
-
+ 	// list_query_history (<? print $datamart_num; ?>) ;
+	get_json_query_history(<? print $datamart_num; ?>) ;
 	
  	jQuery('#id_tableau_liste_requete_sauve').dataTable( { 
 	 		"scrollY": "200px",
@@ -691,12 +767,13 @@ $(document).ready(function(){
 	?>
 	}
 	<?
-	if ($_GET['action']=='preremplir_requete' && $_GET['query_num']!='') {
+	if (($_GET['action']=='preremplir_requete' || $_GET['option']=='preremplir_requete') && $_GET['query_num']!='') {
 		$query_num=$_GET['query_num'];
 		print "charger_moteur_recherche($query_num);";
 	}
 	?>
 } );
+
 
 </script>
 

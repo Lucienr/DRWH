@@ -140,7 +140,7 @@ if ($_GET['request_access_num']!='') {
 				<div id="id_div_liste_demande">
 					<ul>
 						<li><? 
-							print get_translation('REQUEST_AWAITING','Demandes en attente')
+							print get_translation('REQUEST_AWAITING','Demandes en attente');
 							  lister_mes_demandes($user_num_session,'attente','mes_demandes');
 							?>		
 						</li>

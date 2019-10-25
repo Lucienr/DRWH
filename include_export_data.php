@@ -21,14 +21,10 @@
       		<? print get_translation('EXPORT_DATA_COMPLETE_THESAURUS',"Export data d'un thesaursus complet"); ?>:<br>	
       		<select class="js-thesaurus-select" style="width:40%" name="thesaurus[]" multiple="multiple" lang="fr">   		
       		<?php
-      		global $dbh;
-      		$query="select distinct thesaurus_code from dwh_thesaurus_data";	
-      		$sel=oci_parse($dbh,$query);
-      		oci_execute($sel);					
-      			while($r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC)){
-      				$thesaurus_code=$r['THESAURUS_CODE'];	
+      		$thesaurus=get_list_thesaurus_data();
+      		foreach ($thesaurus as $thesaurus_code) {
       				print"<option value=\"$thesaurus_code\">$thesaurus_code</option>";	
-      			}	
+      		}	
       		?>
       		</select>
 	</div>	
@@ -37,15 +33,16 @@
       		<? print get_translation('SELECT_DATA_LIST','Sélectionner une liste des données'); ?>:<br>	
       		<select class="js-list-concept-select" style="width:40%" name="list[]" multiple="multiple" lang="fr" ">   		
       		<?
-      		$query="select title,user_num from dwh_export_data where user_num='$user_num_session' or share_list=1";	
+      		$query="select title,user_num,export_data_num from dwh_export_data where user_num='$user_num_session' or share_list=1";	
       		$sel=oci_parse($dbh,$query);
       		oci_execute($sel);					
       			while($r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC)){
       				$title=$r['TITLE'];
       				$user_num=$r['USER_NUM'];
+      				$export_data_num=$r['EXPORT_DATA_NUM'];
 				$createur=get_user_information($user_num,'pn');
     				      					
-      				print "<option value=\"$title\">$title ".get_translation('CREATED_BY','créer par')." $createur</option>";	
+      				print "<option value=\"$export_data_num\">$title ".get_translation('CREATED_BY','créer par')." $createur</option>";	
       			}	
       		?>
       		</select>										
@@ -124,7 +121,7 @@ $(".js-concept-select").select2({
 	      	return {
 	      		q: params.term, 
 	      		action : 'get_concept_data',
-	      		tmpresult_num
+	      		tmpresult_num : tmpresult_num
 	        	};
 	      },
 	      processResults: function (data) {
@@ -175,39 +172,35 @@ $("#id_reset_selected_data").on("click", function (e) {
 $(".js-list-concept-select").on("change", function (e) {		
 	$(".js-thesaurus-select").val('').trigger('change');		
 	var list_c = $(".js-list-concept-select").val();	
-	console.log(list_c);	
-	
-	
-		jQuery.ajax({
-			type:"POST",
-			url:"ajax_export.php",
-			async:false,
-			dataType: 'json',
-			data: {action:'extract_concepts_from_list',list_c:list_c,tmpresult_num:tmpresult_num},
-			beforeSend: function(requester){
-			},
-			
-			success: function(requester){
-				var concepts=requester;
-				//console.log(requester);
-				for (i in concepts)
-				{
-					libelle_concept=concepts[i].text;
-					id_concept=concepts[i].id;
-					var newConcept = new Option(libelle_concept,id_concept, true, true);
-				        // Append it to the select
-					test_concept=check_if_concepts_exist(concepts[i].id);
-					if (test_concept != true){
-				     		$(".js-concept-select").append(newConcept).trigger('change');
-					}
-
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_export.php",
+		async:false,
+		dataType: 'json',
+		data: {action:'extract_concepts_data_from_list',list_c:list_c,tmpresult_num:tmpresult_num},
+		beforeSend: function(requester){
+		},
+		
+		success: function(requester){
+			var concepts=requester;
+			for (i in concepts)
+			{
+				libelle_concept=concepts[i].text;
+				id_concept=concepts[i].id;
+				var newConcept = new Option(libelle_concept,id_concept, true, true);
+			        // Append it to the select
+				test_concept=check_if_concepts_exist(concepts[i].id);
+				if (test_concept != true){
+			     		$(".js-concept-select").append(newConcept).trigger('change');
 				}
-			},
-			complete: function(requester){
-			},
-			error: function(){
-					}
-		});	
+
+			}
+		},
+		complete: function(requester){
+		},
+		error: function(){
+				}
+	});	
 	
 });
 	
@@ -251,13 +244,13 @@ function save_curent_selection() {
 }
 
 function check_if_concepts_exist(concept_code){
-	var selected_concepts = $(".js-concept-select").val();
-	//console.log('item deja'+selected_concepts);
-	if(selected_concepts!= null) {
-	var check= selected_concepts.includes(concept_code); 
-	//console.log('check '+ check);
+	var selected_concepts = ","+$(".js-concept-select").val()+",";
+	var check=false;
+	i=selected_concepts.indexOf(','+concept_code+',');
+	if(i>-1) {
+		check= true; 
 	}else {
-	 check= false; 
+		check= false; 
 	} 
 	return check;
 
@@ -313,7 +306,7 @@ function get_all_export_data() {
 		beforeSend: function(requester){
 		},
 		success: function(requester){
-		//	jQuery("#id_previous_export_data").html(requester); 
+			jQuery("#id_previous_export_data").html(requester); 
 		},
 		complete: function(requester){
 		},
@@ -384,7 +377,7 @@ function verif_process_execute_process_export_data (process_num) {
 			status=tab[0];
 			message=tab[1];
 			if (status=='1') { // end
-				jQuery("#id_div_export_data_chargement").html("<a href='export_data_excel.php?process_num="+process_num+"' target='_blank'>Telecharger "+message+"</a>"); 
+				jQuery("#id_div_export_data_chargement").html("<a href='export_process.php?process_num="+process_num+"' target='_blank'>Telecharger "+message+"</a>"); 
 				get_all_export_data();
 			} else {
 				if (status=='erreur') {

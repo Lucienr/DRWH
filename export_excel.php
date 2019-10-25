@@ -32,8 +32,8 @@ error_reporting(E_ALL ^ E_NOTICE);
 include_once("parametrage.php");
 include_once("connexion_bdd.php");
 include_once("ldap.php");
-include_once("fonctions_dwh.php");
 include_once("fonctions_droit.php");
+include_once("fonctions_dwh.php");
 include_once("verif_droit.php");
 include_once("fonctions_stat.php");
 
@@ -54,18 +54,12 @@ $process_num=$_GET['process_num'];
 $option=$_GET['option'];
 $tmpresult_num=$_GET['tmpresult_num'];
 
-print "<style>
-.num {
-  mso-number-format:General;
-}
-.text{
-  mso-number-format:\"\@\";/*force text*/
-}
-</style>";
+$style= "<style>.num {  mso-number-format:General;} .text{  mso-number-format:\"\@\";/*force text*/ } </style> ";
 
 if ( $cohort_num!='' && $status!='') {
         $autorisation_voir_patient_cohorte=verif_autorisation_voir_patient_cohorte($cohort_num,$user_num_session);
         if ( $autorisation_voir_patient_cohorte=='ok') {
+        	print "$style";
 	        print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
 	        print "<tr>
 	        <th>".get_translation('HOSPITAL_PATIENT_UNIQUE_IDENTIFIER_ACRONYM','IPP')."</th>
@@ -98,10 +92,10 @@ if ( $cohort_num!='' && $status!='') {
 if ( $request_access_num!='') {
 	$autorisation_demande_voir=autorisation_demande_voir ($request_access_num,$user_num_session);
         if ( $autorisation_demande_voir=='ok') {
+        	print "$style";
 	        print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
 	        print "<tr>
 	         <th>".get_translation('HOSPITAL_PATIENT_UNIQUE_IDENTIFIER_ACRONYM','IPP')."</th>
-	        <th>".get_translation('INITIALS','Initials')."</th>
 	        <th>".get_translation('LASTNAME','Lastname')."</th>
 	        <th>".get_translation('FIRSTNAME','Prénom')."</th>
 	        <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
@@ -112,7 +106,15 @@ if ( $request_access_num!='') {
 	        oci_execute($sel);
 	        while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 	                $patient_num=$r['PATIENT_NUM'];
-	               print afficher_patient($patient_num,'demande_acces_excel','',$cohort_num);
+			$patient=get_patient($patient_num);
+			print "<tr>";
+			print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+			print "<td>".$patient['LASTNAME']."</td>";
+			print "<td>".$patient['FIRSTNAME']."</td>";
+			print "<td>".$patient['BIRTH_DATE']."</td>";
+			print "<td>".$patient['DEATH_DATE']."</td>";
+			print "<td>".$patient['ZIP_CODE']."</td>";
+			print "</tr>";
 	        }
 	        print "</table>";
 	}
@@ -126,26 +128,77 @@ if ( $tmpresult_num!='' && $option=='patient') {
 	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
       
 
+        print "$style";
 
         print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
         print "<tr>
-        <th>PATIENT_NUM</th>
-        <th>".get_translation('INITIALS','Initials')."</th>
+        <th>IPP</th>
         <th>".get_translation('LASTNAME','Lastname')."</th>
         <th>".get_translation('FIRSTNAME','Prénom')."</th>
         <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
         <th>".get_translation('DEATH','Décés')."</th>
         <th>".get_translation('ZIP_CODE','Code postal')."</th>
         <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
-        <th>".get_translation('INCLUSION_DATE',"Date d'inclusion")."</th>
-        <th>".get_translation('INVESTIGATOR','Investigateur')."</th>
         </tr>";
         $sel=oci_parse($dbh,"select distinct patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and user_num=$user_num_session $filtre_sql_resultat");
         oci_execute($sel);
         while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
                 $patient_num=$r['PATIENT_NUM'];
+		$patient=get_patient($patient_num);
 		print "<tr>";
-		print afficher_patient($patient_num,'cohorte_excel','','');
+		print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+		print "<td>".$patient['LASTNAME']."</td>";
+		print "<td>".$patient['FIRSTNAME']."</td>";
+		print "<td>".$patient['BIRTH_DATE']."</td>";
+		print "<td>".$patient['DEATH_DATE']."</td>";
+		print "<td>".$patient['ZIP_CODE']."</td>";
+		print "<td>".$patient['PHONE_NUMBER']."</td>";
+		print "</tr>";
+        }
+        print "</table>";
+	save_log_page($user_num_session,'export_patient_result');
+}
+	
+
+if ( $tmpresult_num!='' && $option=='patient_document') {
+     
+        //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
+	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+      
+
+        print "$style";
+
+        print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
+        print "<tr>
+        <th>IPP</th>
+        <th>".get_translation('LASTNAME','Lastname')."</th>
+        <th>".get_translation('FIRSTNAME','Prénom')."</th>
+        <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
+        <th>".get_translation('DEATH','Décés')."</th>
+        <th>".get_translation('ZIP_CODE','Code postal')."</th>
+        <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
+        <th>".get_translation('DOCUMENT_DATE',"Date du document")."</th>
+        <th>".get_translation('DOCUMENT_TITLE','Titre du document')."</th>
+        <th>".get_translation('DOCUMENT_AUTHOR','Auteur du document')."</th>
+        </tr>";
+        $sel=oci_parse($dbh,"select  patient_num,document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and user_num=$user_num_session  and object_type='document' $filtre_sql_resultat");
+        oci_execute($sel);
+        while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+                $patient_num=$r['PATIENT_NUM'];
+                $document_num=$r['DOCUMENT_NUM'];
+		$patient=get_patient($patient_num);
+		$document=get_document($document_num);
+		print "<tr>";
+		print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+		print "<td>".$patient['LASTNAME']."</td>";
+		print "<td>".$patient['FIRSTNAME']."</td>";
+		print "<td>".$patient['BIRTH_DATE']."</td>";
+		print "<td>".$patient['DEATH_DATE']."</td>";
+		print "<td>".$patient['ZIP_CODE']."</td>";
+		print "<td>".$patient['PHONE_NUMBER']."</td>";
+		print "<td>".$document['document_date']."</td>";
+		print "<td>".$document['title']."</td>";
+		print "<td>".$document['author']."</td>";
 		print "</tr>";
         }
         print "</table>";
@@ -157,10 +210,10 @@ if ( $tmpresult_num!='' && $option=='encounter_result') {
         //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
 	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
 
+        print "$style";
         print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
         print "<tr>
-        <th>PATIENT_NUM</th>
-        <th>".get_translation('INITIALS','Initials')."</th>
+        <th>IPP</th>
         <th>".get_translation('LASTNAME','Lastname')."</th>
         <th>".get_translation('FIRSTNAME','Prénom')."</th>
         <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
@@ -168,6 +221,7 @@ if ( $tmpresult_num!='' && $option=='encounter_result') {
         <th>".get_translation('ZIP_CODE','Code postal')."</th>
         <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
         <th>".get_translation('ENCOUTER_ID','Séjour')."</th>
+        <th>".get_translation('TYPE','Type')."</th>
         <th>".get_translation('ENTRY_DATE','Date entrée')."</th>
         <th>".get_translation('OUT_DATE','Date sortie')."</th>
         </tr>";
@@ -176,25 +230,135 @@ if ( $tmpresult_num!='' && $option=='encounter_result') {
         while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
                 $patient_num=$r['PATIENT_NUM'];
                 $encounter_num=$r['ENCOUNTER_NUM'];
+		$patient=get_patient($patient_num);
+		$encounter=get_encounter_info ($encounter_num);
+		$entry_date=$encounter['ENTRY_DATE'];
+		$out_date=$encounter['OUT_DATE'];
+		$entry_mode=$encounter['ENTRY_MODE'];
+		$out_mode=$encounter['OUT_MODE'];
+		$type='H';
+		$list_mvt=array();
+		if ($entry_date=='') {
+			$list_mvt=get_mvt_info_by_encounter ($encounter_num);
+			$entry_date=$list_mvt[0]['ENTRY_DATE'];
+			$out_date=$list_mvt[0]['OUT_DATE'];
+			$entry_mode=$list_mvt[0]['MVT_ENTRY_MODE'];
+			$out_mode=$list_mvt[0]['MVT_EXIT_MODE'];
+			$type=$list_mvt[0]['TYPE_MVT'];
+		}
 		print "<tr>";
-		print afficher_patient($patient_num,'result_excel','','');
-		list($entry_date,$out_date,$entry_mode,$out_mode)=get_encounter_info ($encounter_num);
-		print "<td class=\"text\">$encounter_num</td><td class=\"text\">$entry_date</td><td class=\"text\">$out_date</td>";
+		print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+		print "<td>".$patient['LASTNAME']."</td>";
+		print "<td>".$patient['FIRSTNAME']."</td>";
+		print "<td>".$patient['BIRTH_DATE']."</td>";
+		print "<td>".$patient['DEATH_DATE']."</td>";
+		print "<td>".$patient['ZIP_CODE']."</td>";
+		print "<td>".$patient['PHONE_NUMBER']."</td>";
+		print "<td>$encounter_num</td>";
+		print "<td>$type</td>";
+		print "<td>$entry_date</td>";
+		print "<td>$out_date</td>";
 		print "</tr>";
         }
         print "</table>";
 	save_log_page($user_num_session,'export_patient_sejour_result');
 }
-	
 if ( $tmpresult_num!='' && $option=='encounter_all') {
      
         //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
 	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
 
 
+        print "$style";
         print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
         print "<tr>
-        <th>PATIENT_NUM</th>
+        <th>IPP</th>
+        <th>".get_translation('LASTNAME','Lastname')."</th>
+        <th>".get_translation('FIRSTNAME','Prénom')."</th>
+        <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
+        <th>".get_translation('DEATH','Décés')."</th>
+        <th>".get_translation('ZIP_CODE','Code postal')."</th>
+        <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
+        <th>".get_translation('ENCOUTER_ID','Séjour')."</th>
+        <th>".get_translation('TYPE','Type')."</th>
+        <th>".get_translation('UNIT','Unité')."</th>
+        <th>".get_translation('DEPARTMENT','Département')."</th>
+        <th>".get_translation('ENTRY_DATE','Date entrée')."</th>
+        <th>".get_translation('OUT_DATE','Date sortie')."</th>
+        </tr>";
+        $sel=oci_parse($dbh,"select distinct dwh_tmp_result_$user_num_session.patient_num
+				from dwh_tmp_result_$user_num_session
+				where tmpresult_num=$tmpresult_num and user_num=$user_num_session  $filtre_sql_resultat");
+        oci_execute($sel);
+        while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+                $patient_num=$r['PATIENT_NUM'];
+		$patient=get_patient($patient_num);
+                $list_encounter=get_encounter_info_by_patient($patient_num);
+                foreach ($list_encounter as $encounter) {
+	                $encounter_num=$encounter['ENCOUNTER_NUM'];
+	                $entry_date=$encounter['ENTRY_DATE'];
+	                $out_date=$encounter['OUT_DATE'];
+			print "<tr>";
+			print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+			print "<td>".$patient['LASTNAME']."</td>";
+			print "<td>".$patient['FIRSTNAME']."</td>";
+			print "<td>".$patient['BIRTH_DATE']."</td>";
+			print "<td>".$patient['DEATH_DATE']."</td>";
+			print "<td>".$patient['ZIP_CODE']."</td>";
+			print "<td>".$patient['PHONE_NUMBER']."</td>";
+			print "<td>$encounter_num</td>";
+			print "<td>H</td>";
+			print "<td></td>";
+			print "<td></td>";
+			print "<td>$entry_date</td>";
+			print "<td>$out_date</td>";
+			print "</tr>";
+		}
+                
+                $list_mvt=get_mvt_info_by_patient($patient_num);
+                foreach ($list_mvt as $mvt) {
+	                $encounter_num=$mvt['ENCOUNTER_NUM'];
+	                $entry_date=$mvt['ENTRY_DATE'];
+	                $out_date=$mvt['OUT_DATE'];
+	                $type_mvt=$mvt['TYPE_MVT'];
+	                $unit_num=$mvt['UNIT_NUM'];
+	                $department_num=$mvt['DEPARTMENT_NUM'];
+	                $unit_str=get_unit_str ($unit_num,$option='cs');
+	                $department_str=get_department_str ($department_num);
+	                if ($type_mvt!='H') {
+				print "<tr>";
+				print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+				print "<td>".$patient['LASTNAME']."</td>";
+				print "<td>".$patient['FIRSTNAME']."</td>";
+				print "<td>".$patient['BIRTH_DATE']."</td>";
+				print "<td>".$patient['DEATH_DATE']."</td>";
+				print "<td>".$patient['ZIP_CODE']."</td>";
+				print "<td>".$patient['PHONE_NUMBER']."</td>";
+				print "<td>$encounter_num</td>";
+				print "<td>$type_mvt</td>";
+				print "<td>$unit_str</td>";
+				print "<td>$department_str</td>";
+				print "<td>$entry_date</td>";
+				print "<td>$out_date</td>";
+				print "</tr>";
+			}
+		}
+        }
+        print "</table>";
+	save_log_page($user_num_session,'export_patient_allsejour_result');
+}
+	
+	
+if ( $tmpresult_num!='' && $option=='encounter_all_ancien') {
+     
+        //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
+	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+
+
+        print "$style";
+        print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
+        print "<tr>
+        <th>IPP</th>
         <th>".get_translation('INITIALS','Initials')."</th>
         <th>".get_translation('LASTNAME','Lastname')."</th>
         <th>".get_translation('FIRSTNAME','Prénom')."</th>
@@ -205,6 +369,7 @@ if ( $tmpresult_num!='' && $option=='encounter_all') {
         <th>".get_translation('ENCOUTER_ID','Séjour')."</th>
         <th>".get_translation('ENTRY_DATE','Date entrée')."</th>
         <th>".get_translation('OUT_DATE','Date sortie')."</th>
+        <th>".get_translation('TYPE','Type')."</th>
         </tr>";
         $sel=oci_parse($dbh,"	select distinct 
 				        dwh_tmp_result_$user_num_session.patient_num,
@@ -221,8 +386,15 @@ if ( $tmpresult_num!='' && $option=='encounter_all') {
                 $encounter_num=$r['ENCOUNTER_NUM'];
                 $entry_date=$r['ENTRY_DATE'];
                 $out_date=$r['OUT_DATE'];
+		$patient=get_patient($patient_num);
 		print "<tr>";
-		print afficher_patient($patient_num,'result_excel','','');
+		print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+		print "<td>".$patient['LASTNAME']."</td>";
+		print "<td>".$patient['FIRSTNAME']."</td>";
+		print "<td>".$patient['BIRTH_DATE']."</td>";
+		print "<td>".$patient['DEATH_DATE']."</td>";
+		print "<td>".$patient['ZIP_CODE']."</td>";
+		print "<td>".$patient['PHONE_NUMBER']."</td>";
 		print "<td class=\"text\">$encounter_num</td><td class=\"text\">$entry_date</td><td class=\"text\">$out_date</td>";
 		print "</tr>";
         }
@@ -232,31 +404,36 @@ if ( $tmpresult_num!='' && $option=='encounter_all') {
 	
 	
 if ( $tmpresult_num!='' && $option=='stat_movment') {
+        print "$style";
 	nb_consult_per_unit_per_year_tableau ($tmpresult_num);
 	nb_hospit_per_unit_per_year_tableau ($tmpresult_num);
 	nb_patient_per_unit_per_year_tableau ($tmpresult_num);
 	save_log_page($user_num_session,'export_stat_result');
 }
 
-if ( $process_num!='' ) {
-	    
+if ( $process_num!='' &&  $option=='similarity_cohort') {
+        print "$style";
 	$tableau_process=get_process($process_num);
 	$result=$tableau_process['RESULT'];
-	
 	$tab_patient=explode(";",$result);
-
 	print "<table border=0 id=\"id_tableau_similarite_cohorte\" class=\"tablefin\" width=\"800\">";
 	print "<thead><th>".get_translation('SIMILAR_PATIENTS','Patients similaires')."</th><th>".get_translation('IN_TOP_20_OF_N_INDEX_PATIENTS','Dans le top20 de N patients index')."</th><th>".get_translation('MEAN_SIMILARITY','Similarité moyenne')."</th></thead><tbody>";
 	foreach ($tab_patient as $p) {
 		list($patient_num,$nb,$similarite)=explode(",",$p);
             	//print afficher_patient($patient_num,'cohorte_excel','','');
-		$user_name=afficher_patient ($patient_num,'lastname firstname ddn','','','similarite');
-		print "<tr><td>$user_name </td><td>$nb</td><td>$similarite</td></tr>\n";
+		$patient=get_patient($patient_num);
+		$patient_name=$patient['LASTNAME']." ".$patient['FIRSTNAME']." ".$patient['BIRTH_DATE'];
+		print "<tr><td>$patient_name </td><td>$nb</td><td>$similarite</td></tr>\n";
 	}
 	
 	print "</tbody></table>";
         print "</div>";
         print "</table>";
+}
+	
+
+if ( $process_num!='' &&  $option=='ecrf_patient_answer') {
+
 }
 	
 ?>

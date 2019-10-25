@@ -39,10 +39,11 @@ include_once "similarite_fonction.php";
 $cohort_num=$argv[1];
 $process_num=$argv[2];
 $requete=nettoyer_pour_requete($argv[3]);
+$user_num_session=$argv[4];
 
 $tab_patient_num_deja=array();
 
-update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
+update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'',$user_num_session,"");
 
 $ins= oci_parse($dbh,"delete from dwh_process_patient where process_num='$process_num' " );   
 oci_execute($ins);
@@ -58,5 +59,5 @@ while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 	}
 }
 
-update_process ($process_num,'1',get_translation('PROCESS_END','process fini'),'');
+update_process ($process_num,'1',get_translation('PROCESS_END','process fini'),'',$user_num_session,"");
 ?>

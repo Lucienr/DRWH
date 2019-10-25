@@ -103,7 +103,7 @@ if ($argv[1] !='') {
 		$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
 		$nb_patient=$r['NB_PATIENT'];
 	}
-	update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
+	update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'',$user_num_session,$file_type);
 
 	print "
 	file_type $file_type
@@ -165,14 +165,14 @@ if (!empty($concepts)){
 print_r($tableau_thesaurus_data_used);
 /// ENTETE EXPORT 
 if ($file_type=='xls'){
-	$resultat_final.="<style>
-		.num {
-		  mso-number-format:General;
-		}
-		.text{	
-		  mso-number-format:\"\@\";/*force text*/
-		}
-		</style>";
+#	$resultat_final.="<style>
+#		.num {
+#		  mso-number-format:General;
+#		}
+#		.text{	
+#		  mso-number-format:\"\@\";/*force text*/
+#		}
+#		</style>";
 	$resultat_final.="<table id=\"id_table_export_concept\" style=\"width:100%\">";	
 }
 		
@@ -259,7 +259,7 @@ if ($export_type=='row'){
 	} else {
 		$resultat_final.="\n";
 	}
-	update_process ($process_num,'0',"entete calculee",$resultat_final);
+	update_process ($process_num,'0',"entete calculee",$resultat_final,$user_num_session,$file_type);
 	$resultat_final='';
 } 
 
@@ -269,7 +269,7 @@ if (!empty($tableau_thesaurus_data_used)){
 	if ($export_type=='row'){
 		$i_patient=0;
 		//select patient
-		update_process ($process_num,'0',"$i_patient / $nb_patient",'');
+		update_process ($process_num,'0',"$i_patient / $nb_patient",'',$user_num_session,$file_type);
     		$query_patients="select distinct $patient_or_document as cle , patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num order by patient_num";
     		$sel_patient = oci_parse($dbh,$query_patients); 
     		oci_execute($sel_patient);	
@@ -278,7 +278,7 @@ if (!empty($tableau_thesaurus_data_used)){
     			$cle=$res_patient['CLE'];
     			$i_patient++;
     			//if ($i_patient % 20==0 && $mode_export=='argv') {
-				update_process ($process_num,'0',"$i_patient / $nb_patient",$resultat_final);
+				update_process ($process_num,'0',"$i_patient / $nb_patient",$resultat_final,$user_num_session,$file_type);
 				$resultat_final='';
     			//}
     			$verif=autorisation_voir_patient($patient_num,$user_num_session);
@@ -349,7 +349,7 @@ if (!empty($tableau_thesaurus_data_used)){
 		$tableau_patient=array();
     		
 		print "$i_patient / $nb_patient\n";
-		update_process ($process_num,'0',"$i_patient / $nb_patient",'');
+		update_process ($process_num,'0',"$i_patient / $nb_patient",'',$user_num_session,$file_type);
     		$query_patients="select distinct $patient_or_document as cle,patient_num, to_char(document_date,'DD/MM/YYYY HH24:MI') as date_char, document_date from DWH_DATA where $patient_or_document in (select dwh_tmp_result_$user_num_session.$patient_or_document from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) order by patient_num, document_date";
     		$sel_patient = oci_parse($dbh,$query_patients); 
     		oci_execute($sel_patient);	
@@ -358,11 +358,11 @@ if (!empty($tableau_thesaurus_data_used)){
     			$cle=$res_patient['CLE'];
     			$date_char=$res_patient['DATE_CHAR'];
 			$i_patient++;
-	    		//if ($i_patient % 20==0 && $mode_export=='argv') {
-				update_process ($process_num,'0',"$i_patient / $nb_patient",$resultat_final);
+	    		if ($i_patient % 100==0 && $mode_export=='argv') {
+				update_process ($process_num,'0',"$i_patient / $nb_patient",$resultat_final,$user_num_session,$file_type);
 				$resultat_final='';
 				print "$i_patient / $nb_patient\n";
-    			//}
+    			}
     			$verif=autorisation_voir_patient($patient_num,$user_num_session);
     			if($verif=='ok'){
     				
@@ -477,8 +477,9 @@ if ($file_type=='xls'){
 }
 
 if ($mode_export=='argv') {
-	update_process ($process_num,'1',"$file_name.$file_type",$resultat_final);
-	update_process_end_date ($process_num,"sysdate + 5") ;
+	update_process ($process_num,'1',"$file_name.$file_type",$resultat_final,$user_num_session,$file_type);
+	update_process_end_date ($process_num,"sysdate + 5",$user_num_session) ;
+	sauver_notification ($user_num_session,$user_num_session,'process',"",$process_num);
 } else {
 	print "$resultat_final";
 }

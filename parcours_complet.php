@@ -30,10 +30,12 @@ putenv("NLS_LANGUAGE=FRENCH_FRANCE.WE8MSWIN1252");
 include_once("parametrage.php");
 include_once("connexion_bdd.php");
 include_once("ldap.php");
-include_once("fonctions_dwh.php");
 include_once("fonctions_droit.php");
+include_once("fonctions_dwh.php");
 include_once("fonctions_stat.php");
-include_once("verif_droit.php");
+
+
+include("verif_droit.php");
 
 $date_today_unique=date("dmYHis");
 #session_start();

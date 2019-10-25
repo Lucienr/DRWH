@@ -37,14 +37,14 @@ session_write_close();
 			$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
 			$min_char_last_execution_date=$r['MIN_CHAR_LAST_EXECUTION_DATE'];
 			
-			$sel_var1=oci_parse($dbh,"select year,month-1 as month from dwh_info_load where  year is not null and year>1995  and month is not null order by year asc,month asc");
+			$sel_var1=oci_parse($dbh,"select year,month-1 as month from dwh_info_load where  year is not null and year>1995  and year <=to_char(sysdate,'YYYY') and month is not null order by year asc,month asc");
 			oci_execute($sel_var1);
 			$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
 			$annee_min=$r['YEAR'];
 			$mois_min=$r['MONTH'];
 			$an_mois_min="$annee_min,$mois_min";
 			
-			$sel_var1=oci_parse($dbh,"select year,month-1 as month from dwh_info_load where  year is not null and year>1995  and month is not null order by year desc,month desc");
+			$sel_var1=oci_parse($dbh,"select year,month-1 as month from dwh_info_load where  year is not null and year>1995  and year <=to_char(sysdate,'YYYY') and month is not null order by year desc,month desc");
 			oci_execute($sel_var1);
 			$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
 			$annee_max=$r['YEAR'];

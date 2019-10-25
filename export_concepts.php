@@ -32,8 +32,8 @@ error_reporting(E_ALL ^ E_NOTICE);
 include_once("parametrage.php");
 include_once("connexion_bdd.php");
 include_once("ldap.php");
-include_once("fonctions_dwh.php");
 include_once("fonctions_droit.php");
+include_once("fonctions_dwh.php");
 include_once("verif_droit.php");
 include_once("fonctions_concepts.php");
 session_write_close();
@@ -85,7 +85,7 @@ if ( $tmpresult_num!='' && $type_export=='detail_patient_concept') {
 		        COUNT_CONCEPT_STR_FOUND as COUNT_CONCEPT_FOUND, 
 		        concept_str as concept_pref
 	 	from dwh_patient,dwh_enrsem,dwh_thesaurus_enrsem 
-	 	where dwh_enrsem.document_num in (select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)
+	 	where dwh_enrsem.document_num in (select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document')
 			and certainty=1 and context='patient_text'
 			and dwh_patient.patient_num=dwh_enrsem.patient_num
 			and dwh_enrsem.concept_code=dwh_thesaurus_enrsem.concept_code
@@ -100,7 +100,7 @@ if ( $tmpresult_num!='' && $type_export=='detail_patient_concept') {
 		        COUNT_CONCEPT_STR_FOUND as COUNT_CONCEPT_FOUND, 
 		        concept_str as concept_pref
 	 	from dwh_patient,dwh_enrsem,dwh_thesaurus_enrsem 
-	 	where dwh_enrsem.patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)
+	 	where dwh_enrsem.patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num )
 			and certainty=1 and context='patient_text'
 			and dwh_patient.patient_num=dwh_enrsem.patient_num
 			and dwh_enrsem.concept_code=dwh_thesaurus_enrsem.concept_code

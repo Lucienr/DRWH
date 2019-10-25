@@ -32,8 +32,10 @@ error_reporting(E_ALL ^ E_NOTICE);
 include_once("parametrage.php");
 include_once("connexion_bdd.php");
 include_once("ldap.php");
+include_once("fonctions_droit.php");
 include_once("fonctions_dwh.php");
 include_once("fonctions_stat.php");
+
 include_once("verif_droit.php");
 $date_today_unique=date("dmYHis");
 session_write_close();
@@ -71,8 +73,8 @@ if ($max_nb_mvt=='') {
                 and a.out_date is not null
                 and a.encounter_num is not null 
                 and b.encounter_num is not null 
-                and a.type_mvt='H' 
-                and b.type_mvt='H' 
+                and a.type_mvt in ('H' ,'U')
+                and b.type_mvt in ('H' ,'U')
                 group by a.department_num,b.department_num )";
 	$req=oci_parse($dbh,$requete);
 	oci_execute($req) ;

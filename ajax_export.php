@@ -28,6 +28,7 @@ putenv("NLS_LANG=French");
 
 include_once "parametrage.php";
 include_once "connexion_bdd.php";
+include_once("fonctions_droit.php");
 include_once("fonctions_dwh.php");
 
 
@@ -122,40 +123,42 @@ if ($_POST['action']=='save_curent_selection') {
 
 }
 
-if ($_POST['action']=='extract_concepts_from_list') {
+if ($_POST['action']=='extract_concepts_data_from_list') {
 	$list_of_concepts=$_POST['list_c'];
 
 	$tmpresult_num=$_POST['tmpresult_num'];
 	$concepts=array();
-	foreach ($list_of_concepts as $title){
+	foreach ($list_of_concepts as $export_data_num){
 		$result=array();
-      		$query="select list_concept from dwh_export_data where title='$title'";	
-      		$sel=oci_parse($dbh,$query);
-      		oci_execute($sel);	
-		$r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC);
-		$concepts_list=$r['LIST_CONCEPT'];
-		$concepts_array=explode(",",$concepts_list);
-		
-		foreach ($concepts_array as $thesaurus_data_num){
-			$query="select thesaurus_data_num, concept_code,concept_str,info_complement,measuring_unit from dwh_thesaurus_data where thesaurus_data_num='$thesaurus_data_num' ";
-			$sel=oci_parse($dbh,$query);
-			oci_execute($sel);
-			$r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC);	
-			$concept_str=utf8_encode($r['CONCEPT_STR']);
-			$concept_code=utf8_encode($r['CONCEPT_CODE']);
-			$info_complement=utf8_encode($r['INFO_COMPLEMENT']);
-			$measuring_unit=utf8_encode($r['MEASURING_UNIT']);
-			$total_patients= total_patients_per_concept($thesaurus_data_num,$tmpresult_num);
-			$string=$concept_str;
-				if ($info_complement!=''){
-					$string.=' - '.$info_complement;
-				}
-				if ($info_complement!=''){
-					$string.=' ('.$measuring_unit.')';
-				}
-			$string.=" (nb $total_patients)";		
-			array_push($concepts,array('id'=>$thesaurus_data_num, 'text'=>$string));			
-		}	
+		if ($export_data_num!='') {
+	      		$query="select list_concept from dwh_export_data where export_data_num='$export_data_num'";	
+	      		$sel=oci_parse($dbh,$query);
+	      		oci_execute($sel);	
+			$r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC);
+			$concepts_list=$r['LIST_CONCEPT'];
+			$concepts_array=explode(",",$concepts_list);
+			
+			foreach ($concepts_array as $thesaurus_data_num){
+				$query="select thesaurus_data_num, concept_code,concept_str,info_complement,measuring_unit from dwh_thesaurus_data where thesaurus_data_num='$thesaurus_data_num' ";
+				$sel=oci_parse($dbh,$query);
+				oci_execute($sel);
+				$r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC);	
+				$concept_str=utf8_encode($r['CONCEPT_STR']);
+				$concept_code=utf8_encode($r['CONCEPT_CODE']);
+				$info_complement=utf8_encode($r['INFO_COMPLEMENT']);
+				$measuring_unit=utf8_encode($r['MEASURING_UNIT']);
+				$total_patients= total_patients_per_concept($thesaurus_data_num,$tmpresult_num);
+				$string=$concept_str;
+					if ($info_complement!=''){
+						$string.=' - '.$info_complement;
+					}
+					if ($info_complement!=''){
+						$string.=' ('.$measuring_unit.')';
+					}
+				$string.=" (nb $total_patients)";
+				array_push($concepts,array('id'=>$thesaurus_data_num, 'text'=>$string));			
+			}	
+		}
 	}
 	echo json_encode($concepts);
 }
@@ -198,7 +201,7 @@ if ($_POST['action']=='execute_process_export_data') {
 	if (is_array($selected_thesaurus)) {
 		$list_thesaurus = implode(",", $selected_thesaurus);
 	}
-	$process_num=uniqid();
+	$process_num=get_uniqid();
 	if ($list_thesaurus!='' || $list_concepts!='') {
 		passthru( "php export_data_excel.php $user_num_session $tmpresult_num $process_num $file_type $export_type \"$list_thesaurus\" \"$list_concepts\" \"$file_name\" \"$patient_or_document\">> $CHEMIN_GLOBAL_LOG/log_export_data_excel_$process_num.txt 2>&1 &");
 		print "$process_num";
@@ -217,10 +220,34 @@ if ($_POST['action']=='verif_process_execute_process_export_data') {
 
 if ($_POST['action']=='get_all_export_data') {
 	$all_process=get_all_my_process ($user_num_session,'export_data');
-	print_r($all_process);
-//	foreach ($all_process as $process_num => $process) {
+	print "<table class=\"tablefin\">
+	<thead>
+	<th>".get_translation('STATUS',"Statut")."</th>
+	<th>".get_translation('COMMENT',"Commentaire")."</th>
+	<th>".get_translation('DATE_OF_DELETION',"Date de suppression")." Date of deletion</th>
+	<th>".get_translation('TELECHARGER',"Télécharger")."</th>
+	</thead>
+	<tbody>";
+	foreach ($all_process as $process_num) {
+	
+		$process=get_process  ($process_num);
+		$user_num=$process['USER_NUM'];
+		$status=$process['STATUS'];
+		$commentary=$process['COMMENTARY'];
+		$process_end_date=$process['PROCESS_END_DATE'];
+		$category_process=$process['CATEGORY_PROCESS'];
 		
-//	}
-	print "$status;$commentary";
+		if ($status=='1') { // end
+			$telecharger="<a href='export_process.php?process_num=$process_num' target='_blank'>".get_translation('TELECHARGER',"Télécharger")."</a>"; 
+			$status=get_translation('TERMINATED',"Terminé");
+		} else {
+			$telecharger='';
+			$status=get_translation('IN_PROGRESS',"En cours");
+		}
+		
+		print "<tr><td>$status</td><td>$commentary</td><td>$process_end_date</td><td>$telecharger</td></tr>";
+	}
+	print "</tbody>";
+	print "</table>";
 }
 ?>

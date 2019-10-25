@@ -63,15 +63,15 @@
 	<br>
 	<br>
 	<div id="id_liste_patient_cohorte_encours1" class="div_cohorte" style="display:block;">
-		<? print liste_patient_cohorte_encours($cohort_num_encours,'1'); ?>
+		<? //print liste_patient_cohorte_encours($cohort_num_encours,'1'); ?>
 	</div>
 	<div id="id_liste_patient_cohorte_encours0" class="div_cohorte" style="display:none;">
-		<? print liste_patient_cohorte_encours($cohort_num_encours,'0'); ?>
+		<? //print liste_patient_cohorte_encours($cohort_num_encours,'0'); ?>
 	</div>
 	<div id="id_liste_patient_cohorte_encours2" class="div_cohorte" style="display:none;">
-		<? print liste_patient_cohorte_encours($cohort_num_encours,'2'); ?>
+		<? //print liste_patient_cohorte_encours($cohort_num_encours,'2'); ?>
 	</div>
 	<div id="id_liste_patient_cohorte_encours3" class="div_cohorte" style="display:none;">
-		<? print liste_patient_cohorte_encours($cohort_num_encours,'3'); ?>
+		<? //print liste_patient_cohorte_encours($cohort_num_encours,'3'); ?>
 	</div>
 <? } ?>

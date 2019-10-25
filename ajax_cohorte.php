@@ -64,7 +64,7 @@ if ($_POST['action']=='display_cohort_concepts_tab') {
 
 
 if ($_POST['action']=='rafraichir_select_cohort') {
-	lister_mes_cohortes_cohort_num_titre ($user_num_session);
+	display_user_cohort_javascript ($user_num_session);
 }
 
 
@@ -80,10 +80,10 @@ if ($_POST['action']=='precalcul_nb_patient_similarite_cohorte') {
         if ($verif_process_num=='') {
 		create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','debut du process'),'',"sysdate+2","similarite_cohorte");
 	} else {
-		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
+		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'',$user_num_session,'');
 	}
 	
-	passthru( "php exec_precalcul_nb_patient_similarite_cohorte.php $cohort_num $process_num \"$requete\">> $CHEMIN_GLOBAL_LOG/log_chargement_similarite_patient_$cohort_num.txt 2>&1 &");
+	passthru( "php exec_precalcul_nb_patient_similarite_cohorte.php \"$cohort_num\" \"$process_num\" \"$requete\" \"$user_num_session\">> $CHEMIN_GLOBAL_LOG/log_chargement_similarite_patient_$cohort_num.txt 2>&1 &");
 	print $process_num;
 }
 
@@ -120,7 +120,7 @@ if ($_POST['action']=='calculer_similarite_cohorte') {
         if ($verif_process_num=='') {
 		create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','debut du process'),'',"sysdate+7","similarite_cohorte");
 	} else {
-		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
+		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'',$user_num_session,'');
 	}
 	
 	passthru( "php exec_similarite_cohorte.php \"$cohort_num\" \"$process_num\" \"$nbpatient_limite\" \"$limite_count_concept_par_patient_num\" \"$cohorte_exclue\" \"$patients_importes\" > $CHEMIN_GLOBAL_LOG/log_chargement_similarite_cohorte_$cohort_num.$process_num.txt 2>&1 &");
@@ -141,10 +141,10 @@ if ($_POST['action']=='verifier_process_fini_similarite_cohorte') {
 		if ($status==0) {
 			$process=verif_process("exec_similarite_cohorte");
 			if ($process==1) {
-				$process=verif_process("tmp_graphviz_similarite_tfidf_$cohort_num.$process_num.dot");
-				if ($process==1) {
+			//	$process=verif_process("tmp_graphviz_similarite_tfidf_$cohort_num.$process_num.dot");
+			//	if ($process==1) {
 					$res="erreur; ".get_translation('ERROR_SIMILARITY_COMPUTATION','il y a une erreur dans le calcul de similarite ...');
-				} 
+			//	} 
 			}
 		}
 		print $res;
@@ -156,40 +156,12 @@ if ($_POST['action']=='verifier_process_fini_similarite_cohorte') {
 if ($_POST['action']=='afficher_resultat_similarite_cohorte') {
 	$process_num=$_POST['process_num'];
 	$cohort_num=$_POST['cohort_num'];
-	$res='';
+	$result='';
 	if ($process_num!='') {
-		
 		$tableau_process=get_process ($process_num);
 		$result=$tableau_process['RESULT'];
-		
-		$tab_patient=explode(";",$result);
-	
-		$res.= "<a href=\"export_excel.php?process_num=$process_num\"><img src=\"images/excel_noir.png\" style=\"cursor:pointer;width:25px;\" title=\"Export Excel\" alt=\"Export Excel\" border=\"0\"></a> ";
-		$res.= "<img src=\"images/copier_coller.png\" onclick=\"plier_deplier('id_div_tableau_similarite_cohorte');plier_deplier('id_div_textarea_patient_cohorte_similarite');fnSelect('id_div_textarea_patient_cohorte_similarite');\" style=\"cursor:pointer;\" title=\"Copier Coller pour exporter dans Gecko\" alt=\"Copier Coller pour exporter dans Gecko\"> ";
-		$res.= "<div  id=\"id_div_tableau_similarite_cohorte\" style=\"display:block;\">";
-		$res.="<table border=0 id=\"id_tableau_similarite_cohorte\" class=\"tablefin\" width=\"800\">";
-		$res.="<thead><th>Patients similaires</th><th> Dans le top20 de N patients index </th><th>Similarité moyenne</th></thead><tbody>";
-		foreach ($tab_patient as $p) {
-			list($patient_num,$nb,$similarite)=explode(",",$p);
-			$user_name=afficher_patient ($patient_num,'lastname firstname ddn','','','similarite');
-			$res.= "<tr><td>$user_name <a target=\"_blank\" href=\"patient.php?patient_num=$patient_num\"><img border=\"0\" src=\"images/dossier_patient.png\"></a></td><td>$nb</td><td>$similarite</td></tr>\n";
-		}
-		
-		$res.= "</tbody></table>";
-	        $res.= "</div>";
-		
-		$res.= "<pre id=\"id_div_textarea_patient_cohorte_similarite\" style=\"display:none;\" >";
-		foreach ($tab_patient as $p) {
-			list($patient_num,$nb,$similarite)=explode(",",$p);
-	                $ligne=afficher_patient($patient_num,'textarea','',$cohort_num,'similarite');
-	                $ligne=rtrim($ligne);
-	                $res.=$ligne."\t$nb\t$similarite\n";
-	        }
-        	$res.= "</pre>";
-	
-	
 	}
-	print $res;
+	print $result;
 }
 
 if ($_POST['action']=='display_query_inclusion') {
@@ -203,4 +175,100 @@ if ($_POST['action']=='display_query_inclusion') {
 	}
 }
 
+if ($_POST['action']=='lister_tous_les_commentaires_patient_cohorte') {
+	$cohort_num=$_POST['cohort_num'];
+	print lister_tous_les_commentaires_patient_cohorte ($cohort_num);
+	
+}
+
+if ($_POST['action']=='importer_patient_cohorte') {
+	$liste_hospital_patient_id=urldecode($_POST['liste_hospital_patient_id']);
+	$cohort_num=$_POST['cohort_num'];
+	$option=$_POST['option'];
+	if ($option=='importer') {
+		$status=3;
+	}
+	if ($option=='exclure') {
+		$status=0;
+	}
+	if ($option=='inclure') {
+		$status=1;
+	}
+	$i=0;
+  	$tableau_ligne=preg_split("/[\n\r]/",$liste_hospital_patient_id);
+  	foreach ($tableau_ligne as $ligne) {
+  		$i++;
+	  	$tab=preg_split("/[;,\t]/",$ligne);
+  		
+  		if (preg_match("/^[a-z]/i",$ligne)) {
+	  		$lastname=trim($tab[0]);
+	  		$firstname=trim($tab[1]);
+	  		$birth_date=trim($tab[2]);
+	  	} else {
+	  		$hospital_patient_id=trim($tab[0]);
+	  		$lastname=trim($tab[1]);
+	  		$firstname=trim($tab[2]);
+	  		$birth_date=trim($tab[3]);
+	  	}
+  		$patient_num='';
+  		if ($hospital_patient_id!='') {
+			$patient_num=get_patient_num ($hospital_patient_id,'');
+		} 
+		$birth_date=verif_format_date($birth_date,'DD/MM/YYYY'); // if bad format, date = null;
+		if ($patient_num=='' && $lastname!='' && $firstname!='' && $birth_date!='') {
+			$lastname=nettoyer_pour_insert ($lastname);
+			$firstname=nettoyer_pour_insert ($firstname);
+			$sel=oci_parse($dbh,"select patient_num from dwh_patient where 
+			(regexp_replace(upper( CONVERT(lastname, 'US7ASCII') ),'[^A-Z]','') =regexp_replace(upper( CONVERT('$lastname', 'US7ASCII') ),'[^A-Z]','') or 
+			regexp_replace(upper( CONVERT(maiden_name, 'US7ASCII') ),'[^A-Z]','') =regexp_replace(upper( CONVERT('$lastname', 'US7ASCII') ),'[^A-Z]','') 
+			)
+			and 
+			regexp_replace(upper( CONVERT(firstname, 'US7ASCII') ),'[^A-Z]','') =regexp_replace(upper( CONVERT('$firstname', 'US7ASCII') ),'[^A-Z]','') and
+			lastname is not null and 
+			firstname is not null and
+			birth_date is not null and
+			birth_date=to_date('$birth_date','DD/MM/YYYY')");
+			oci_execute($sel);
+			$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+			$patient_num=$r['PATIENT_NUM'];
+		}
+	  		
+  		if ($patient_num!='') {
+	  		$autorisation_voir_patient=autorisation_voir_patient($patient_num,$user_num_session);
+	  		if ($autorisation_voir_patient=='ok') {
+		        	$autorisation_cohorte_ajouter_patient=autorisation_cohorte_ajouter_patient ($cohort_num,$user_num_session);
+		        	if ($autorisation_cohorte_ajouter_patient=='ok') {
+					$sel=oci_parse($dbh,"select count(*) as verif_deja_inclu from dwh_cohort_result where   cohort_num=$cohort_num and  patient_num =$patient_num ");
+					oci_execute($sel);
+					$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+					$verif_deja_inclu=$r['VERIF_DEJA_INCLU'];
+					
+					if ($verif_deja_inclu==0 ) {
+						$req="insert into dwh_cohort_result  (cohort_num , patient_num ,status,add_date,user_num_add) values ($cohort_num,'$patient_num',$status,sysdate,$user_num_session)";
+						$ins=oci_parse($dbh,$req);
+						oci_execute($ins) || die ("<strong style=\"color:red\">erreur : patient non ajouté à la cohorte</strong><br>");
+	  					print "$i-$ligne : $option<br>";
+					} else {
+						if ($option=='exclure' || $option=='inclure') {
+							$req="update dwh_cohort_result set status=$status,add_date=sysdate,user_num_add=$user_num_session where  cohort_num=$cohort_num and patient_num=$patient_num ";
+							$upd=oci_parse($dbh,$req);
+							oci_execute($upd) || die ("<strong style=\"color:red\">erreur : patient non ajouté à la cohorte</strong><br>");
+	  						print "$i-$ligne : ".get_translation('STATUS_UPDATE','Mise à jour du status')." : $option<br>";
+						} else {
+		  					print "$i-$ligne ".get_translation('NOT_INCLUDED_ALREADY_IN_COHORT','non inclu :  patient déjà dans la cohorte')."<br>";
+		  				}
+					}
+					
+	  			} else {
+	  				print "$i-$ligne non inclu :  vous n'êtes pas autorisé à ajouter des patients dans la cohorte<br>";
+	  			}
+	  		} else {
+	  			print "$i-$ligne non inclu :  vous n'êtes pas autorisé à le voir<br>";
+	  		}
+	  		
+	  	} else {
+	  		print "$i-$ligne non inclu : absent de l'entrepôt de données<br>";
+	  	}
+  	}
+}
 ?>

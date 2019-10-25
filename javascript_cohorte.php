@@ -437,7 +437,7 @@
 		liste_hospital_patient_id=document.getElementById("id_textarea_importer_patient").value;
 		jQuery.ajax({
 			type:"POST",
-			url:"ajax.php",
+			url:"ajax_cohorte.php",
 			async:true,
 			encoding: 'latin1',
 			data:{ action:'importer_patient_cohorte',cohort_num:cohort_num,liste_hospital_patient_id:escape(liste_hospital_patient_id),option:option},
@@ -464,7 +464,7 @@
 	function lister_tous_les_commentaires_patient_cohorte (cohort_num) {
 		jQuery.ajax({
 			type:"POST",
-			url:"ajax.php",
+			url:"ajax_cohorte.php",
 			async:true,
 			data: { action:'lister_tous_les_commentaires_patient_cohorte',cohort_num:cohort_num},
 			beforeSend: function(requester){

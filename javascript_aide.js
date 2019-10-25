@@ -22,7 +22,7 @@
 */
 	 	function startIntro(){
 	        	if (!document.getElementById('id_select_thesaurus_data_2')) {
-		        	ajouter_formulaire_texte_vierge('code');
+		        	add_atomic_query('code');
 		        }
 	        	var intro = introJs();
 		          intro.setOptions({

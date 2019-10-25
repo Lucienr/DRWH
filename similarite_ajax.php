@@ -116,10 +116,10 @@ if ($_POST['action']=='precalcul_nb_patient_similarite_patient') {
         if ($verif_process_num=='') {
 		create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','debut du process'),'',"sysdate+2","similarity_patient");
 	} else {
-		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
+		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'',$user_num_session,"");
 	}
 	
-	passthru( "php exec_precalcul_nb_patient_similarite_patient.php $patient_num_principal $process_num \"$requete\" \"$requete_exclure\">> $CHEMIN_GLOBAL_LOG/log_chargement_similarite_patient_$patient_num_principal"."_$process_num".".txt 2>&1 &");
+	passthru( "php exec_precalcul_nb_patient_similarite_patient.php \"$patient_num_principal\" \"$process_num\" \"$requete\" \"$requete_exclure\" \"$user_num_session\">> $CHEMIN_GLOBAL_LOG/log_chargement_similarite_patient_$patient_num_principal"."_$process_num".".txt 2>&1 &");
 	print $process_num;
 }
 
@@ -183,7 +183,7 @@ if ($_POST['action']=='calculer_similarite_patient') {
         if ($verif_process_num=='') {
 		create_process ($process_num,$user_num_session,'0',get_translation('PROCESS_START','debut du process'),'',"sysdate+2","similarity_patient");
 	} else {
-		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'');
+		update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'',$user_num_session,"");
 	}
 	
 	$sel=oci_parse($dbh,"select count(distinct patient_num) as nb_patient from dwh_process_patient where process_num='$process_num' ");
@@ -231,10 +231,10 @@ if ($_POST['action']=='afficher_resultat_similarite') {
 		$map=join('',file("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num.$process_num.map"));
 		print $map;
 		$tableau_html_liste_patients = join('',file("$CHEMIN_GLOBAL_UPLOAD/tableau_html_liste_patients_$patient_num.$process_num.html")); 
-		print $tableau_html_liste_patients;
+		print "<h1 style=\"cursor:pointer\" onclick=\"plier_deplier('id_div_tableau_html_liste_patients');\">+ ".get_translation('SIMILAR_PATIENTS','Patients similaires')."</h1><div style=\"display:none;\" id=\"id_div_tableau_html_liste_patients\">$tableau_html_liste_patients</div>";
 		
 		$tableau_html_liste_concepts_patient_similaire = join('',file("$CHEMIN_GLOBAL_UPLOAD/tableau_html_liste_concepts_patient_similaire_$patient_num.$process_num.html")); 
-		print $tableau_html_liste_concepts_patient_similaire;
+		print "<h1 style=\"cursor:pointer\" onclick=\"plier_deplier('id_div_tableau_html_liste_concepts_patient_similaire');\">+ ".get_translation('CONCEPTS_SIMILAR_PATIENT','Concepts des patients similaires')."</h1><div style=\"display:none;\" id=\"id_div_tableau_html_liste_concepts_patient_similaire\">$tableau_html_liste_concepts_patient_similaire</div>";
 	}
 }
 

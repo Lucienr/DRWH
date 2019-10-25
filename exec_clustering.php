@@ -47,7 +47,7 @@ $tableau_process=get_process($process_num);
 $user_num_session=$tableau_process['USER_NUM'];
 
 
-update_process ($process_num,'0',get_translation('PROCESS_ONGOING_CLUSTERING','cluster en cours'),'');
+update_process ($process_num,'0',get_translation('PROCESS_ONGOING_CLUSTERING','cluster en cours'),'',$user_num_session,"");
 
 
 if ($distance=='') {
@@ -106,6 +106,6 @@ if ($argv[1]!='') {
 	
 	exec("/usr/bin/twopi \"$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.dot\" -Gcharset=latin1 -Tcmapx -o \"$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.map\"  -Tpng -o  \"$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.png\"");
 
-	update_process ($process_num,'1',get_translation('PROCESS_CLUSTER_DONE','cluster fini'),'');
+	update_process ($process_num,'1',get_translation('PROCESS_CLUSTER_DONE','cluster fini'),'',$user_num_session,"");
 	
 }

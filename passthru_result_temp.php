@@ -63,12 +63,14 @@ if ($table_name_verif=='') {
 				DATAMART_NUM INTEGER,
 				DOCUMENT_ORIGIN_CODE VARCHAR(50),
 				PATIENT_NUM  INTEGER,
-				DOCUMENT_DATE  DATE
+				DOCUMENT_DATE  DATE,
+				OBJECT_TYPE VARCHAR(50)
 				)");   
 	oci_execute($sel);
 }
 
 
+$tableau_patient_num_json=array();
 
 print "query_key_arg : $query_key_arg\n\n";
 print "datamart_num : $datamart_num\n\n";
@@ -94,9 +96,10 @@ while ( $r = oci_fetch_array($sel, OCI_ASSOC+OCI_RETURN_NULLS)) {
 	$datamart_num=$r['DATAMART_NUM'];
 	$document_origin_code=$r['DOCUMENT_ORIGIN_CODE'];
 	$document_date=$r['DOCUMENT_DATE'];
+	$object_type=$r['OBJECT_TYPE'];
 	$nb_doc++;
 	
-	$tableau_patient_num_json[$patient_num].="{\"document_num\":\"$document_num\",\"query_key\":\"$query_key\",\"document_origin_code\":\"$document_origin_code\",\"document_date\":\"$document_date\"},"; 
+	$tableau_patient_num_json[$patient_num].="{\"document_num\":\"$document_num\",\"query_key\":\"$query_key\",\"document_origin_code\":\"$document_origin_code\",\"document_date\":\"$document_date\",\"object_type\":\"$object_type\"},"; 
 	if ($nb_doc==1000) {
 		print benchmark("1- $nb_doc");
 		$nb_doc=0;
@@ -134,8 +137,9 @@ foreach ($tableau_patient_num_json as $patient_num => $json) {
 		$document_origin_code= $document->{'document_origin_code'};
 		$document_date= $document->{'document_date'};
 		$query_key= $document->{'query_key'};
+		$object_type= $document->{'object_type'};
 		$query_key=str_replace("'","''",$query_key);
-	        $ins = oci_parse($dbh, " insert into DWH_TMP_PRERESULT_$user_num  (document_num ,query_key , tmpresult_date,patient_num,user_num,datamart_num,document_origin_code,document_date) values ($document_num,'$query_key',sysdate,'$patient_num','$user_num','$datamart_num','$document_origin_code',to_date('$document_date','DD/MM/YYYY HH24:MI')) ");   
+	        $ins = oci_parse($dbh, " insert into DWH_TMP_PRERESULT_$user_num  (document_num ,query_key , tmpresult_date,patient_num,user_num,datamart_num,document_origin_code,document_date,object_type) values ($document_num,'$query_key',sysdate,'$patient_num','$user_num','$datamart_num','$document_origin_code',to_date('$document_date','DD/MM/YYYY HH24:MI'),'$object_type') ");   
 	        oci_execute($ins);
 	}
 }

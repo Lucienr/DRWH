@@ -326,7 +326,7 @@ function filtre_timeline () {
 	} else {
 		jQuery.ajax({
 			type:"POST",
-			url:"ajax.php",
+			url:"ajax_patient.php",
 			async:true,
 			contentType: 'application/x-www-form-urlencoded',
 			encoding: 'latin1',

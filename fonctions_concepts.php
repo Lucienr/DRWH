@@ -22,7 +22,20 @@
     France
 */
 
-
+function get_semantic_type_concept ($concept_code,$type) {
+	global $dbh;
+	$requete=" select semantic_type from dwh_thesaurus_typesemantic where  concept_code='$concept_code' ";
+	$sel=oci_parse($dbh, $requete);
+	oci_execute($sel);
+	$r=oci_fetch_array($sel,OCI_ASSOC+OCI_RETURN_NULLS);
+	
+	if ($type=='list') {
+		$res=implode(";",$r);
+	} else {
+		$res=$r;
+	}
+	return $res;
+}
 
 
 function repartition_concepts_general_json ($tmpresult_num,$phenotype_genotype,$tableau,$graph,$cloud,$donnees_reelles_ou_pref,$type,$distance,$age_concept_min,$age_concept_max) {
@@ -73,7 +86,7 @@ function repartition_concepts_general_json ($tmpresult_num,$phenotype_genotype,$
 		$filtre_phenotype_genotype="and $phenotype_genotype=1";
 	}
 	if ($type=='document') {
-		$requete=" select sum(count_concept_str_found) as nbcode_non_distinct_dans_res from dwh_enrsem where document_num in (select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and certainty=1 and context='patient_text' $query_age";
+		$requete=" select sum(count_concept_str_found) as nbcode_non_distinct_dans_res from dwh_enrsem where document_num in (select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document') and certainty=1 and context='patient_text' $query_age";
 		$sel=oci_parse($dbh, $requete);
 		oci_execute($sel) ||die ("$requete");
 		$r=oci_fetch_array($sel,OCI_ASSOC+OCI_RETURN_NULLS);
@@ -88,7 +101,7 @@ function repartition_concepts_general_json ($tmpresult_num,$phenotype_genotype,$
 						sum(count_concept_str_found) as nbfois_ce_code_dans_le_res,
 						median(AGE_PATIENT) as median_AGE_PATIENT
 			 from dwh_tmp_result_$user_num_session, dwh_enrsem,dwh_thesaurus_enrsem
-			 where tmpresult_num=$tmpresult_num
+			 where tmpresult_num=$tmpresult_num and object_type='document'
 			 and dwh_tmp_result_$user_num_session.document_num=dwh_enrsem.document_num
 			 and context='patient_text'
 			 and certainty=1
@@ -111,7 +124,7 @@ function repartition_concepts_general_json ($tmpresult_num,$phenotype_genotype,$
 					dwh_enrsem , dwh_thesaurus_enrsem
 					where dwh_enrsem.concept_code=dwh_thesaurus_enrsem.concept_code and pref='Y'
 				 	$filtre_phenotype_genotype
-					and document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and 
+					and document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document') and 
 					context='patient_text' and
 					certainty=1 
 					$query_age
@@ -130,7 +143,7 @@ function repartition_concepts_general_json ($tmpresult_num,$phenotype_genotype,$
 					select a.concept_code_son ,patient_num, count_concept_str_found,AGE_PATIENT 
 						from dwh_thesaurus_enrsem_graph a, dwh_thesaurus_enrsem_graph b, dwh_enrsem c
 					     where a.concept_code_father='RACINE'  and
-					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num ) and 
+					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num  and object_type='document') and 
 					         a.distance=$distance and
 					   a.concept_code_son=b.concept_code_father and
 					     b.concept_code_son=c.concept_code 
@@ -138,7 +151,7 @@ function repartition_concepts_general_json ($tmpresult_num,$phenotype_genotype,$
 					select concept_code_son  ,patient_num, count_concept_str_found ,AGE_PATIENT 
 					from dwh_thesaurus_enrsem_graph a, dwh_enrsem c
 					     where a.concept_code_father='RACINE'   and
-					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and 
+					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document') and 
 					         a.distance<=$distance and
 					      context='patient_text' and
 					      certainty=1 and
@@ -420,7 +433,7 @@ function repartition_concepts_general_json_php ($tmpresult_num,$phenotype_genoty
 		if ($donnees_reelles_ou_pref=='reelles') {
 			$requete=" select dwh_enrsem.concept_code,concept_str_found as concept_str, dwh_tmp_result_$user_num_session.patient_num , count_patient_subsumption as nb_patient_concept_global
 			 from dwh_tmp_result_$user_num_session, dwh_enrsem,dwh_thesaurus_enrsem
-			 where tmpresult_num=$tmpresult_num
+			 where tmpresult_num=$tmpresult_num and object_type='document'
 			 and dwh_tmp_result_$user_num_session.document_num=dwh_enrsem.document_num
 			 and context='patient_text'
 			 and certainty=1
@@ -432,7 +445,7 @@ function repartition_concepts_general_json_php ($tmpresult_num,$phenotype_genoty
 				 $requete=" select  concept_code, concept_str, patient_num, count_patient_subsumption as nb_patient_concept_global from (
 					select concept_code_son  ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_enrsem c
 					     where a.concept_code_father='RACINE'   and
-					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and 
+					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document') and 
 					      context='patient_text' and
 					      certainty=1 and
 					   a.concept_code_son=c.concept_code 
@@ -443,7 +456,7 @@ function repartition_concepts_general_json_php ($tmpresult_num,$phenotype_genoty
 				 $requete=" select  concept_code, concept_str, patient_num, count_patient_subsumption as nb_patient_concept_global from (
 					select a.concept_code_son ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_thesaurus_enrsem_graph b, dwh_enrsem c
 					     where a.concept_code_father='RACINE'  and
-					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num ) and 
+					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num  and object_type='document') and 
 					         a.distance=$distance and
 					   a.concept_code_son=b.concept_code_father and
 					      context='patient_text' and
@@ -452,7 +465,7 @@ function repartition_concepts_general_json_php ($tmpresult_num,$phenotype_genoty
 					     UNION ALL
 					select concept_code_son  ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_enrsem c
 					     where a.concept_code_father='RACINE'   and
-					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and 
+					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document') and 
 					         a.distance<=$distance and
 					      context='patient_text' and
 					      certainty=1 and
@@ -616,7 +629,7 @@ function cloud_concepts_json ($tmpresult_num,$phenotype_genotype,$donnees_reelle
 			 $requete=" select  concept_code, concept_str,count(distinct patient_num) as nb from (
 				select concept_code_son  ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_enrsem c
 				     where a.concept_code_father='RACINE'   and
-				   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and 
+				   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document') and 
 					      context='patient_text' and
 					      certainty=1 and
 				   a.concept_code_son=c.concept_code 
@@ -630,7 +643,7 @@ function cloud_concepts_json ($tmpresult_num,$phenotype_genotype,$donnees_reelle
 			 $requete=" select  concept_code, concept_str,count(distinct patient_num) as nb from (
 				select a.concept_code_son ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_thesaurus_enrsem_graph b, dwh_enrsem c
 				     where a.concept_code_father='RACINE'  and
-				   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num ) and 
+				   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num  and object_type='document') and 
 				         a.distance=$distance and
 				   a.concept_code_son=b.concept_code_father and
 					      context='patient_text' and
@@ -639,7 +652,7 @@ function cloud_concepts_json ($tmpresult_num,$phenotype_genotype,$donnees_reelle
 				    union
 				select concept_code_son  ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_enrsem c
 				     where a.concept_code_father='RACINE'   and
-				   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and 
+				   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document') and 
 				         a.distance<=$distance and
 					      context='patient_text' and
 					      certainty=1 and
@@ -733,7 +746,7 @@ function repartition_concepts_json ($tmpresult_num,$phenotype_genotype,$tableau,
 		if ($donnees_reelles_ou_pref=='reelles') {
 			$requete=" select dwh_enrsem.concept_code,concept_str_found as concept_str,count(distinct dwh_tmp_result_$user_num_session.patient_num) nb, count_patient_subsumption as nb_patient_concept_global
 			 from dwh_tmp_result_$user_num_session, dwh_enrsem,dwh_thesaurus_enrsem
-			 where tmpresult_num=$tmpresult_num
+			 where tmpresult_num=$tmpresult_num and object_type='document'
 			 and dwh_tmp_result_$user_num_session.document_num=dwh_enrsem.document_num
 					    and  context='patient_text' 
 					     and certainty=1 
@@ -747,7 +760,7 @@ function repartition_concepts_json ($tmpresult_num,$phenotype_genotype,$tableau,
 				 $requete=" select  concept_code, concept_str,count(distinct patient_num) as nb, count_patient_subsumption as nb_patient_concept_global from (
 					select concept_code_son  ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_enrsem c
 					     where a.concept_code_father='RACINE'   and
-					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and 
+					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document') and 
 					      context='patient_text' and
 					      certainty=1 and
 					   a.concept_code_son=c.concept_code 
@@ -760,7 +773,7 @@ function repartition_concepts_json ($tmpresult_num,$phenotype_genotype,$tableau,
 				 $requete=" select  concept_code, concept_str,count(distinct patient_num) as nb, count_patient_subsumption as nb_patient_concept_global from (
 					select a.concept_code_son ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_thesaurus_enrsem_graph b, dwh_enrsem c
 					     where a.concept_code_father='RACINE'  and
-					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num ) and 
+					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num  and object_type='document') and 
 					         a.distance=$distance and
 					   a.concept_code_son=b.concept_code_father and
 					      context='patient_text' and
@@ -769,7 +782,7 @@ function repartition_concepts_json ($tmpresult_num,$phenotype_genotype,$tableau,
 					    union
 					select concept_code_son  ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_enrsem c
 					     where a.concept_code_father='RACINE'   and
-					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and 
+					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document') and 
 					         a.distance<=$distance and
 					      context='patient_text' and
 					      certainty=1 and
@@ -979,7 +992,7 @@ function repartition_concepts_resumer_texte ($tmpresult_num,$phenotype_genotype,
 		$requete=" select concept_str_found as concept_str,text
 		 from dwh_tmp_result_$user_num_session,dwh_text, dwh_enrsem
 		 where 
-		 tmpresult_num=$tmpresult_num
+		 tmpresult_num=$tmpresult_num and object_type='document'
 		 and dwh_tmp_result_$user_num_session.document_num=dwh_enrsem.document_num
 		 and dwh_enrsem.context='patient_text'
 		 and dwh_enrsem.certainty=1
@@ -1039,7 +1052,7 @@ function repartition_go ($tmpresult_num,$id,$filtre_category) {
 		DWH_THESAURUS_PUBMED_GENE,
 		dwh_enrsem,
 		dwh_tmp_result_$user_num_session
-	where  tmpresult_num=$tmpresult_num
+	where  tmpresult_num=$tmpresult_num and object_type='document'
 		and dwh_tmp_result_$user_num_session.document_num=dwh_enrsem.document_num
 		and context='patient_text'
 		and certainty=1
@@ -1080,7 +1093,7 @@ function repartition_go ($tmpresult_num,$id,$filtre_category) {
 		DWH_THESAURUS_PUBMED_GENE,
 		dwh_enrsem,
 		dwh_tmp_result_$user_num_session
-	where  tmpresult_num=$tmpresult_num
+	where  tmpresult_num=$tmpresult_num and object_type='document'
 		and dwh_tmp_result_$user_num_session.document_num=dwh_enrsem.document_num
 		and context='patient_text'
 		and certainty=1
@@ -1132,7 +1145,7 @@ function repartition_go_json ($tmpresult_num,$type) {
 			DWH_THESAURUS_PUBMED_GENE,
 			dwh_enrsem,
 			dwh_tmp_result_$user_num_session
-		where  tmpresult_num=$tmpresult_num
+		where  tmpresult_num=$tmpresult_num and object_type='document'
 			and dwh_tmp_result_$user_num_session.document_num=dwh_enrsem.document_num
 			and context='patient_text'
 			and certainty=1
@@ -1186,7 +1199,7 @@ function repartition_go_json ($tmpresult_num,$type) {
 			DWH_THESAURUS_PUBMED_GENE,
 			dwh_enrsem,
 			dwh_tmp_result_$user_num_session
-		where  tmpresult_num=$tmpresult_num
+		where  tmpresult_num=$tmpresult_num and object_type='document'
 			and dwh_tmp_result_$user_num_session.document_num=dwh_enrsem.document_num
 			and context='patient_text'
 			and certainty=1
@@ -1614,7 +1627,7 @@ function affiche_heatmap_concepts ($tmpresult_num,$phenotype_genotype,$tableau,$
 		if ($donnees_reelles_ou_pref=='reelles') {
 			$requete=" select distinct dwh_enrsem.concept_code,concept_str_found as concept_str,patient_num
 			 from dwh_tmp_result_$user_num_session, dwh_enrsem,dwh_thesaurus_enrsem
-			 where tmpresult_num=$tmpresult_num
+			 where tmpresult_num=$tmpresult_num and object_type='document'
 			 and dwh_tmp_result_$user_num_session.document_num=dwh_enrsem.document_num
 			 and context='patient_text'
 			 and certainty=1
@@ -1626,7 +1639,7 @@ function affiche_heatmap_concepts ($tmpresult_num,$phenotype_genotype,$tableau,$
 				 $requete=" select  distinct concept_code, concept_str,patient_num from (
 					select concept_code_son  ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_enrsem c
 					     where a.concept_code_father='RACINE'   and
-					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and 
+					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document') and 
 					         a.distance<=$distance and
 					      context='patient_text' and
 					      certainty=1 and
@@ -1639,7 +1652,7 @@ function affiche_heatmap_concepts ($tmpresult_num,$phenotype_genotype,$tableau,$
 				 $requete=" select  distinct concept_code, concept_str,patient_num from (
 					select a.concept_code_son ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_thesaurus_enrsem_graph b, dwh_enrsem c
 					     where a.concept_code_father='RACINE'  and
-					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num ) and 
+					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num  and object_type='document') and 
 					         a.distance=$distance and
 					   a.concept_code_son=b.concept_code_father and
 					      context='patient_text' and
@@ -1648,7 +1661,7 @@ function affiche_heatmap_concepts ($tmpresult_num,$phenotype_genotype,$tableau,$
 					    union
 					select concept_code_son  ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_enrsem c
 					     where a.concept_code_father='RACINE'   and
-					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and 
+					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document') and 
 					         a.distance<=$distance and
 					      context='patient_text' and
 					      certainty=1 and
@@ -1770,7 +1783,7 @@ function liste_combinaison_concepts ($tmpresult_num,$phenotype_genotype,$donnees
 		if ($donnees_reelles_ou_pref=='reelles') {
 			$requete=" select distinct dwh_enrsem.concept_code,concept_str_found as concept_str,patient_num
 			 from dwh_tmp_result_$user_num_session, dwh_enrsem,dwh_thesaurus_enrsem
-			 where tmpresult_num=$tmpresult_num
+			 where tmpresult_num=$tmpresult_num and object_type='document'
 			 and dwh_tmp_result_$user_num_session.document_num=dwh_enrsem.document_num
 			 and context='patient_text'
 			 and certainty=1
@@ -1781,7 +1794,7 @@ function liste_combinaison_concepts ($tmpresult_num,$phenotype_genotype,$donnees
 			if ($distance==10) {
 				 $requete=" select distinct dwh_enrsem.concept_code, concept_str,patient_num
 						 from dwh_tmp_result_$user_num_session, dwh_enrsem,dwh_thesaurus_enrsem
-						 where tmpresult_num=$tmpresult_num
+						 where tmpresult_num=$tmpresult_num and object_type='document'
 						 and dwh_tmp_result_$user_num_session.document_num=dwh_enrsem.document_num
 						 and context='patient_text'
 						 and certainty=1
@@ -1793,7 +1806,7 @@ function liste_combinaison_concepts ($tmpresult_num,$phenotype_genotype,$donnees
 				 $requete=" select  distinct concept_code, concept_str,patient_num from (
 					select a.concept_code_son ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_thesaurus_enrsem_graph b, dwh_enrsem c
 					     where a.concept_code_father='RACINE'  and
-					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num ) and 
+					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num  and object_type='document') and 
 					         a.distance=$distance and
 					   a.concept_code_son=b.concept_code_father and
 						  context='patient_text' and
@@ -1802,7 +1815,7 @@ function liste_combinaison_concepts ($tmpresult_num,$phenotype_genotype,$donnees
 					    union
 					select concept_code_son  ,patient_num from dwh_thesaurus_enrsem_graph a, dwh_enrsem c
 					     where a.concept_code_father='RACINE'   and
-					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) and 
+					   document_num in ( select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document') and 
 					         a.distance<=$distance and
 						  context='patient_text' and
 						  certainty=1 and

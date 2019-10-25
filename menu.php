@@ -53,6 +53,9 @@
 				
 				<td  nowrap="nowrap" style="text-align:center;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';"><a href="outils.php" class="connexion"><? print get_translation('TOOLS','Outils'); ?></a></td>
 				<td class="connexion" width="1"> | </td>
+				
+				<td  nowrap="nowrap" style="text-align:center;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';"><a href="mes_ecrf.php" class="connexion"><? print get_translation('FORMS','Mes questionnaires'); ?></a></td>
+				<td class="connexion" width="1"> | </td>
 			<? } ?>
 			
 		<!-- <? if ($_SESSION['dwh_droit_search_engine0']!='') { ?>
@@ -176,7 +179,7 @@
 
 						</div>
 					</div>
-					<span id="id_alerte_notification" class="span_alerte" style="display:none;"></span>
+					<span id="id_alerte_notification" class="span_alerte" style="width:22;text-align:left">&nbsp;</span>
 				</td>
 				<td class="connexion" width="1"> | </td>
 				<td  style="text-align:right;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';" nowrap="nowrap">

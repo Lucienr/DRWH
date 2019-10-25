@@ -22,91 +22,52 @@
     France
 */
     
+    include_once ("fonctions_ecrf.php");
 ?>
+<script src="javascript_regexp.js?<? print "v=$date_today_unique"; ?>" type="text/javascript"></script>
+
 <script language=javascript>
-function rechercher_regexp() {
-	regexp=document.getElementById('id_rechercher_regexp').value;
-	regexp=regexp.replace(/\+/g,';plus;');
-	tmpresult_num=document.getElementById('id_num_temp').value;
-	datamart_num='<? print $datamart_num; ?>';
-	document.getElementById('id_div_resultat_recherche_regexp').innerHTML="<img src=images/chargement_mac.gif>";
-	if (regexp!='') {
-		jQuery.ajax({
-			type:"POST",
-			url:"ajax_regexp.php",
-			async:true,
-			encoding: 'latin1',
-			data:{ action:'rechercher_regexp',regexp:escape(regexp),tmpresult_num:tmpresult_num,datamart_num:datamart_num},
-			beforeSend: function(requester){},
-			success: function(requester){
-				if (requester=='deconnexion') {
-					afficher_connexion("rechercher_regexp ()");
-				} else { 
-					verif_process_execute_regexp (requester);
-				}
-			},
-			complete: function(requester){},
-			error: function(){}
-		});
-	} else {
-		document.getElementById('id_div_resultat_recherche_regexp').innerHTML="";
-	}
 
-}
+jQuery(document).ready(function() {
+	list_regexp_select ();
+})
 
-function verif_process_execute_regexp (process_num) {
-	jQuery.ajax({
-		type:"POST",
-		url:"ajax_regexp.php",
-		async:true,
-		encoding: 'latin1',
-		data:{ action:'verif_process_execute_regexp',process_num:process_num},
-		beforeSend: function(requester){
-		},
-		success: function(requester){
-			var contenu=requester;
-			tab=contenu.split(';');
-			status=tab[0];
-			message=tab[1];
-			if (status=='1') { // end
-				get_regexp_result (process_num);
-			} else {
-				if (status=='erreur') {
-					jQuery("#id_div_resultat_recherche_regexp").html(message); 
-				} else {
-					jQuery("#id_div_resultat_recherche_regexp").html(message+" <img src='images/chargement_mac.gif'>"); 
-					setTimeout("verif_process_execute_regexp('"+process_num+"')",1000);
-				}
-			}
-		}
-	});
-}
-
-function get_regexp_result (process_num) {
-	jQuery.ajax({
-		type:"POST",
-		url:"ajax_regexp.php",
-		async:true,
-		encoding: 'latin1',
-		data:{ action:'get_regexp_result',process_num:process_num},
-		beforeSend: function(requester){
-		},
-		success: function(requester){
-			var contenu=requester;
-			jQuery("#id_div_resultat_recherche_regexp").html(contenu); 
-		}
-	});
-}
 </script>
 <div>
-<strong><? print get_translation('SEARCH_A_PATTERN','Rechercher un pattern'); ?> <? print get_translation('ON_DOCUMENT_FOUND','sur les documents trouvés'); ?>:</strong><br>
- <input id="id_rechercher_regexp" class="filtre_regexp" size="80" type="text" onkeypress="if(event.keyCode==13) {rechercher_regexp();}"> <input type="button" onclick="rechercher_regexp();" value="Go" class="form_submit">
+	<strong><? print get_translation('SEARCH_A_PATTERN','Rechercher un pattern'); ?> <? print get_translation('ON_DOCUMENT_FOUND','sur les documents trouvés'); ?>:</strong><br>
+	 <input id="id_rechercher_regexp" class="filtre_regexp" size="80" type="text" onkeypress="if(event.keyCode==13) {rechercher_regexp();}"> 
+	 <input type="button" id="id_button_rechercher_regexp" onclick="rechercher_regexp();" value="Go" class="form_submit"> 
+	 <input type="button" id="id_button_open_save_regexp" onclick="open_save_regexp();" value="<? print get_translation('SAVE_REGEXP',"Sauver le pattern"); ?>" class="form_submit">
 </div>
+<div id="id_div_save_regexp" style="display:none;">
+	<table border=0>
+	<tr><td><? print get_translation('TITLE','Titre'); ?></td><td><input type="text" id="id_input_regexp_title" value="" size="40"></td></tr>
+	<tr><td><? print get_translation('DESCRIPTION','Description'); ?></td><td><textarea  id="id_input_regexp_description" cols=40 rows=5></textarea></td></tr>
+	<tr><td><? print get_translation('SHARED','Partager'); ?></td><td><input type="checkbox" id="id_input_regexp_shared" value="1"></td></tr>
+	</table><br>
+	<input type="button" onclick="save_regexp();" value="<? print get_translation('SAVE',"Sauver"); ?>" class="form_submit">
+</div>
+<div id="id_div_save_regexp_log" style="display:none;" class="log_result_div">
+</div>
+<br>
+<div id="id_div_list_regexp">
+	<span class="link"><? print get_translation('LIST_OF_PATTERN','Liste des patterns existants'); ?> :</span>
+	<select id="id_select_list_regexp" class="form chosen-select" data-placeholder="<? print get_translation('SELECT_A_PATTERN','Choisissez un pattern'); ?>" ></select> 
+	<input type="button" onclick="select_regexp();" value="Select" class="form_submit"> 
+	<input type="button" id="id_button_manage_regexp" onclick="manage_regexp();" value="Manage" class="form_submit"> 
+</div>
+<div id="id_div_manage_regexp" style="display:none;"></div>
+
 <div>
-Exemples : <br>
-Extraction de la taille : <span class="link" onclick="document.getElementById('id_rechercher_regexp').value=this.innerHTML;">taille[^a-z0-9A-Z]*([0-9]+[.,]?[0-9]*)</span><br>
-Extraction de la taille : <span class="link" onclick="document.getElementById('id_rechercher_regexp').value=this.innerHTML;">taille[^a-z0-9A-Z]*(de|est|est a|a)?[^a-z0-9A-Z]*([0-9]+[.,m ]*[0-9]*)</span><br>
-Extraction du poids : <span class="link"  onclick="document.getElementById('id_rechercher_regexp').value=this.innerHTML;">[^a-z0-9A-Z]*([0-9]+[.,]?[0-9]*)[^a-z0-9A-Z]*kg</span><br>
+	<span class="link" onclick="plier_deplier('id_div_regexp_example')"><span id="plus_id_div_regexp_example">+</span> <? print get_translation('EXAMPLE','Exemples'); ?></span>
+	<div  id="id_div_regexp_example" style="display:none">
+		Extraction de la taille : <span class="link" onclick="document.getElementById('id_rechercher_regexp').value=this.innerHTML;">taille[^a-z0-9A-Z]*([0-9]+[.,]?[0-9]*)</span><br>
+		Extraction de la taille : <span class="link" onclick="document.getElementById('id_rechercher_regexp').value=this.innerHTML;">taille[^a-z0-9A-Z]*(de|est|est a|a)?[^a-z0-9A-Z]*([0-9]+[.,m ]*[0-9]*)</span><br>
+		Extraction du poids : <span class="link"  onclick="document.getElementById('id_rechercher_regexp').value=this.innerHTML;">[^a-z0-9A-Z]*([0-9]+[.,]?[0-9]*)[^a-z0-9A-Z]*kg</span><br><br>
+		Vous pouvez tester vos expressions régulières ici : <a href="https://regex101.com/" target="_blank">https://regex101.com/</a><br><br>
+	</div>
 </div>
+
  <br>
+<div id="id_div_list_div_affichage_regexp"></div>
 <div id="id_div_resultat_recherche_regexp"></div>

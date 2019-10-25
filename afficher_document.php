@@ -61,9 +61,9 @@ $tmpresult_num=$_GET['tmpresult_num'];
 if ($document_num!='') {
 	if ($document_num=='tout') {
 		$patient_num=$_GET['patient_num'];
-	        $document=affiche_contenu_liste_document_patient($patient_num,$requete);
+	        $document=affiche_contenu_liste_document_patient($patient_num,$requete,$user_num_session);
 	} else {
-		$document=afficher_document_patient($document_num,$requete);
+		$document=afficher_document_patient($document_num,$requete,$user_num_session);
 	}
 }
 
@@ -72,7 +72,7 @@ if ($tmpresult_num!='') {
    
         $document='';
         $patient_num_before='';
-        $sel=oci_parse($dbh,"select patient_num, document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and user_num=$user_num_session $filtre_sql_resultat order by patient_num, document_num");
+        $sel=oci_parse($dbh,"select patient_num, document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and user_num=$user_num_session and object_type='document'  $filtre_sql_resultat order by patient_num, document_num");
         oci_execute($sel);
         while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
                 $patient_num=$r['PATIENT_NUM'];
@@ -81,7 +81,7 @@ if ($tmpresult_num!='') {
 	                $patient=afficher_patient ($patient_num,'basique',$document_num,'','export_liste_documents_recherche');
 	                $document.= "<br><strong>$patient</strong><br><br>";
 	        }
-		$document.=afficher_document_patient($document_num,$requete);
+		$document.=afficher_document_patient($document_num,$requete,$user_num_session);
 		$document.="<br><p style=\"page-break-after: always;\" class=\"noprint\">----------------------------------------------------------</p>";
 		$patient_num_before=$patient_num;
         }

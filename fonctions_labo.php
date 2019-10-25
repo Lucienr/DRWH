@@ -155,10 +155,10 @@
 	while ($r_patient_num=oci_fetch_array($sel_patient_num)) {
 		$patient_num=$r_patient_num['PATIENT_NUM'];
 		if ($patient_num!='') {
-			$sel=oci_parse($dbh,"select val_numeric, lower_bound,upper_bound,to_char(document_date,'DD/MM/YYYY HH24:MI') as date_document_char,document_date  from dwh_data where thesaurus_data_num=$thesaurus_data_num and patient_num=$patient_num order by document_date");
+			$sel=oci_parse($dbh,"select val_numeric, lower_bound,upper_bound,to_char(document_date,'DD/MM/YYYY HH24:MI') as document_date_char,document_date  from dwh_data where thesaurus_data_num=$thesaurus_data_num and patient_num=$patient_num order by document_date");
 			oci_execute($sel);
 			while ($r=oci_fetch_array($sel)) {
-				$date_document_char=$r['DATE_DOCUMENT_CHAR'];
+				$document_date_char=$r['DOCUMENT_DATE_CHAR'];
 				$val_numeric=$r['VAL_NUMERIC'];
 				$borne_inf=$r['LOWER_BOUND'];
 				$borne_sup=$r['UPPER_BOUND'];

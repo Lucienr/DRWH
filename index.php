@@ -31,9 +31,9 @@ session_write_close();
 <!-- Mon profil -->
 <div class="div_accueil">
 	<h1><img src="images/health7.png" style="vertical-align: middle"> <? print get_translation('MY_PROFILE','Mon profile'); ?></h1>
-		<? last_connexion (); ?>
+		<? last_connexion ($user_num_session); ?>
 		
-		<? afficher_mes_droits (); ?>
+		<? afficher_mes_droits ($user_num_session); ?>
 		
 	<h1><? print get_translation('USER_GUIDE','Guide utilisateur'); ?></h1>
 	<a href="users_guide.pdf" target="_blank"><? print get_translation('DOWNLOAD_USER_GUIDE','Télécharger le guide utilisateur en cliquant ici'); ?></a>
@@ -64,6 +64,13 @@ session_write_close();
 </div>
 
 
+<!-- MES PROCESS  -->
+<div class="div_accueil">
+	<h1><? print get_translation('MY_PROCESSES','Mes Process en cours et finis'); ?></h1>
+	<? display_my_process($user_num_session); ?>
+</div>
+
+
 
 <!-- ETAT ENTREPOT -->
 <div class="div_accueil">
@@ -86,5 +93,22 @@ session_write_close();
 	
 
 <span style="clear:left;display:block"></span>
+
+<div style="display:block;position:fixed;background-color:pink;border:1px black solid;  padding:0px;top:150px;left:300px;width:500px" id="id_div_alert_info">
+	<table width="100%" border="0"><tbody><tr><td><h1>Information : </h1></td><td onclick="plier('id_div_alert_info');" style="text-align:right;cursor:pointer;vertical-align:top;">X</td></tr></tbody></table>
+	<div id="id_message_info_alerte" style="font-size:15px;padding:15px;">
+Merci de nous associer à vos travaux de recherche lorsque vous publiez des articles en utilisant Dr Warehouse !<br><br>
+Pour cela vous pouvez (et/ou) : <br>
+1- M'associer en tant que co-auteur. <br><div style="font-size:0.8em;padding-left:10px"><i>Nicolas Garcelon, Data Science Platform, Institut Imagine, Université Paris Descartes, Sorbonne Paris Cité, Paris, France</i></div><br>
+2- Citer en référence l'article fondateur de Dr Warehouse : <br>
+	<div style="font-size:0.8em;padding-left:10px"><i>Garcelon N, Neuraz A, Salomon R, Faour H, Benoit V, Delapalme A, Munnich A, Burgun A, Rance B.</i> 
+	A clinician friendly data warehouse oriented toward narrative reports: Dr. Warehouse. J Biomed Inform. 2018 Apr;80:52-63. doi: 10.1016/j.jbi.2018.02.019. Epub 2018 Mar 1. PubMed PMID: 29501921
+	<a href="https://doi.org/10.1016/j.jbi.2018.02.019" target="_blank">https://doi.org/10.1016/j.jbi.2018.02.019</a> <a href="https://www.ncbi.nlm.nih.gov/pubmed/29501921" target="_blank">pubmed</a><br>
+	</div><br>
+3- Ajouter l'institut Imagine dans les remerciements<br><br>
+Merci !<br><br>
+Nicolas Garcelon, responsable de la plateforme Data Science de l'institut Imagine.
+	</div>
+</div>
 
 <? include "foot.php"; ?>

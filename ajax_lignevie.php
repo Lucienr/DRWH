@@ -21,6 +21,10 @@
     75015 Paris
     France
 */
+$autorisation_voir_patient=autorisation_voir_patient ($patient_num,$user_num_session);
+if ($autorisation_voir_patient=='') {
+	exit;
+}
 
 /* icons must be in the directory : dwh/timeline/timeline_js/images */
 $table_icon_type_mvt['J']="dark-green-circle.png";
@@ -223,10 +227,10 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 			
 			if ($liste_id_doc!='') {
 				$req_liste_doc=" document_num in ($liste_id_doc) ";
-				$selvaldoc=oci_parse($dbh,"select document_num, title, document_origin_code,to_char (document_date, 'DD/MM/YYYY') as tdate_document, document_date from dwh_document where $req_liste_doc order by document_date asc ");
+				$selvaldoc=oci_parse($dbh,"select document_num, title, document_origin_code,to_char (document_date, 'DD/MM/YYYY') as tdocument_date, document_date from dwh_document where $req_liste_doc order by document_date asc ");
 				oci_execute($selvaldoc);
 				while ($resdoc=oci_fetch_array($selvaldoc,OCI_RETURN_NULLS+OCI_ASSOC)) {
-					$document_date=$resdoc['TDATE_DOCUMENT'];
+					$document_date=$resdoc['TDOCUMENT_DATE'];
 					$document_num=$resdoc['DOCUMENT_NUM'];
 					$title=$resdoc['TITLE'];
 					$document_origin_code=$resdoc['DOCUMENT_ORIGIN_CODE'];
@@ -252,10 +256,10 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$liste_class_id_doc='';
 		$contenu_sejour='';
 		$unit_code_avant='';
-		$selvaldoc=oci_parse($dbh,"select document_num, title, document_origin_code,to_char (document_date, 'DD/MM/YYYY') as tdate_document, document_date,unit_code,unit_num,department_num from dwh_document where patient_num=$patient_num and  encounter_num='$encounter_num'  and document_date is not null  and document_date>=to_date('$date_entree_char','DD/MM/YYYY') and document_date<=to_date('$date_sortie_char','DD/MM/YYYY') and document_origin_code !='$document_origin_code_labo'   order by document_date asc ");
+		$selvaldoc=oci_parse($dbh,"select document_num, title, document_origin_code,to_char (document_date, 'DD/MM/YYYY') as tdocument_date, document_date,unit_code,unit_num,department_num from dwh_document where patient_num=$patient_num and  encounter_num='$encounter_num'  and document_date is not null  and document_date>=to_date('$date_entree_char','DD/MM/YYYY') and document_date<=to_date('$date_sortie_char','DD/MM/YYYY') and document_origin_code !='$document_origin_code_labo'   order by document_date asc ");
 		oci_execute($selvaldoc);
 		while ($resdoc=oci_fetch_array($selvaldoc,OCI_RETURN_NULLS+OCI_ASSOC)) {
-			$document_date=$resdoc['TDATE_DOCUMENT'];
+			$document_date=$resdoc['TDOCUMENT_DATE'];
 			$document_num=$resdoc['DOCUMENT_NUM'];
 			$title=$resdoc['TITLE'];
 			$document_origin_code=$resdoc['DOCUMENT_ORIGIN_CODE'];
@@ -434,10 +438,10 @@ while ($resuf=oci_fetch_array($requf,OCI_ASSOC)) {
 	
 	if ($liste_id_doc!='') {
 		$req_liste_doc=" document_num in ($liste_id_doc) ";
-		$selvaldoc=oci_parse($dbh,"select document_num, title, document_origin_code,to_char (document_date, 'DD/MM/YYYY') as tdate_document, document_date from dwh_document where $req_liste_doc order by document_date asc ");
+		$selvaldoc=oci_parse($dbh,"select document_num, title, document_origin_code,to_char (document_date, 'DD/MM/YYYY') as tdocument_date, document_date from dwh_document where $req_liste_doc order by document_date asc ");
 		oci_execute($selvaldoc);
 		while ($resdoc=oci_fetch_array($selvaldoc,OCI_RETURN_NULLS+OCI_ASSOC)) {
-			$document_date=$resdoc['TDATE_DOCUMENT'];
+			$document_date=$resdoc['TDOCUMENT_DATE'];
 			$document_num=$resdoc['DOCUMENT_NUM'];
 			$title=$resdoc['TITLE'];
 			$document_origin_code=$resdoc['DOCUMENT_ORIGIN_CODE'];
@@ -467,7 +471,7 @@ if ($liste_id_doc!='') {
 	$req_id_doc="and document_num not in ($liste_id_doc)";
 }
 
-$selval=oci_parse($dbh,"select document_num, to_char (document_date,  'yyyy') as an_deb,to_char (document_date,  'mm') as mois_deb,to_char (document_date,  'dd') as jour_deb,document_date,unit_num,department_num,to_char (document_date, 'DD/MM/YYYY') as tdate_document,
+$selval=oci_parse($dbh,"select document_num, to_char (document_date,  'yyyy') as an_deb,to_char (document_date,  'mm') as mois_deb,to_char (document_date,  'dd') as jour_deb,document_date,unit_num,department_num,to_char (document_date, 'DD/MM/YYYY') as tdocument_date,
 title,document_origin_code from dwh_document where  patient_num=$patient_num and  unit_code is not null and document_origin_code !='$document_origin_code_labo'  and document_date is not null $req_id_doc order by document_date asc ");
 oci_execute($selval);
 while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
@@ -479,7 +483,7 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 	$jour_deb=$res['JOUR_DEB'];
 	$an_deb=$res['AN_DEB'];
 	$heure_deb=$res['HEURE_DEB'];
-	$document_date=$res['TDATE_DOCUMENT'];
+	$document_date=$res['TDOCUMENT_DATE'];
 	$date_deb="$mois_deb_trad $jour_deb $an_deb 00:00:00 GMT";
 	$document_origin_code=$res['DOCUMENT_ORIGIN_CODE'];
 	$title=$res['TITLE'];

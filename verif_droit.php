@@ -25,6 +25,7 @@ if ($_SESSION['dwh_login']=='' && !preg_match("/connexion_user\.php/",$_SERVER['
 	header("Location: connexion_user.php?script_appel=".preg_replace('/&/','ETCOMMERCIAL',$_SERVER['REQUEST_URI']));
 	exit;
 }
+
 $erreur_droit="";
 
 $login_session=$_SESSION['dwh_login'];
@@ -43,6 +44,16 @@ $_SESSION['dwh_firstname_user']=$firstname_user_session;
 $_SESSION['dwh_lastname_user']=$lastname_user_session;
 $_SESSION['dwh_mail']=$mail_session;
 $_SESSION['dwh_user_phone_number']=$user_phone_number_session;
+
+
+// CGU ///
+$verif_cgu_signed=verif_cgu_signed($_SESSION['dwh_user_num']);
+if ($verif_cgu_signed==0 && !preg_match("/sign_cgu\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/connexion_user\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/contact\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/ajax\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/admin\.php/",$_SERVER['REQUEST_URI']) ) {
+	header("Location: sign_cgu.php");
+	exit;
+}
+
+
 //REINITIALISATION//
 foreach ($tableau_user_droit as $right) { 
 	$_SESSION['dwh_droit_'.$right.'0']='';
@@ -98,15 +109,18 @@ $liste_uf_session=substr($liste_uf_session,0,-1);
 
 
 //// LES TYPES DOC DE L'UTILISATEUR //////////
-$liste_document_origin_code_session='';
-$sel_var1=oci_parse($dbh,"select distinct document_origin_code from dwh_profile_document_origin, dwh_user_profile where user_num='$user_num_session' and dwh_profile_document_origin.user_profile= dwh_user_profile.user_profile");
-oci_execute($sel_var1);
-while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
-	$document_origin_code=$r['DOCUMENT_ORIGIN_CODE'];
-	$liste_document_origin_code_session.="'$document_origin_code',";
-}
-$liste_document_origin_code_session=substr($liste_document_origin_code_session,0,-1);
+$liste_document_origin_code_session=list_authorized_document_origin_code_for_one_datamart(0,$user_num_session,'sql');
 
+#$sel_var1=oci_parse($dbh,"select distinct document_origin_code from dwh_profile_document_origin, dwh_user_profile where user_num='$user_num_session' and dwh_profile_document_origin.user_profile= dwh_user_profile.user_profile");
+#oci_execute($sel_var1);
+#while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
+#	$document_origin_code=$r['DOCUMENT_ORIGIN_CODE'];
+#	$liste_document_origin_code_session.="'$document_origin_code',";
+#}
+#$liste_document_origin_code_session=substr($liste_document_origin_code_session,0,-1);
+#if ($liste_document_origin_code_session!='') {
+#	$liste_document_origin_code_session.=",'MVT'";
+#}
 
 
 /// Accéder au contenu d'une cohorte pour moteur
@@ -114,31 +128,43 @@ if ($_GET['action']=='rechercher_dans_cohorte') {
 	$cohort_num=$_GET['cohort_num'];
 	$autorisation_cohorte_voir=autorisation_cohorte_voir($cohort_num,$user_num_session);
 	if ($autorisation_cohorte_voir=='ok') {
-		$sel_var1=oci_parse($dbh,"select dwh_seq.nextval datamart_num from dual  ");
-		oci_execute($sel_var1);
-		$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
-		$num_datamart_insert=$r['DATAMART_NUM'];
-		$sel_var1=oci_parse($dbh,"select title_cohort,description_cohort,datamart_num from dwh_cohort where cohort_num=$cohort_num  ");
-		oci_execute($sel_var1);
-		$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
-		$title_cohort=nettoyer_pour_inserer($r['TITLE_COHORT']);
-		$description_cohort=nettoyer_pour_inserer($r['DESCRIPTION_COHORT']);
-		$datamart_num_origin=$r['DATAMART_NUM'];
+		delete_datamart_resultat ($cohort_num,"");
+		delete_datamart ($cohort_num);
+		//$sel_var1=oci_parse($dbh,"select dwh_seq.nextval datamart_num from dual  ");
+		//oci_execute($sel_var1);
+		//$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
+		//$num_datamart_insert=$r['DATAMART_NUM'];
 		
-		insert_datamart ($num_datamart_insert,"Cohorte $title_cohort",$description_cohort,'sysdate','sysdate','sysdate+1',1,$datamart_num_origin);
+		// Nicolas Garcelon, we replaced num_datamart_insert by cohort_num in order to keep query associated to a cohort... 
+		// in the dwh_query we will add the datamart_num=cohort_num in order to display a list of , 
+#		$sel_var1=oci_parse($dbh,"select title_cohort,description_cohort,datamart_num from dwh_cohort where cohort_num=$cohort_num  ");
+#		oci_execute($sel_var1);
+#		$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
+		$cohort=get_cohort($cohort_num,"");
+		$title_cohort=nettoyer_pour_inserer($cohort['TITLE_COHORT']);
+		$description_cohort=nettoyer_pour_inserer($cohort['DESCRIPTION_COHORT']);
+		$datamart_num_origin=$cohort['DATAMART_NUM'];
+		
+		insert_datamart ($cohort_num,"Cohorte $title_cohort",$description_cohort,'sysdate','sysdate','sysdate+1',1,$datamart_num_origin);
 		
 		$sel_var1=oci_parse($dbh,"select right from dwh_cohort_user_right where cohort_num=$cohort_num and user_num=$user_num_session");
 		oci_execute($sel_var1) ;
 		while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
 			$right=nettoyer_pour_inserer($r['RIGHT']);
 			if ($right!='' && $user_num_session!='') {
-				insert_datamart_user_droit ($num_datamart_insert,$user_num_session,$right);
+				insert_datamart_user_droit ($cohort_num,$user_num_session,$right);
 			}
 		}
-		insert_datamart_resultat ("select distinct $num_datamart_insert,patient_num from dwh_cohort_result  where cohort_num=$cohort_num and status=1");
+		insert_datamart_resultat ("select distinct $cohort_num,patient_num from dwh_cohort_result  where cohort_num=$cohort_num and status=1");
 		
-		$_POST['datamart_num']=$num_datamart_insert;
-		$_GET['datamart_num']=$num_datamart_insert;
+		$table_origin_code_session=list_authorized_document_origin_code_for_one_datamart($datamart_num,$user_num_session,'table');
+		foreach ($table_origin_code_session as $document_origin_code) {
+			insert_datamart_document_origin_code ($cohort_num,$document_origin_code);
+		}
+		
+		$_POST['datamart_num']=$cohort_num;
+		$_GET['datamart_num']=$cohort_num;
+		
 	}
 }
 
@@ -146,10 +172,7 @@ if ($_GET['action']=='rechercher_dans_cohorte') {
 if ($_GET['action']=='rechercher_dans_resultat') {
 	$tmpresult_num=$_GET['tmpresult_num'];
 	$datamart_num=$_GET['datamart_num'];
-	$sel_var1=oci_parse($dbh,"select dwh_seq.nextval datamart_num from dual  ");
-	oci_execute($sel_var1);
-	$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
-	$num_datamart_insert=$r['DATAMART_NUM'];
+	$num_datamart_insert=get_uniqid();
 	
 	
         if ($_GET['concept_code']!='') {
@@ -166,15 +189,23 @@ if ($_GET['action']=='rechercher_dans_resultat') {
 				insert_datamart_user_droit ($num_datamart_insert,$user_num_session,$right);
 			}
 		}
-		$liste_document_origin_code_session='';
-		$sel_vardroit=oci_parse($dbh,"select document_origin_code from dwh_datamart_doc_origin where datamart_num=$datamart_num");
-		oci_execute($sel_vardroit);
-		while ($r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC)) {
-			$document_origin_code=$r_droit['DOCUMENT_ORIGIN_CODE'];
+		
+		$liste_document_origin_code_session=list_authorized_document_origin_code_for_one_datamart($datamart_num,$user_num_session,'sql');
+		$table_origin_code_session=list_authorized_document_origin_code_for_one_datamart($datamart_num,$user_num_session,'table');
+		foreach ($table_origin_code_session as $document_origin_code) {
 			insert_datamart_document_origin_code ($num_datamart_insert,$document_origin_code);
-			$liste_document_origin_code_session.="'$document_origin_code',";
 		}
-		$liste_document_origin_code_session=substr($liste_document_origin_code_session,0,-1);
+#		$sel_vardroit=oci_parse($dbh,"select document_origin_code from dwh_datamart_doc_origin where datamart_num=$datamart_num");
+#		oci_execute($sel_vardroit);
+#		while ($r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC)) {
+#			$document_origin_code=$r_droit['DOCUMENT_ORIGIN_CODE'];
+#			insert_datamart_document_origin_code ($num_datamart_insert,$document_origin_code);
+#			$liste_document_origin_code_session.="'$document_origin_code',";
+#		}
+#		$liste_document_origin_code_session=substr($liste_document_origin_code_session,0,-1);
+#		if ($liste_document_origin_code_session!='') {
+#			$liste_document_origin_code_session.=",'MVT'";
+#		}
 		
 	} else {
 		$sel_var1=oci_parse($dbh,"select user_profile from dwh_user_profile where user_num in (select user_num from dwh_user where login='$login_session')");
@@ -189,6 +220,10 @@ if ($_GET['action']=='rechercher_dans_resultat') {
 					insert_datamart_user_droit ($num_datamart_insert,$user_num_session,$right);
 				}
 			}
+		}
+		$table_origin_code_session=list_authorized_document_origin_code_for_one_datamart($datamart_num,$user_num_session,'table');
+		foreach ($table_origin_code_session as $document_origin_code) {
+			insert_datamart_document_origin_code ($num_datamart_insert,$document_origin_code);
 		}
 	}
 
@@ -206,7 +241,7 @@ if ($_GET['action']=='rechercher_dans_resultat') {
         if ($_GET['concept_code']!='' && $_GET['type']=='document') {
         	$concept_code=$_GET['concept_code'];
 		//$filtre_sql_resultat.=" and document_num in (select document_num from dwh_enrsem where concept_code='$concept_code' and certainty=1 and context='patient_text' and patient_num in (select  patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)) ";
-		$filtre_sql_resultat.="   AND exists 
+		$filtre_sql_resultat.=" and object_type='document'  AND exists 
 			                 (SELECT document_num
 			                    FROM dwh_enrsem
 			                   WHERE     concept_code = '$concept_code'
@@ -243,17 +278,16 @@ if ($_GET['action']=='rechercher_dans_resultat') {
 if ($_GET['action']=='rechercher_dans_requete_sauvegardee') {
 	$query_num=$_GET['query_num'];
 	$load_date=$_GET['load_date'];
+	$option=$_GET['option'];
 	$autorisation_requete_voir=autorisation_requete_voir ($query_num,$user_num_session);
 	if ($autorisation_requete_voir=='ok') {
-		$sel_var1=oci_parse($dbh,"select dwh_seq.nextval datamart_num from dual  ");
-		oci_execute($sel_var1);
-		$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
-		$num_datamart_insert=$r['DATAMART_NUM'];
-		$sel_var1=oci_parse($dbh,"select title_query,datamart_num from dwh_query where query_num=$query_num  ");
-		oci_execute($sel_var1);
-		$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
-		$title_query=nettoyer_pour_inserer($r['TITLE_QUERY']);
-		$datamart_num_origin=$r['DATAMART_NUM'];
+		$num_datamart_insert=get_uniqid();
+		$query=get_query($query_num);
+#		$sel_var1=oci_parse($dbh,"select title_query,datamart_num from dwh_query where query_num=$query_num  ");
+#		oci_execute($sel_var1);
+#		$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
+		$title_query=nettoyer_pour_inserer($query['TITLE_QUERY']);
+		$datamart_num_origin=$query['DATAMART_NUM'];
 		
 		insert_datamart ($num_datamart_insert,"Requete $title_query $load_date",'','sysdate','sysdate','sysdate+1',1,$datamart_num_origin);
 		
@@ -267,10 +301,14 @@ if ($_GET['action']=='rechercher_dans_requete_sauvegardee') {
 				}
 			}
 			
-			$sel_vardroit=oci_parse($dbh,"select document_origin_code from dwh_datamart_doc_origin where datamart_num=$datamart_num_origin");
-			oci_execute($sel_vardroit);
-			while ($r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC)) {
-				$document_origin_code=$r_droit['DOCUMENT_ORIGIN_CODE'];
+#			$sel_vardroit=oci_parse($dbh,"select document_origin_code from dwh_datamart_doc_origin where datamart_num=$datamart_num_origin");
+#			oci_execute($sel_vardroit);
+#			while ($r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC)) {
+#				$document_origin_code=$r_droit['DOCUMENT_ORIGIN_CODE'];
+#				insert_datamart_document_origin_code ($num_datamart_insert,$document_origin_code);
+#			}
+			$table_origin_code_session=list_authorized_document_origin_code_for_one_datamart($datamart_num_origin,$user_num_session,'table');
+			foreach ($table_origin_code_session as $document_origin_code) {
 				insert_datamart_document_origin_code ($num_datamart_insert,$document_origin_code);
 			}
 			
@@ -288,6 +326,11 @@ if ($_GET['action']=='rechercher_dans_requete_sauvegardee') {
 					}
 				}
 			}
+			$table_origin_code_session=list_authorized_document_origin_code_for_one_datamart($datamart_num_origin,$user_num_session,'table');
+			foreach ($table_origin_code_session as $document_origin_code) {
+				insert_datamart_document_origin_code ($num_datamart_insert,$document_origin_code);
+			}
+			
 		}
 		$filtre_sql_resultat='';
 		if ($datamart_num_origin==0) {
@@ -306,8 +349,13 @@ if ($_GET['action']=='rechercher_dans_requete_sauvegardee') {
 		
 		
 	        if ($load_date!='') {
-			$filtre_sql_resultat.=" and to_char(load_date,'MM/YYYY')='$load_date' ";
+	        	if ($option=="load_previous") {
+				$filtre_sql_resultat.=" and   load_date<= last_day(to_date('01/$load_date','DD/MM/YYYY'))   ";
+			} else {
+				$filtre_sql_resultat.=" and to_char(load_date,'MM/YYYY')='$load_date' ";
+			}
 	        }
+	        
 		insert_datamart_resultat ("select distinct $num_datamart_insert,patient_num from dwh_query_result where query_num=$query_num $filtre_sql_resultat");
 		
 		$_POST['datamart_num']=$num_datamart_insert;
@@ -376,21 +424,25 @@ if (($_GET['datamart_num']=='' && $_POST['datamart_num']=='') || $_GET['datamart
 				$_SESSION['dwh_droit_add_patient'.$datamart_num]='ok';
 			}
 			
-			$liste_document_origin_code_session_datamart='';
-			$sel_vardroit=oci_parse($dbh,"select document_origin_code from dwh_datamart_doc_origin where datamart_num=$datamart_num");
-			oci_execute($sel_vardroit);
-			while ($r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC)) {
-				$liste_document_origin_code_session_datamart.="'".$r_droit['DOCUMENT_ORIGIN_CODE']."',";
-			}
-			$liste_document_origin_code_session_datamart=substr($liste_document_origin_code_session_datamart,0,-1);
-			if ($liste_document_origin_code_session_datamart!='') {
-				$liste_document_origin_code_session=$liste_document_origin_code_session_datamart;
-			}
+			$liste_document_origin_code_session=list_authorized_document_origin_code_for_one_datamart($datamart_num,$user_num_session,'sql');
+#			$sel_vardroit=oci_parse($dbh,"select document_origin_code from dwh_datamart_doc_origin where datamart_num=$datamart_num");
+#			oci_execute($sel_vardroit);
+#			while ($r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC)) {
+#				$liste_document_origin_code_session_datamart.="'".$r_droit['DOCUMENT_ORIGIN_CODE']."',";
+#			}
+#			$liste_document_origin_code_session_datamart=substr($liste_document_origin_code_session_datamart,0,-1);
+#			if ($liste_document_origin_code_session_datamart!='') {
+#				$liste_document_origin_code_session=$liste_document_origin_code_session_datamart;
+#			}
+#			if ($liste_document_origin_code_session!='') {
+#				$liste_document_origin_code_session.=",'MVT'";
+#			}
 		} else {
 			$erreur_droit="<strong style=\"color:red;\">".get_translation('YOU_CANNOT_ACCESS_THIS_DATAMART',"Vous n'avez pas le droit d'accéder à ce datamart").".<br>".get_translation('CONTACT_ADMIN_TO_OPEN_RIGHTS','Veuillez contacter les administrateurs pour vous ouvrir les droits.')."</strong>";
 		}
 	}	
 }
+
 
 
 ?>

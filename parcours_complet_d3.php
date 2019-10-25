@@ -28,6 +28,17 @@ putenv("NLS_LANG=French");
 putenv("NLS_LANG=FRENCH");
 putenv("NLS_LANGUAGE=FRENCH_FRANCE.WE8MSWIN1252");
 error_reporting(E_ALL ^ E_NOTICE);
+
+
+include_once("parametrage.php");
+include_once("connexion_bdd.php");
+include_once("ldap.php");
+include_once("fonctions_droit.php");
+include_once("fonctions_dwh.php");
+include_once("fonctions_stat.php");
+include_once("verif_droit.php");
+$date_today_unique=date("dmYHis");
+session_write_close();
 ?>
 
 <html>
@@ -63,16 +74,6 @@ error_reporting(E_ALL ^ E_NOTICE);
 </head>
 <body>
 <?
-
-
-include_once("parametrage.php");
-include_once("connexion_bdd.php");
-include_once("ldap.php");
-include_once("fonctions_dwh.php");
-include_once("fonctions_stat.php");
-include_once("verif_droit.php");
-$date_today_unique=date("dmYHis");
-session_write_close();
 
 $tmpresult_num=$_GET['tmpresult_num'];
 $unit_or_department=$_GET['unit_or_department'];

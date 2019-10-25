@@ -105,6 +105,34 @@ function ajouter_liste_user_admin() {
 }
 
 
+function add_expiration_date_group_admin() {
+	document.getElementById('id_div_resultat_add_expiration_date_group').innerHTML='';
+	list_user=document.getElementById('id_textarea_list_user_expiration_date_group').value;
+	expiration_date=document.getElementById('id_modifier_expiration_date_group').value;
+	
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_admin.php",
+		async:true,
+		data: { action:'add_expiration_date_group_admin',list_user:list_user,expiration_date:escape(expiration_date)},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion();
+			} else {
+				document.getElementById('id_div_resultat_add_expiration_date_group').innerHTML=requester;
+				rafraichir_tableau_users();
+			}
+		},
+		complete: function(requester){
+		},
+		error: function(){
+		}
+	});		
+
+}
+
 jQuery(function() {
 	jQuery( "#id_champs_recherche_annuaire_interne" ).autocomplete({
 		source: "ajax.php?action=recherche_annuaire_interne",
@@ -293,12 +321,13 @@ function rafraichir_tableau_users() {
 		async:true,
 		data: { action:'rafraichir_tableau_users'},
 		beforeSend: function(requester){
+			jQuery("#id_div_tableau_users").html("<img src='images/chargement_mac.gif'>"); 
 		},
 		success: function(requester){
 			if (requester=='deconnexion') {
 				afficher_connexion();
 			} else {
-				document.getElementById('id_div_tableau_users').innerHTML=requester;
+				jQuery("#id_div_tableau_users").html(requester); 
 				$("#id_tableau_users").dataTable( { "order": [[ 1, "asc" ]],"pageLength": 25});
 			}
 		},
@@ -636,12 +665,12 @@ function supprimer_uf(unit_num,department_num) {
 }
 
 function affiche_patient_opposition() {
-	hospital_patient_id=document.getElementById('id_opposition_hospital_patient_id').value;
+	term=document.getElementById('id_opposition_term').value;
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_admin.php",
 		async:true,
-		data: { action:'affiche_patient_opposition',hospital_patient_id:hospital_patient_id},
+		data: { action:'affiche_patient_opposition',term:escape(term)},
 		beforeSend: function(requester){
 		},
 		success: function(requester){
@@ -649,7 +678,6 @@ function affiche_patient_opposition() {
 				afficher_connexion();
 			} else {
 				$("#id_div_resultat_opposition_list").html(requester);
-				document.getElementById('id_opposition_hospital_patient_id').value='';
 			}
 		},
 		complete: function(requester){
@@ -659,12 +687,12 @@ function affiche_patient_opposition() {
 	});		
 }
 
-function valider_opposition_patient(patient_num) {
+function validate_opposition(patient_num) {
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_admin.php",
 		async:true,
-		data: { action:'valider_opposition_patient',patient_num:patient_num},
+		data: { action:'validate_opposition',patient_num:patient_num},
 		beforeSend: function(requester){
 		},
 		success: function(requester){
@@ -682,6 +710,29 @@ function valider_opposition_patient(patient_num) {
 	});		
 }
 
+
+function cancel_opposition(patient_num) {
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_admin.php",
+		async:true,
+		data: { action:'cancel_opposition',patient_num:patient_num},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion();
+			} else {
+				$("#id_div_opposition_patient_"+patient_num).html(requester);
+			}
+		},
+		complete: function(requester){
+			list_patients_opposed();
+		},
+		error: function(){
+		}
+	});		
+}
 
 function list_patients_opposed() {
 	jQuery.ajax({
@@ -825,12 +876,13 @@ function ajouter_concepts() {
 	concept_code=document.getElementById('id_concept_code').value;
 	concept_libelle_new=document.getElementById('id_concept_libelle_new').value;
 	semantic_type=document.getElementById('id_type_semantic').value;
+	add_mode=document.getElementById('id_add_mode').value;
 	if (concept_code!='') {
 		jQuery.ajax({
 			type:"POST",
 			url:"ajax_admin.php",
 			async:true,
-			data: { action:'ajouter_concepts',concept_libelle_new:escape(concept_libelle_new),concept_code:concept_code,semantic_type:escape(semantic_type)},
+			data: { action:'ajouter_concepts',concept_libelle_new:escape(concept_libelle_new),concept_code:concept_code,semantic_type:escape(semantic_type),add_mode:escape(add_mode)},
 			beforeSend: function(requester){
 					$("#id_div_ajouter_concepts").empty();
 					$("#id_div_ajouter_concepts").append("<img src='images/chargement_mac.gif'>");
@@ -846,7 +898,7 @@ function ajouter_concepts() {
 			complete: function(requester){
 			},
 			error: function(){
-					$("#id_div_ajouter_concepts").append(requester);
+				$("#id_div_ajouter_concepts").append(requester);
 			}
 		});
 	}
@@ -942,6 +994,36 @@ function calculate_nb_insert() {
 
 
 
+function display_thesaurus() {
+	data_search=jQuery('#id_thesaurus_data_search').val();
+	thesaurus_code=jQuery('#id_thesaurus_code').val();
+	if (data_search!='' || thesaurus_code!='') {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_admin.php",
+			async:true,
+			data: { action:'display_thesaurus',data_search:escape(data_search),thesaurus_code:thesaurus_code},
+			beforeSend: function(requester){
+					$("#id_div_result_thesaurus_data").empty();
+					$("#id_div_result_thesaurus_data").append("<img src='images/chargement_mac.gif'>");
+			},
+			success: function(requester){
+				if (requester=='deconnexion') {
+					afficher_connexion("display_thesaurus()");
+				} else {
+					$("#id_div_result_thesaurus_data").empty();
+					$("#id_div_result_thesaurus_data").append(requester);
+					
+					$("#id_table_list_thesaurus_data").dataTable( { "order": [[ 1, "asc" ]],"pageLength": 25});
+				}
+			},
+			complete: function(requester){
+			},
+			error: function(){
+			}
+		});
+	}
+}
 
 function ajouter_datamart() {
 	title_datamart=document.getElementById('id_ajouter_titre_datamart').value;
@@ -1072,3 +1154,121 @@ function supprimer_datamart(datamart_num) {
 		});		
 	}	
 }
+
+function save_cgu() {
+	cgu_text=jQuery('.ql-editor').html();
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_admin.php",
+		async:true,
+		data: { action:'save_cgu',cgu_text:escape(cgu_text)},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion("save_cgu ();");
+			} else {
+				list_cgu ();
+			}
+		},
+		complete: function(requester){
+		},
+		error: function(){
+		}
+	});
+}
+
+function list_cgu () {
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_admin.php",
+		async:true,
+		data: { action:'list_cgu'},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion("delete_cgu ("+num_cgu+");");
+			} else {
+				$("#id_div_list_cgu").html(requester);
+			}
+		},
+		complete: function(requester){
+		},
+		error: function(){
+		}
+	});		
+}
+
+function delete_cgu (cgu_num) {
+	if (confirm("Etes vous sûr de vouloir supprimer ce CGU ? ")) {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_admin.php",
+			async:true,
+			data: { action:'delete_cgu',cgu_num:cgu_num},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				if (requester=='deconnexion') {
+					afficher_connexion("delete_cgu ("+cgu_num+");");
+				} else {
+					$("tr#id_tr_cgu_"+cgu_num).remove();
+				}
+			},
+			complete: function(requester){
+			},
+			error: function(){
+			}
+		});		
+	}	
+}
+
+function published_cgu (cgu_num) {
+	if (confirm("Etes vous sûr de vouloir publier ce CGU ? ")) {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_admin.php",
+			async:true,
+			data: { action:'published_cgu',cgu_num:cgu_num},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				if (requester=='deconnexion') {
+					afficher_connexion("published_cgu ("+cgu_num+");");
+				} else {
+					list_cgu ();
+				}
+			},
+			complete: function(requester){
+			},
+			error: function(){
+			}
+		});		
+	}	
+}
+
+function unpublished_cgu (cgu_num) {
+	if (confirm("Etes vous sûr de vouloir publier ce CGU ? ")) {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_admin.php",
+			async:true,
+			data: { action:'unpublished_cgu',cgu_num:cgu_num},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				if (requester=='deconnexion') {
+					afficher_connexion("unpublished_cgu ("+cgu_num+");");
+				} else {
+					list_cgu ();
+				}
+			},
+			complete: function(requester){
+			},
+			error: function(){
+			}
+		});		
+	}	
+}
+

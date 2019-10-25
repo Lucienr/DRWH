@@ -292,35 +292,35 @@ function autorisation_voir_patient_nominative ($patient_num,$user_num) {
 			        oci_execute($sel_vardroit);
 				$r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
 			        $nb_verif=$r_droit['VERIF'];
-			}
-		        
-			if ($nb_verif>0) {
-				$verif='ok';
-			} else {
-				// si non on verifie s il est autorise dans une cohorte ?? à voir ...
-				// si non, on verifie s il est dans une cohorte autorisée pour le user
-				$sel_vardroit=oci_parse($dbh,"select count(*) as verif from dwh_cohort, dwh_cohort_result, dwh_cohort_user_right where dwh_cohort.cohort_num= dwh_cohort_user_right.cohort_num and  dwh_cohort_result.cohort_num= dwh_cohort_user_right.cohort_num and dwh_cohort_user_right.user_num=$user_num and right='nominative' and patient_num=$patient_num");
-			        oci_execute($sel_vardroit);
-			        $r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
-		       		 $nb_verif=$r_droit['VERIF'];
+			        
 				if ($nb_verif>0) {
 					$verif='ok';
 				} else {
-					// si non, on verifie s il l'utilisateur a une autorisation speciale par le chef de service
-					$sel_vardroit=oci_parse($dbh,"select count(*) as verif from dwh_request_access , dwh_request_access_patient where user_num_request=$user_num and dwh_request_access.request_access_num= dwh_request_access_patient.request_access_num and patient_num=$patient_num and manager_agreement=1");
+					// si non on verifie s il est autorise dans une cohorte ?? à voir ...
+					// si non, on verifie s il est dans une cohorte autorisée pour le user
+					$sel_vardroit=oci_parse($dbh,"select count(*) as verif from dwh_cohort, dwh_cohort_result, dwh_cohort_user_right where dwh_cohort.cohort_num= dwh_cohort_user_right.cohort_num and  dwh_cohort_result.cohort_num= dwh_cohort_user_right.cohort_num and dwh_cohort_user_right.user_num=$user_num and right='nominative' and patient_num=$patient_num");
 				        oci_execute($sel_vardroit);
 				        $r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
 			       		 $nb_verif=$r_droit['VERIF'];
 					if ($nb_verif>0) {
 						$verif='ok';
 					} else {
-						// si non, on verifie s il est dans un datamart autorise pour le user
-						$sel_vardroit=oci_parse($dbh,"select count(*) as verif from dwh_datamart, dwh_datamart_result, dwh_datamart_user_right where dwh_datamart.datamart_num=dwh_datamart_user_right.datamart_num and  dwh_datamart_result.datamart_num= dwh_datamart_user_right.datamart_num and dwh_datamart_user_right.user_num=$user_num and right='nominative' and temporary_status is null  and patient_num=$patient_num");
+						// si non, on verifie s il l'utilisateur a une autorisation speciale par le chef de service
+						$sel_vardroit=oci_parse($dbh,"select count(*) as verif from dwh_request_access , dwh_request_access_patient where user_num_request=$user_num and dwh_request_access.request_access_num= dwh_request_access_patient.request_access_num and patient_num=$patient_num and manager_agreement=1");
 					        oci_execute($sel_vardroit);
 					        $r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
 				       		 $nb_verif=$r_droit['VERIF'];
 						if ($nb_verif>0) {
 							$verif='ok';
+						} else {
+							// si non, on verifie s il est dans un datamart autorise pour le user
+							$sel_vardroit=oci_parse($dbh,"select count(*) as verif from dwh_datamart, dwh_datamart_result, dwh_datamart_user_right where dwh_datamart.datamart_num=dwh_datamart_user_right.datamart_num and  dwh_datamart_result.datamart_num= dwh_datamart_user_right.datamart_num and dwh_datamart_user_right.user_num=$user_num and right='nominative' and temporary_status is null  and patient_num=$patient_num");
+						        oci_execute($sel_vardroit);
+						        $r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
+					       		 $nb_verif=$r_droit['VERIF'];
+							if ($nb_verif>0) {
+								$verif='ok';
+							}
 						}
 					}
 				}
@@ -341,6 +341,13 @@ function autorisation_voir_patient ($patient_num,$user_num) {
 			$right=$r['RIGHT'];
 			$_SESSION['dwh_droit_'.$right.'0']='ok';
 		}
+	}
+	$sel_vardroit=oci_parse($dbh,"select count(*) as verif  from dwh_patient_opposition where patient_num=$patient_num");
+        oci_execute($sel_vardroit);
+	$r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
+        $nb_verif=$r_droit['VERIF'];
+	if ($nb_verif>0) {
+		$patient_num='';
 	}
 	
 	$verif='';
@@ -391,11 +398,10 @@ function autorisation_voir_patient ($patient_num,$user_num) {
 	return ($verif);
 }
 
-function liste_document_origin_code_tout_compris($patient_num,$user_num) {
+function list_authorized_document_origin_code_for_one_patient($patient_num,$user_num) {
 	global $dbh;
-	
 	$liste_document_origin_code_session='';
-	if ($user_num!='') {
+	if ($user_num!='' && $patient_num!='') {
 		$sel=oci_parse($dbh,"select distinct document_origin_code from dwh_profile_document_origin, dwh_user_profile where user_num='$user_num' and dwh_profile_document_origin.user_profile= dwh_user_profile.user_profile");
 		oci_execute($sel);
 		while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
@@ -414,10 +420,64 @@ function liste_document_origin_code_tout_compris($patient_num,$user_num) {
 		}
 		$liste_document_origin_code_session=substr($liste_document_origin_code_session,0,-1);
 	}
+	if ($liste_document_origin_code_session!='') {
+		$liste_document_origin_code_session.=",'MVT'";
+	}
 	return $liste_document_origin_code_session;
 }
 
 
+
+function list_authorized_document_origin_code_for_one_datamart ($datamart_num,$user_num,$option) {
+	global $dbh;
+	$authorized_document_origin_code='';
+	if ($option=='sql') {
+		$authorized_document_origin_code="";
+	}
+	if ($option=='table') {
+		$authorized_document_origin_code=array();
+	}
+	if ($user_num!='') {
+		if ($datamart_num==0 || $datamart_num=='') {
+			$sel=oci_parse($dbh,"select distinct document_origin_code from dwh_profile_document_origin, dwh_user_profile where user_num='$user_num' and dwh_profile_document_origin.user_profile= dwh_user_profile.user_profile");
+			oci_execute($sel);
+			while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+				$document_origin_code=$r['DOCUMENT_ORIGIN_CODE'];
+				if ($option=='sql') {
+					$authorized_document_origin_code.="'$document_origin_code',";
+				}
+				if ($option=='table') {
+					$authorized_document_origin_code[]=$document_origin_code;
+				}
+			}
+		} else {
+			$sel=oci_parse($dbh,"select document_origin_code from dwh_datamart_doc_origin where datamart_num=$datamart_num");
+			oci_execute($sel);
+			while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+				$document_origin_code=$r['DOCUMENT_ORIGIN_CODE'];
+				if ($option=='sql') {
+					$authorized_document_origin_code.="'$document_origin_code',";
+				}
+				if ($option=='table') {
+					$authorized_document_origin_code[]=$document_origin_code;
+				}
+			}
+		}
+		
+		if ($option=='sql') {
+			$authorized_document_origin_code=substr($authorized_document_origin_code,0,-1);
+			if ($authorized_document_origin_code!='') {
+				$authorized_document_origin_code.=",'MVT'";
+			}
+		}
+		if ($option=='table') {
+			if (count($authorized_document_origin_code)>0) {
+				$authorized_document_origin_code[]="MVT";
+			}
+		}
+	}
+	return $authorized_document_origin_code;
+}
 
 function autorisation_ecrf_voir ($ecrf_num,$user_num) {
 	global $dbh;

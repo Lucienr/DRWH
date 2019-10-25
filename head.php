@@ -31,16 +31,16 @@ putenv("NLS_LANGUAGE=FRENCH_FRANCE.WE8MSWIN1252");
 include_once("parametrage.php");
 include_once("connexion_bdd.php");
 include_once("ldap.php");
-include_once("fonctions_dwh.php");
 include_once("fonctions_droit.php");
+include_once("fonctions_dwh.php");
 include_once("fonctions_stat.php");
-include_once("verif_droit.php");
 
 if ($maintenance=='ok' && $_SESSION['dwh_droit_admin']==''  && $_SESSION['dwh_login']!='' && !preg_match("/maintenance\.php/i",$_SERVER['REQUEST_URI'])) {
 	header("Location: maintenance.php");
 	exit;
 }
 
+include_once("verif_droit.php");
 
 $date_today_unique=date("dmYHis");
 
@@ -76,6 +76,7 @@ $date_today_unique=date("dmYHis");
 	</style>
 	
 	<link href="DataTables/media/css/jquery.dataTables.css" type="text/css" rel="StyleSheet"></link>
+	
 	<link href="jquery-ui.css" type="text/css" rel="StyleSheet"></link>
 	
 	<link href="chosen/docsupport/prism.css" rel="stylesheet"></link>
@@ -90,6 +91,12 @@ $date_today_unique=date("dmYHis");
 	<? if ($_SESSION['dwh_droit_fuzzy_display']=='ok') { ?>
 		<link href="style_capture_fuzzy.css?<? print "v=$date_today_unique"; ?>" type="text/css" rel="StyleSheet"></link>
 	<? } ?>
+	
+	<script language=javascript>
+	jQuery(document).ready(function() {
+	    jQuery.fn.dataTable.moment( 'DD/MM/YYYY' );
+	} );
+	</script>
 </head>
 <body>
 	<table border="0" cellspacing="0" cellpadding="0" style="background-color:#8F94B1" width="100%" height=113 id="id_tableau_titre_application">
