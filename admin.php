@@ -824,10 +824,15 @@ if ($_GET['action']=='admin_thesaurus') {
 	      		}	
       		?>
 		</select>
-		<input type=text id=id_thesaurus_data_search value=''>
+		
+		Display : <select id="display_type">
+			<option value="table">table</option>	
+			<option value="tree">arbre</option>	
+		</select> 
+		<input type=text id=id_thesaurus_data_search value=''> 
 		<input type=button onclick="display_thesaurus();" value="<? print get_translation('DISPLAY','Afficher'); ?>"><br>
 		
-		<div id="id_div_result_thesaurus_data"></div>
+		<div id="id_div_result_thesaurus_data" style="display:none;"></div>
 
 		<br>
 		<br>

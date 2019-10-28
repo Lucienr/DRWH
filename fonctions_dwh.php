@@ -11037,4 +11037,69 @@ function check_format_date ($date,$format) {
 	}
 	return $test;
 }
+
+function get_thesaurus_data_concept ($data_search,$thesaurus_code,$thesaurus_data_father_num) {
+	global $dbh;
+	$query_data='';
+	$query_thesaurus='';
+
+	if (preg_match("/^[0-9]+$/",$data_search)) {
+		$req_num_thesaurus=" or thesaurus_data_num='$requete_texte' ";
+	} else {
+		$req_num_thesaurus="";
+	}
+	
+	$data_search=preg_replace("/\s+/"," ",$data_search);
+	$data_search_sans_pourcent=preg_replace("/\s/"," and ",$data_search);
+	$data_search_avec_pourcent=preg_replace("/\s/","% and ",$data_search);
+	if ($data_search!='') {
+		$query_data=" and  ( contains(description,'$data_search_avec_pourcent%')>0 or contains(description,'$data_search')>0  or concept_code='$data_search' $req_num_thesaurus) ";
+	}
+	if ($thesaurus_code!='') {
+		$query_thesaurus=" and dwh_thesaurus_data.thesaurus_code='$thesaurus_code' ";
+	}
+	if ($thesaurus_data_father_num=='') {
+		$sel=oci_parse($dbh," select thesaurus_data_num,thesaurus_code,concept_code,concept_str,info_complement, measuring_unit, value_type, list_values, thesaurus_parent_num, description, count_data_used
+			 from dwh_thesaurus_data where 1=1 $query_data $query_thesaurus 
+			  order by thesaurus_code,concept_code");
+		oci_execute($sel);
+		$nb=oci_fetch_all($sel,$r, null, null, OCI_FETCHSTATEMENT_BY_ROW); 
+	} else {
+		if ($data_search!='') {
+			$req="select thesaurus_data_num,a.thesaurus_code,concept_code,concept_str,info_complement, measuring_unit, value_type, list_values, thesaurus_parent_num, description, count_data_used
+			from dwh_thesaurus_data a,
+	           dwh_thesaurus_data_graph b
+	           where 
+	           a.thesaurus_code=b.thesaurus_code and 
+	            a.thesaurus_code='$thesaurus_code' and  
+	           a.thesaurus_data_num=b.thesaurus_data_son_num and 
+	           b.thesaurus_data_father_num=$thesaurus_data_father_num  and 
+	           distance=1  and 
+	           ( ( contains(description,'$data_search_avec_pourcent%')>0 or contains(description,'$data_search_sans_pourcent')>0    $req_num_thesaurus )
+	            or a.concept_code='$data_search'
+	           or a.thesaurus_data_num in 
+	           	(select thesaurus_data_father_num from dwh_thesaurus_data a, dwh_thesaurus_data_graph b where    a.thesaurus_code='$thesaurus_code' and  
+	           a.thesaurus_code=b.thesaurus_code and a.thesaurus_data_num=b.thesaurus_data_son_num and    ( contains(description,'$data_search_avec_pourcent%')>0 or contains(description,'$data_search_sans_pourcent')>0    or a.concept_code='$data_search' $req_num_thesaurus ))
+	          )
+			order by concept_code";
+		} else {
+			$req="select thesaurus_data_num,a.thesaurus_code,concept_code,concept_str,info_complement, measuring_unit, value_type, list_values, thesaurus_parent_num, description, count_data_used
+			from dwh_thesaurus_data a,
+	           dwh_thesaurus_data_graph b
+	           where 
+	            a.thesaurus_code='$thesaurus_code' and  
+	           a.thesaurus_code=b.thesaurus_code and 
+	           a.thesaurus_data_num=b.thesaurus_data_son_num and 
+	           b.thesaurus_data_father_num=$thesaurus_data_father_num  and 
+	           distance=1
+	           order by concept_code ";
+		}
+		$sel=oci_parse($dbh,$req);
+		oci_execute($sel);
+		$nb=oci_fetch_all($sel,$r, null, null, OCI_FETCHSTATEMENT_BY_ROW); 
+	}
+	return $r;
+}
+
+
 ?>

@@ -993,27 +993,38 @@ function calculate_nb_insert() {
 }
 
 
-
 function display_thesaurus() {
+	display_type=jQuery('#display_type').val();
+	
+	if (display_type=='table') {
+		display_thesaurus_table();
+	} else {
+		display_thesaurus_tree('0');
+	}
+}
+
+
+function display_thesaurus_table() {
 	data_search=jQuery('#id_thesaurus_data_search').val();
 	thesaurus_code=jQuery('#id_thesaurus_code').val();
+	
 	if (data_search!='' || thesaurus_code!='') {
 		jQuery.ajax({
 			type:"POST",
 			url:"ajax_admin.php",
 			async:true,
-			data: { action:'display_thesaurus',data_search:escape(data_search),thesaurus_code:thesaurus_code},
+			data: { action:'display_thesaurus_table',data_search:escape(data_search),thesaurus_code:thesaurus_code},
 			beforeSend: function(requester){
 					$("#id_div_result_thesaurus_data").empty();
+					$("#id_div_result_thesaurus_data").css('display','block');
 					$("#id_div_result_thesaurus_data").append("<img src='images/chargement_mac.gif'>");
 			},
 			success: function(requester){
 				if (requester=='deconnexion') {
-					afficher_connexion("display_thesaurus()");
+					afficher_connexion("display_thesaurus_table()");
 				} else {
 					$("#id_div_result_thesaurus_data").empty();
 					$("#id_div_result_thesaurus_data").append(requester);
-					
 					$("#id_table_list_thesaurus_data").dataTable( { "order": [[ 1, "asc" ]],"pageLength": 25});
 				}
 			},
@@ -1022,6 +1033,46 @@ function display_thesaurus() {
 			error: function(){
 			}
 		});
+	}
+}
+
+function display_thesaurus_tree (thesaurus_data_num) {
+	data_search=jQuery('#id_thesaurus_data_search').val();
+	thesaurus_code=jQuery('#id_thesaurus_code').val();
+	if (thesaurus_data_num=='0') {
+		div_result='id_div_result_thesaurus_data';
+		$("#"+div_result).css('display','none');
+	} else {
+		div_result='id_span_thesaurus_son_'+thesaurus_data_num;
+	}
+	if ($("#"+div_result).css('display')=='none') {
+		if (data_search!='' || thesaurus_code!='') {
+			jQuery.ajax({
+				type:"POST",
+				url:"ajax_admin.php",
+				async:true,
+				data: { action:'display_thesaurus_tree',data_search:escape(data_search),thesaurus_code:thesaurus_code,thesaurus_data_num:thesaurus_data_num},
+				beforeSend: function(requester){
+						$("#"+div_result).empty();
+						$("#"+div_result).css('display','block');
+						$("#"+div_result).append("<img src='images/chargement_mac.gif'>");
+				},
+				success: function(requester){
+					if (requester=='deconnexion') {
+						afficher_connexion("display_thesaurus_tree('"+thesaurus_data_num+"')");
+					} else {
+						$("#"+div_result).empty();
+						$("#"+div_result).append(requester);
+					}
+				},
+				complete: function(requester){
+				},
+				error: function(){
+				}
+			});
+		}
+	} else {
+		$("#"+div_result).css('display','none');
 	}
 }
 

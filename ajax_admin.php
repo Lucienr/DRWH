@@ -902,11 +902,11 @@ if ($_POST['action']=='ajouter_concepts' && $_SESSION['dwh_droit_admin']=='ok') 
 
 
 
-if ($_POST['action']=='display_thesaurus' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='display_thesaurus_table' && $_SESSION['dwh_droit_admin']=='ok') {
 	$data_search=supprimer_apost(trim(urldecode($_POST['data_search'])));
 	$thesaurus_code=$_POST['thesaurus_code'];
-	
 	if ($data_search!='' || $thesaurus_code!='') {
+		$thesaurus_data_concept=get_thesaurus_data_concept ($data_search,$thesaurus_code,'');
 		print "<table class=tablefin id=\"id_table_list_thesaurus_data\">
 			<thead>
 				<tr>
@@ -926,23 +926,7 @@ if ($_POST['action']=='display_thesaurus' && $_SESSION['dwh_droit_admin']=='ok')
 				</tr>
 			</thead>
 			<tbody>";
-		$query_data='';
-		$query_thesaurus='';
-		
-		$data_search=preg_replace("/\s+/"," ",$data_search);
-		$data_search_sans_pourcent=preg_replace("/\s/"," and ",$data_search);
-		$data_search_avec_pourcent=preg_replace("/\s/","% and ",$data_search);
-		
-		if ($data_search!='') {
-			$query_data=" and  ( contains(description,'$data_search_avec_pourcent%')>0 or contains(description,'$data_search')>0  or concept_code='$data_search' ) ";
-		}
-		if ($thesaurus_code!='') {
-			$query_thesaurus=" and thesaurus_code='$thesaurus_code' ";
-		}
-			
-		$sel=oci_parse($dbh," select thesaurus_data_num,thesaurus_code,concept_code,concept_str,info_complement, measuring_unit, value_type, list_values, thesaurus_parent_num, description, count_data_used from dwh_thesaurus_data where 1=1 $query_data $query_thesaurus order by thesaurus_code,concept_code");
-		oci_execute($sel);
-		while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		foreach ($thesaurus_data_concept as $r) {
 			$thesaurus_data_num=$r['THESAURUS_DATA_NUM'];
 			$thesaurus_code=$r['THESAURUS_CODE'];
 			$concept_code=$r['CONCEPT_CODE'];
@@ -973,6 +957,39 @@ if ($_POST['action']=='display_thesaurus' && $_SESSION['dwh_droit_admin']=='ok')
 		}
 		
 		print "</tbody></table>";
+	}
+}
+
+
+
+
+if ($_POST['action']=='display_thesaurus_tree' && $_SESSION['dwh_droit_admin']=='ok') {
+	$data_search=supprimer_apost(trim(urldecode($_POST['data_search'])));
+	$thesaurus_code=$_POST['thesaurus_code'];
+	$thesaurus_data_num=$_POST['thesaurus_data_num'];
+	if ($data_search!='' || $thesaurus_code!='') {
+		$thesaurus_data_concept=get_thesaurus_data_concept ($data_search,$thesaurus_code,$thesaurus_data_num);
+		foreach ($thesaurus_data_concept as $r) {
+			$thesaurus_data_num=$r['THESAURUS_DATA_NUM'];
+			$thesaurus_code=$r['THESAURUS_CODE'];
+			$concept_code=$r['CONCEPT_CODE'];
+			$concept_str=$r['CONCEPT_STR'];
+			$info_complement=$r['INFO_COMPLEMENT'];
+			$measuring_unit=$r['MEASURING_UNIT'];
+			$value_type=$r['VALUE_TYPE'];
+			$list_values=$r['LIST_VALUES'];
+			$thesaurus_parent_num=$r['THESAURUS_PARENT_NUM'];
+			$description=$r['DESCRIPTION'];
+			$count_data_used=$r['COUNT_DATA_USED'];
+			$test_son=get_thesaurus_data_concept ($data_search,$thesaurus_code,$thesaurus_data_num);
+			if (count($test_son)==0) {
+				print "<div id=\"id_span_thesaurus_$thesaurus_data_num\">- [$concept_code] $concept_str - $info_complement $measuring_unit - $value_type - $list_values ($count_data_used values)</div>";
+			} else {
+				print "<div id=\"id_span_thesaurus_$thesaurus_data_num\" style=\"cursor:pointer;\" onclick=\"display_thesaurus_tree($thesaurus_data_num);\"><span id=\"plus_id_span_thesaurus_$thesaurus_data_num\">+</span> [$concept_code] $concept_str</div>";
+				print "<div id=\"id_span_thesaurus_son_$thesaurus_data_num\" style=\"padding-left:20px;display:none;\"></div>";
+			}
+		}
+		print "<br>";
 	}
 }
 

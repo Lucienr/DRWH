@@ -2169,7 +2169,7 @@ function crontab_alerte_notification () {
 						jQuery('#id_alerte_notification').css('backgroundColor','transparent');
 					}
 					
-					//setTimeout("crontab_alerte_notification();",4000);
+					setTimeout("crontab_alerte_notification();",4000);
 				}
 			} 
 		},
