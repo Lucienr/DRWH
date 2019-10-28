@@ -996,11 +996,13 @@ function verif_process_exclure_concepts(process_num) {
 
 function calculate_nb_insert() {
 	nb_jours=$('#id_calculate_nb_insert_nb_jours').val();
+	type_distribution=$('#id_select_type_distribution').val();
+	
 	jQuery.ajax({
 		type:'POST',
 		url:'ajax_admin.php',
 		async:true,
-		data: { action:'calculate_nb_insert',nb_jours:nb_jours},
+		data: { action:'calculate_nb_insert',nb_jours:nb_jours,type_distribution:type_distribution},
 		beforeSend: function(requester){
 					$("#id_calculate_nb_insert").html("<img src='images/chargement_mac.gif'>");
 		},

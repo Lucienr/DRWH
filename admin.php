@@ -42,7 +42,7 @@ $class_admin_concepts='admin_menu';
 $class_admin_thesaurus='admin_menu';
 $class_admin_etl='admin_menu';
 $class_analyse_requete='admin_menu';
-$class_outils='admin_menu';
+$class_admin_outils='admin_menu';
 $class_admin_cgu='admin_menu';
 if ($_GET['action']=='admin_department') {
 	$class_admin_department='admin_menu_activated';
@@ -507,7 +507,9 @@ if ($_GET['action']=='admin_etl') {
 	// AFFICHAGE NB DE DOCUMENTS INTEGRES SUR 31 DERNIERS JOURS ///
 	$nb_jours=20;
 	print "<br><br><h3>".get_translation('NB_DOCUMENTS_INSERTED_LAST_DAYS','Les documents insérés sur ses N derniers jours')."</h3>";
-	print get_translation('LAST_N_DAYS','N derniers jours')."  <input type=\"text\" size=\"2\" class=\"form\" value=\"$nb_jours\" id=\"id_calculate_nb_insert_nb_jours\"> <input type=\"button\" value=\"ok\" onclick=\"calculate_nb_insert()\">
+	print get_translation('LAST_N_DAYS','N derniers jours')."  <input type=\"text\" size=\"2\" class=\"form\" value=\"$nb_jours\" id=\"id_calculate_nb_insert_nb_jours\"> 
+	".get_translation('BY_DATE_INSERT_OR_DATE_DOCUMENT',"Distribution par ")." <select id=\"id_select_type_distribution\"><option value=\"upload_id\">".get_translation('INSERT_DATE',"Date d'insertion")."</option><option value=\"document_date\">".get_translation('DOCUMENT_DATE',"Date du document")."</option></select>
+	<input type=\"button\" value=\"ok\" onclick=\"calculate_nb_insert()\">
 	<div id=\"id_calculate_nb_insert\"></div>
 	<script language=\"javascript\">
 		$(document).ready(function() { 
@@ -540,7 +542,6 @@ if ($_GET['action']=='admin_etl') {
 	
 	print "<br><h3 style=\"color: #333333;fill: #333333;font-size: 18px;font-family:Lucida Sans Unicode;font-weight:normal;\">".get_translation('DOCUMENTS_NUMBER_OVER_TIME','Nombre de documents au cours du temps')."</h3>";
 	afficher_etat_entrepot('document_origin_code_an_mois','1000px','','','');
-	
 	
 	foreach ($tableau_global_document_origin_code as $document_origin_code => $document_origin_str) {
 		print "<h2 style=\"cursor:pointer\" onclick=\"plier_deplier('id_nb_document_temps_$document_origin_code');\">+ $document_origin_str</h2>";

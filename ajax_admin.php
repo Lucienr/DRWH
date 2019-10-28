@@ -699,7 +699,8 @@ if ($_POST['action']=='delete_outil' && $_SESSION['dwh_droit_admin']=='ok') {
 
 if ($_POST['action']=='calculate_nb_insert' && $_SESSION['dwh_droit_admin']=='ok') {
     $nb_jours=$_POST['nb_jours'];
-    $tableau_calculate_nb_insert=calculate_nb_insert($nb_jours);
+    $type_distribution=$_POST['type_distribution'];
+    $tableau_calculate_nb_insert=calculate_nb_insert($nb_jours,$type_distribution);
     print"<table class=\"tablefin_small\">
     <thead>
         <tr>

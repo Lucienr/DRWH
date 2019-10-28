@@ -10466,10 +10466,17 @@ function search_patient_document ($patient_num,$type_search,$str,$certainty,$con
 }
 
 
-function calculate_nb_insert ($nb_jour){
+function calculate_nb_insert ($nb_jour,$type_distribution){
 	global $dbh;
 	$tableau_result=array();
-
+	if ($type_distribution=='upload_id') {
+		$query_day_doc="substr(upload_id,1,8)";
+		$query_day_mvt="substr(upload_id,1,8)";
+	} else {
+		$query_day_doc="to_char(document_date,'yyyymmdd')";
+		$query_day_mvt="to_char(entry_date,'yyyymmdd')";
+	}
+	
 	//patient
 	$sel=oci_parse($dbh,"select substr(upload_id,1,8) as day,count(*) nb from dwh_patient 
 			where substr(upload_id,1,8)>= to_char(sysdate-$nb_jour,'YYYYMMDD') 
@@ -10494,9 +10501,9 @@ function calculate_nb_insert ($nb_jour){
 
 
 	//mvt
-	$sel=oci_parse($dbh,"select substr(upload_id,1,8) day,count(*) nb from dwh_patient_mvt
-			where substr(upload_id,1,8)>= to_char(sysdate-$nb_jour,'YYYYMMDD') 
-			group by substr(upload_id,1,8) order by substr(upload_id,1,8)");
+	$sel=oci_parse($dbh,"select $query_day_mvt as day,count(*) nb from dwh_patient_mvt
+			where $query_day_mvt>= to_char(sysdate-$nb_jour,'YYYYMMDD') 
+			group by $query_day_mvt order by $query_day_mvt");
 	oci_execute($sel);
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$document_origin_code='mvt';
@@ -10506,7 +10513,7 @@ function calculate_nb_insert ($nb_jour){
 	}
 
 	$sel=oci_parse($dbh,"select  count(*) nb from dwh_patient_mvt 
-			where substr(upload_id,1,8)< to_char(sysdate-$nb_jour,'YYYYMMDD')");
+			where $query_day_mvt< to_char(sysdate-$nb_jour,'YYYYMMDD')");
 	oci_execute($sel);
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$document_origin_code='mvt';
@@ -10516,10 +10523,10 @@ function calculate_nb_insert ($nb_jour){
 	}
 
 	// document
-	$sel=oci_parse($dbh,"select document_origin_code, substr(upload_id,1,8) as day ,count(*) as nb from dwh_document
-			where substr(upload_id,1,8)>= to_char(sysdate-$nb_jour,'YYYYMMDD') 
-			group by  document_origin_code,substr(upload_id,1,8)
-			order by substr(upload_id,1,8) desc, document_origin_code desc");
+	$sel=oci_parse($dbh,"select document_origin_code, $query_day_doc as day ,count(*) as nb from dwh_document
+			where $query_day_doc>= to_char(sysdate-$nb_jour,'YYYYMMDD') 
+			group by  document_origin_code,$query_day_doc
+			order by $query_day_doc desc, document_origin_code desc");
 	oci_execute($sel);
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$document_origin_code=$res['DOCUMENT_ORIGIN_CODE'];
@@ -10529,7 +10536,7 @@ function calculate_nb_insert ($nb_jour){
 	}
 
 	$sel=oci_parse($dbh,"select  document_origin_code, count(*) nb from dwh_document 
-			where substr(upload_id,1,8)< to_char(sysdate-$nb_jour,'YYYYMMDD') group by document_origin_code");
+			where $query_day_doc< to_char(sysdate-$nb_jour,'YYYYMMDD') group by document_origin_code");
 	oci_execute($sel);
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$document_origin_code=$res['DOCUMENT_ORIGIN_CODE'];
