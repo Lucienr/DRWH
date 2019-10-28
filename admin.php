@@ -33,41 +33,96 @@ if ($_SESSION['dwh_droit_admin']!='ok') {
 	exit;
 }
 session_write_close();
+
+$class_admin_department='admin_menu';
+$class_admin_profil='admin_menu';
+$class_admin_user='admin_menu';
+$class_opposition='admin_menu';
+$class_admin_concepts='admin_menu';
+$class_admin_thesaurus='admin_menu';
+$class_admin_etl='admin_menu';
+$class_analyse_requete='admin_menu';
+$class_outils='admin_menu';
+$class_admin_cgu='admin_menu';
+if ($_GET['action']=='admin_department') {
+	$class_admin_department='admin_menu_activated';
+}
+if ($_GET['action']=='admin_profil') {
+	$class_admin_profil='admin_menu_activated';
+}
+if ($_GET['action']=='admin_user') {
+	$class_admin_user='admin_menu_activated';
+}
+if ($_GET['action']=='opposition') {
+	$class_opposition='admin_menu_activated';
+}
+if ($_GET['action']=='admin_concepts') {
+	$class_admin_concepts='admin_menu_activated';
+}
+if ($_GET['action']=='admin_thesaurus') {
+	$class_admin_thesaurus='admin_menu_activated';
+}
+if ($_GET['action']=='admin_etl') {
+	$class_admin_etl='admin_menu_activated';
+}
+if ($_GET['action']=='analyse_requete') {
+	$class_analyse_requete='admin_menu_activated';
+}
+if ($_GET['action']=='admin_outils') {
+	$class_admin_outils='admin_menu_activated';
+}
+if ($_GET['action']=='admin_cgu') {
+	$class_admin_cgu='admin_menu_activated';
+}
+
 ?>
 <script src="javascript_admin.js?<? print "v=$date_today_unique"; ?>" type="text/javascript"></script>
+<style>
+.admin_menu {
+	padding:0px 5px;
+	background-color: #5F6589;
+}
+.admin_menu:hover {
+	background-color: #D1D0D5;
+}
+.admin_menu_activated {
+	padding:0px 5px;
+	background-color: #D1D0D5;
+}
+</style>
 
 <div id="id_sous_menu_flottant"  align="center"  >
 	<table id="id_tableau_sous_menu_flottant" width="100%" height="25" border="0" cellspacing="0" cellpadding="0" bgcolor="#5F6589" style="border-top:0px white solid;border-bottom:1px white solid;">
 		<tr>
-			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=annuaire" nowrap=nowrap><? print get_translation('THE_HOSPITAL_DEPARTMENTS','Les services'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_department; ?>"><a class="connexion" href="admin.php?action=admin_department" nowrap=nowrap><? print get_translation('THE_HOSPITAL_DEPARTMENTS','Les services'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
-			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=admin_profil" nowrap=nowrap><? print get_translation('THE_PROFILES','Les profils'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_profil; ?>"><a class="connexion" href="admin.php?action=admin_profil" nowrap=nowrap><? print get_translation('THE_PROFILES','Les profils'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
-			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=admin_user" nowrap=nowrap><? print get_translation('THE_USERS','Les utilisateurs'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_user; ?>"><a class="connexion" href="admin.php?action=admin_user" nowrap=nowrap><? print get_translation('THE_USERS','Les utilisateurs'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 <!--
-			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=datamart" nowrap=nowrap><? print get_translation('THE_DATAMART','Les datamart'); ?></a></td>
+			<td nowrap="nowrap"><a class="connexion" href="admin.php?action=datamart" nowrap=nowrap><? print get_translation('THE_DATAMART','Les datamart'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 -->
-			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=opposition" nowrap=nowrap><? print get_translation('OPPOSITION','Opposition'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_opposition; ?>"><a class="connexion" href="admin.php?action=opposition" nowrap=nowrap><? print get_translation('OPPOSITION','Opposition'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 
-			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=admin_concepts" nowrap=nowrap><? print get_translation('THE_CONCEPTS','Les concepts'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_concepts; ?>"><a class="connexion" href="admin.php?action=admin_concepts" nowrap=nowrap><? print get_translation('THE_CONCEPTS','Les concepts'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 
-			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=admin_thesaurus" nowrap=nowrap><? print get_translation('THE_THESAURUS','Les thesaurus'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_thesaurus; ?>"><a class="connexion" href="admin.php?action=admin_thesaurus" nowrap=nowrap><? print get_translation('THE_THESAURUS','Les thesaurus'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 			
-			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=admin_etl" nowrap=nowrap><? print get_translation('ETL','ETL'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_etl; ?>"><a class="connexion" href="admin.php?action=admin_etl" nowrap=nowrap><? print get_translation('ETL','ETL'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 			
-  			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=analyse_requete" nowrap=nowrap><? print get_translation('QUERIES','Requêtes'); ?></a></td>
+  			<td nowrap="nowrap" class="<? print $class_analyse_requete; ?>"><a class="connexion" href="admin.php?action=analyse_requete" nowrap=nowrap><? print get_translation('QUERIES','Requêtes'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 			
-			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=outils" nowrap=nowrap><? print get_translation('THE_TOOLS','Les outils'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_outils; ?>"><a class="connexion" href="admin.php?action=admin_outils" nowrap=nowrap><? print get_translation('THE_TOOLS','Les outils'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 			
-			<td nowrap="nowrap" style="padding:0px 5px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#5F6589';"><a class="connexion" href="admin.php?action=admin_cgu" nowrap=nowrap><? print get_translation('CGU','Les CGU'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_cgu; ?>"><a class="connexion" href="admin.php?action=admin_cgu" nowrap=nowrap><? print get_translation('CGU','Les CGU'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 			<td width="100%">&nbsp;</td>
 		</tr>
@@ -77,42 +132,25 @@ session_write_close();
 
 
 
-////////////////// ANNUAIRE //////////////////
-if ($_GET['action']=='annuaire') {
+////////////////// admin_department //////////////////
+if ($_GET['action']=='admin_department') {
 ?>
 
 	<h2><? print get_translation('HOSPITAL_DEPARTMENTS_USER_MANAGEMENT','Gestion des services et des utilisateurs'); ?></h2><br>
 	<div  style="font-size:11px;text-align:left;padding-left:4px;padding-bottom:400px;">
 		<? print get_translation('CREATE_HOSPITAL_DEPARTMENT','Créer un service'); ?> : <input type=text size=12 id=id_service_ajouter > <input type=button value="<? print get_translation('CREATE','Créer'); ?>" onclick="ajouter_service();"><br>
 		<br>
+		<div id="id_div_admin_department">
 		
-		<table border=1 id="id_table_groupe_utilisateur" class="tablefin">
-			<thead>
-				<th>
-					<? print get_translation('HOSPITAL_DEPARTMENT','Service'); ?>
-				</th>
-				<th>
-					<? print get_translation('USERS','Utilisateurs'); ?>
-				</th>
-				<th>
-					<? print get_translation('DELETE','Suppr'); ?>
-				</th>
-			</thead>
-			<tbody>
-			<?
-				$req="select department_num,department_code,department_str from dwh_thesaurus_department  order by department_str";
-				$sel = oci_parse($dbh,$req);
-				oci_execute($sel);
-				while ($ligne = oci_fetch_array($sel)) {
-					$department_num = $ligne['DEPARTMENT_NUM'];
-					$department_code = $ligne['DEPARTMENT_CODE'];
-					$department_str = $ligne['DEPARTMENT_STR'];
-					affiche_service($department_num,$department_str,$department_code);
-				}
-			?>
-			</tbody>
-		</table>
+		</div>
 	</div>
+	<script language=javascript>
+		$(document).ready(function() 
+		    { 
+		    	display_department();
+		    } 
+		); 
+	</script>
 
 <?
 }
@@ -629,7 +667,7 @@ if ($_GET['action']=='opposition') {
 
 <?
 ///////////////// OUTILS //////////////////
-if ($_GET['action']=='outils') {
+if ($_GET['action']=='admin_outils') {
 ?>
 
 	<div id="id_admin_ajouter_outil"  class="div_admin">

@@ -45,6 +45,246 @@ function get_list_department() {
 	return $table_list_department;
 }
 						
+
+function count_departement($department_num) {
+        global $dbh;
+        
+	$tab_count_departement=array();
+
+	$sel=oci_parse($dbh,"select  count(*) nb from dwh_document where department_num=$department_num");
+	oci_execute($sel);
+	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+	$tab_count_departement['nb_document']['total']=$r['NB'];
+	
+	$sel=oci_parse($dbh,"select  count(*) nb from dwh_patient_mvt where department_num=$department_num");
+	oci_execute($sel);
+	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+	$tab_count_departement['nb_mvt']['total']=$r['NB'];
+	
+	$sel=oci_parse($dbh,"select  unit_num,count(*) nb from dwh_document where department_num=$department_num  and unit_num is not null group by unit_num");
+	oci_execute($sel);
+	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		if ($r['UNIT_NUM']!='') {
+			$tab_count_departement['nb_document'][$r['UNIT_NUM']]=$r['NB'];
+		}
+	}
+	
+	$sel=oci_parse($dbh,"select  unit_num,count(*) nb from dwh_patient_mvt where department_num=$department_num  and unit_num is not null  group by unit_num");
+	oci_execute($sel);
+	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		if ($r['UNIT_NUM']!='') {
+			$tab_count_departement['nb_document'][$r['UNIT_NUM']]=$r['NB'];
+		}
+	}
+	return $tab_count_departement;
+}
+
+			
+function count_departement_and_unit() {
+        global $dbh;
+        
+	$tab_count_departement=array();
+	
+	$sel=oci_parse($dbh,"select  department_num,count(*) nb from dwh_patient_department where department_num is not null group by department_num");
+	oci_execute($sel);
+	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		if ($r['DEPARTMENT_NUM']!='') {
+			$tab_count_departement['nb_patient'][$r['DEPARTMENT_NUM']]=$r['NB'];
+		}
+	}
+	
+	$sel=oci_parse($dbh,"select  department_num,count(*) nb from dwh_document where department_num is not null group by department_num");
+	oci_execute($sel);
+	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		if ($r['DEPARTMENT_NUM']!='') {
+			$tab_count_departement['nb_document'][$r['DEPARTMENT_NUM']]=$r['NB'];
+		}
+	}
+	
+	$sel=oci_parse($dbh,"select  department_num,count(*) nb from dwh_patient_mvt where department_num is not null group by department_num");
+	oci_execute($sel);
+	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		if ($r['DEPARTMENT_NUM']!='') {
+			$tab_count_departement['nb_mvt'][$r['DEPARTMENT_NUM']]=$r['NB'];
+		}
+	}
+	
+	$sel=oci_parse($dbh,"select  unit_num,count(*) nb from dwh_document where unit_num is not null group by unit_num");
+	oci_execute($sel);
+	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		if ($r['UNIT_NUM']!='') {
+			$tab_count_departement['nb_document'][$r['UNIT_NUM']]=$r['NB'];
+		}
+	}
+	
+	$sel=oci_parse($dbh,"select  unit_num,count(*) nb from dwh_patient_mvt where unit_num is not null  group by unit_num");
+	oci_execute($sel);
+	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		if ($r['UNIT_NUM']!='') {
+			$tab_count_departement['nb_mvt'][$r['UNIT_NUM']]=$r['NB'];
+		}
+	}
+	return $tab_count_departement;
+}
+
+			
+
+function display_department($department_num,$department_str,$department_code) {
+        global $dbh,$login_session,$user_num_session,$table_count_departement_and_unit;
+        
+        $verif_manager_department=check_user_as_department_manager ($department_num,$user_num_session);
+       // $tab_count_departement=count_departement($department_num);
+        
+        $nb_doc_total=$table_count_departement_and_unit['nb_document'][$department_num];
+        $nb_mvt_total=$table_count_departement_and_unit['nb_mvt'][$department_num];
+        $nb_patient_total=$table_count_departement_and_unit['nb_patient'][$department_num];
+        
+        //////////////// LE SERVICE
+        print "<tr id=\"id_tr_service_$department_num\" >
+                        <td valign=\"top\" nowrap=\"nowrap\">";
+        if ($_SESSION['dwh_droit_admin']=='ok') {
+                print "<div id=\"id_div_libelle_service_$department_num\" onclick=\"afficher_modifier_service($department_num);\" class=\"admin_libelle_service\"><strong nowrap=\"nowrap\">$department_code $department_str</strong></div>
+                        <div id=\"id_div_libelle_service_modifier_$department_num\" style=\"display:none;\">
+                                ".get_translation('HOSPITAL_DEPARTMENT_NAME','Nom du service')." <input type=\"text\" size=\"50\" id=\"id_input_libelle_service_$department_num\" value=\"$department_str\" class=\"admin_input\"><br>
+                                ".get_translation('HOSPITAL_DEPARTMENT_CODE','Code service')." <input type=\"text\" size=\"3\" id=\"id_input_code_service_$department_num\" value=\"$department_code\"><br>
+                                <input type=\"button\" onclick=\"modifier_libelle_service('$department_num');\" value=\"".get_translation('MODIFY','modifier')."\" class=\"admin_button\">
+                        </div>
+                ";
+        } else {
+                print "<strong>$department_str</strong>";
+        }
+        print "</td>";
+        print "<td valign=\"top\">$nb_patient_total</td>";
+        print "<td valign=\"top\">$nb_doc_total</td>";
+        print "<td valign=\"top\">$nb_mvt_total</td>";
+        
+        print "<td valign=\"top\" width=\"482\">";
+        
+        /////////////////// LES UF 
+        print "<a href=\"#\" onclick=\"plier_deplier('id_div_uf_$department_num');return false;\" class=\"admin_lien\"><span id=\"plus_id_div_uf_$department_num\">+</span> ".get_translation('DISPLAY_UNITS','Afficher les unités')."</a>
+        <div id=\"id_div_uf_$department_num\" style=\"display:none\">";
+        
+        print "<table border=\"0\" id=\"id_tableau_uf_$department_num\" width=\"100%\" class=\"noborder\">";
+        $req_uf="select dwh_thesaurus_unit.unit_num, unit_str ,unit_code,to_char(unit_start_date,'DD/MM/YYYY') as unit_start_date,to_char(unit_end_date,'DD/MM/YYYY') as unit_end_date
+        from dwh_thesaurus_unit,dwh_thesaurus_department 
+        where dwh_thesaurus_unit.department_num=dwh_thesaurus_department.department_num and dwh_thesaurus_department.department_num=$department_num order by unit_str ";
+        $sel_uf = oci_parse($dbh,$req_uf);
+        oci_execute($sel_uf);
+        while ($ligne_uf = oci_fetch_array($sel_uf)) {
+                $unit_num = $ligne_uf['UNIT_NUM'];
+                $unit_str = $ligne_uf['UNIT_STR'];
+                $unit_code = $ligne_uf['UNIT_CODE'];
+                $unit_start_date = $ligne_uf['UNIT_START_DATE'];
+                $unit_end_date = $ligne_uf['UNIT_END_DATE'];
+                
+	        $nb_doc=$table_count_departement_and_unit['nb_document'][$unit_num];
+	        $nb_mvt=$table_count_departement_and_unit['nb_mvt'][$unit_num];
+	        
+                print "<tr id=\"id_tr_uf_".$department_num."_".$unit_num."\" onmouseover=\"this.style.backgroundColor='#B9C2C8';\" onmouseout=\"this.style.backgroundColor='#ffffff';\" class=\"admin_texte\">
+                        <td>$unit_code ".ucfirst(strtolower($unit_str))." </td><td>$nb_doc docs</td><td>$nb_mvt mvt</td><td> $unit_start_date</td><td>$unit_end_date</td>";
+                
+                if ($_SESSION['dwh_droit_admin']=='ok') {
+                        print "<td><a onclick=\"supprimer_uf('$unit_num','$department_num');return false;\" href=\"#\" class=\"admin_lien\">X</a></td>";
+                } else {
+                        print "<td></td>";
+                }
+                print "</tr>";
+        }
+        print "</table></div><br>";
+        
+        
+        if ($_SESSION['dwh_droit_admin']=='ok') {
+                print "
+                        <a onclick=\"plier_deplier('id_div_ajouter_uf_$department_num');return false;\"  href=\"#\" class=\"admin_lien\"><span id=\"plus_id_div_ajouter_uf_$department_num\">+</span> ".get_translation('ADD_HOSPITAL_UNIT','Ajouter une UF')."</a><br><br>
+                        <div id=\"id_div_ajouter_uf_$department_num\" style=\"display:none;\" onmouseover=\"autocomplete_service($department_num);\">
+                                <span class=\"admin_texte\">".get_translation('HOSPITAL_DEPARTMENT_CODE','Code service')." </span><input type=\"text\" size=\"3\" id=\"id_input_unit_code_$department_num\" value=\"\" class=\"admin_input\"><br>
+                                <span class=\"admin_texte\">".get_translation('HOSPITAL_DEPARTMENT_NAME','Nom du service')." </span> <input type=\"text\" size=\"50\" id=\"id_input_unit_str_$department_num\" value=\"\" class=\"admin_input\" class=\"admin_input\"><br>
+                                <span class=\"admin_texte\">".get_translation('DATE_START','Date debut')." </span><input type=\"text\" size=\"11\" id=\"id_input_date_deb_uf_$department_num\" value=\"\" class=\"admin_input\"><br>
+                                <span class=\"admin_texte\">".get_translation('DATE_END','Date fin')." </span><input type=\"text\" size=\"11\" id=\"id_input_date_fin_uf_$department_num\" value=\"01/01/3000\" class=\"admin_input\"><br>
+                                <input type=\"button\" onclick=\"ajouter_uf('$department_num');\" value=\"".get_translation('ADD','ajouter')."\">
+                                <br>
+                                <br>
+                                <br>
+                        </div>";
+        }
+        
+        /////////////////// LES PERSONNES
+        print "<a href=\"#\" onclick=\"plier_deplier('id_div_service_$department_num');return false;\" class=\"admin_lien\"><span id=\"plus_id_div_service_$department_num\">+</span> ".get_translation('DISPLAY_USERS','Afficher les personnes')."</a>
+        <div id=\"id_div_service_$department_num\" style=\"display:none\">
+        ";
+        print "<table border=\"0\" id=\"id_tableau_user_$department_num\" width=\"100%\" class=\"noborder\">";
+        $req_user="select lastname,firstname,manager_department,dwh_user.user_num
+        from dwh_user,dwh_user_department 
+        where dwh_user_department.user_num=dwh_user.user_num and dwh_user_department.department_num=$department_num order by manager_department desc, lastname ";
+        $sel_user = oci_parse($dbh,$req_user);
+        oci_execute($sel_user);
+        while ($ligne_user = oci_fetch_array($sel_user)) {
+                $lastname = $ligne_user['LASTNAME'];
+                $manager_department = $ligne_user['MANAGER_DEPARTMENT'];
+                $firstname = $ligne_user['FIRSTNAME'];
+                $user_num = $ligne_user['USER_NUM'];
+                
+                if ($manager_department==1) {
+                        $texte_manager_department="*";
+                } else {
+                        $texte_manager_department="";
+                }
+                print "<tr id=\"id_tr_user_".$department_num."_".$user_num."\" onmouseover=\"this.style.backgroundColor='#B9C2C8';\" onmouseout=\"this.style.backgroundColor='#ffffff';\" class=\"admin_texte\">
+                        <td>".strtoupper($lastname)." ".ucfirst(strtolower($firstname))." 
+                 <span  id=\"id_span_user_".$department_num."_".$user_num."\"  style=\"color:#990000;font-size:18px;font-weight:bold;\">$texte_manager_department</span> </td>";
+                
+                if ($_SESSION['dwh_droit_admin']=='ok' || $verif_manager_department==1) {
+                        print "<td><a onclick=\"supprimer_user('$user_num','$department_num');return false;\" href=\"#\" class=\"admin_lien\">X</a></td>";
+                } else {
+                        print "<td></td>";
+                }
+                print "</tr>";
+        }
+        print "</table></div><br>";
+        /*
+        if ($_SESSION['dwh_droit_admin']=='ok' || $verif_manager_department==1) {
+                print "
+                        <a onclick=\"plier_deplier('id_div_ajouter_user_$department_num');return false;\"  href=\"#\" class=\"admin_lien\"><span id=\"plus_id_div_ajouter_user_$department_num\">+</span> ".get_translation('ADD_USERS','Ajouter des utilisateurs')."</a><br><br>
+                        <div id=\"id_div_ajouter_user_$department_num\" style=\"display:none;\" onmouseover=\"autocomplete_service($department_num);\">
+                                <strong class=\"admin_strong\">".get_translation('SEARCH_USER_IN_LDAP','Rechercher un code APH (nom ou prenom.nom)')." :</strong> <div class=\"ui-widget\" style=\"padding-left: 10px;width:260px;font-size:10px;\">
+                                        <span class=\"ui-helper-hidden-accessible\" aria-live=\"polite\" role=\"status\"></span>
+                                        <span class=\"ui-helper-hidden-accessible\" role=\"status\" aria-live=\"polite\"></span>
+                                        <input id=\"id_champs_recherche_rapide_utilisateur_$department_num\" class=\"form ui-autocomplete-input\" type=\"text\" autocomplete=\"off\" style=\"font-size:12px;\" value=\"".get_translation('LOGIN','Identifiant')."\" name=\"LOGIN\" size=\"15\" onclick=\"if (this.value=='".get_translation('LOGIN','Identifiant')."') {this.value='';}\">
+                                        <span id=\"id_chargement_$department_num\" style=\"display:none;\"><img src=\"images/chargement_mac.gif\" width=\"15px\"></span>
+                                </div>
+                                <br>
+                                <strong class=\"admin_strong\">".get_translation('LOGIN_LIST',"Liste d'identifiant")." </strong>
+                                <br><i class=\"admin_i\">".get_translation('ADD_ASTERISK_BEFORE_OR_AFTER_CODE','Ajoutez une * avant ou après le code APH pour lui donner le rôle de responsable')."</i> : <br>
+                                
+                        	<table border=0 class=\"noborder\">
+	                                <tr><td>
+	                                        <textarea cols=30 rows=4 id=\"id_textarea_ajouter_user_$department_num\"  class=\"form ui-autocomplete-input\" onclick=\"document.getElementById('id_div_reponse_service_$department_num').innerHTML='';\"></textarea>
+	                                </td>
+	                                <td valign=\"top\">
+	                                        <div id=\"id_div_reponse_service_$department_num\" style=\"color:green;font-weight:bold;\"></div>
+	                                </td></tr>
+                                </table>
+                                <br>
+                                <i>".get_translation('ALL_WILL_HAVE_MD_PROFILE',"Ils auront tous le profil medecin")."</i><br>
+                                <input type=\"button\" onclick=\"ajouter_user('$department_num');\" value=\"".get_translation('ADD','ajouter')."\">
+                                <br>";
+                print "
+                        </div>";
+        }
+        */
+        print "</td>";
+        if ($_SESSION['dwh_droit_admin']=='ok') {
+                print "
+                        <td valign=\"top\" >
+                                <input type=\"button\" onclick=\"supprimer_service('$department_num');\" value='S'>
+                        </td>";
+        } else {
+                print "<td></td>";
+        }
+        print "</tr>";
+}
+
+
 						
 function get_line_profile_admin ($user_profile,$option) {
 	global $dbh,$tableau_user_droit,$tableau_patient_droit;

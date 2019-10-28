@@ -502,7 +502,43 @@ if ($_POST['action']=='supprimer_uf' && $_SESSION['dwh_droit_admin']=='ok') {
 	oci_execute($sel_uf);
 }
 
+if ($_POST['action']=='display_department' && $_SESSION['dwh_droit_admin']=='ok') {
 
+	print "<table border=1 id=\"id_table_admin_department\" class=\"tablefin\">
+			<thead>
+				<th>
+					".get_translation('HOSPITAL_DEPARTMENT','Service')."
+				</th>
+				<th>
+					".get_translation('PATIENTS','Patients')."
+				</th>
+				<th>
+					".get_translation('DOCUMENTS','Documents')."
+				</th>
+				<th>
+					".get_translation('MOVMENT','Mouvements')."
+				</th>
+				<th>
+					".get_translation('USERS','Utilisateurs')."
+				</th>
+				<th>
+					".get_translation('DELETE','Suppr')."
+				</th>
+			</thead>
+			<tbody>";
+	$table_count_departement_and_unit=count_departement_and_unit();
+	$req="select department_num,department_code,department_str from dwh_thesaurus_department  order by department_str";
+	$sel = oci_parse($dbh,$req);
+	oci_execute($sel);
+	while ($ligne = oci_fetch_array($sel)) {
+		$department_num = $ligne['DEPARTMENT_NUM'];
+		$department_code = $ligne['DEPARTMENT_CODE'];
+		$department_str = $ligne['DEPARTMENT_STR'];
+		display_department($department_num,$department_str,$department_code);
+	}
+	print "</tbody></table>";
+}
+		
 if ($_POST['action']=='ajouter_service' && $_SESSION['dwh_droit_admin']=='ok') {
 	$department_str=nettoyer_pour_inserer(urldecode($_POST['department_str']));
 
@@ -514,8 +550,7 @@ if ($_POST['action']=='ajouter_service' && $_SESSION['dwh_droit_admin']=='ok') {
 		$department_num=get_uniqid();
 	        $sel_var=oci_parse($dbh,"insert into dwh_thesaurus_department (department_num, department_str) values ($department_num,'$department_str')");
 		oci_execute($sel_var);
-	
-		affiche_service($department_num,$department_str,'');
+		display_department($department_num,$department_str,'');
 	} 
 
 }

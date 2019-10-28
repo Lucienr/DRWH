@@ -541,6 +541,33 @@ function modifier_droit_profil_document_origin_code(user_profile, document_origi
 	});		
 }		
 
+
+function display_department() {
+	jQuery.ajax({
+	type:"POST",
+	url:"ajax_admin.php",
+	async:true,
+	data: { action:'display_department'},
+	beforeSend: function(requester){
+		$("#id_div_admin_department").html("<img src='images/chargement_mac.gif'>");
+	},
+	success: function(requester){
+		contenu=requester;
+		if (contenu=='deconnexion') {
+			afficher_connexion("display_department()");
+		} else {
+			$('#id_div_admin_department').html(contenu);
+			
+		}
+	},
+	complete: function(requester){
+	},
+	error: function(){
+	}
+	});
+}
+
+
 function supprimer_service(department_num) {
 	if (confirm (get_translation('ETES_VOUS_SUR_DE_VOULOIR_SUPPRIMER_CET_UF','Etes vous sûr de vouloir supprimer ce service')+' ?')) {
 		jQuery.ajax({
@@ -603,7 +630,6 @@ function ajouter_uf(department_num) {
 		}
 	});		
 }
-
 
 function ajouter_service() {
 	department_str=document.getElementById('id_service_ajouter').value;
