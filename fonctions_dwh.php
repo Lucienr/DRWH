@@ -3369,23 +3369,20 @@ function recuperer_resultat ($tmpresult_num,$full_text_query,$i_deb,$filtre_sql)
                 $patient_num=$row['PATIENT_NUM'];
                 $nb_doc_par_patient=0;
                 $tableau_document_origin_code_deja_fait=array();
-                
+                 $objects=array();
                 $list_documents_in_result=get_table_objects_in_result ($tmpresult_num,$user_num_session, "and patient_num=$patient_num $filtre_sql $filter_query_user_right");
-		foreach ($list_documents_in_result as $document_num => $object_type) {
-			//$document_tmp_result=get_object_in_result($tmpresult_num,$user_num_session,$document_num);
-                        //$object_type=$document_tmp_result['object_type'];
+		foreach ($list_documents_in_result as $object_num  => $objects) {
 		        $nb_doc_par_patient++;
-			if ( $object_type=='document') {
-	                        if ($nb_doc_par_patient<4) {
-					$document=get_document($document_num);
-		                        $document_num=$document['document_num'];
-		                        $encounter_num=$document['encounter_num'];
-		                        $title=$document['title'];
-		                        $document_date=$document['document_date'];
-		                        $document_origin_code=$document['document_origin_code'];
-		                        $author=$document['author'];
-		                        $department_num=$document['department_num'];
-		                        $text=$document['text'];   
+			if ($objects['object_type']=='document') {
+		                if ($nb_doc_par_patient<4) {
+		                        $document_num=$object_num;
+		                        $encounter_num=$objects['encounter_num'];
+		                        $title=$objects['title'];
+		                        $document_date=$objects['document_date'];
+		                        $document_origin_code=$objects['document_origin_code'];
+		                        $author=$objects['author'];
+		                        $department_num=$objects['department_num'];
+		                        $text=$objects['text'];   
 		               		$tableau_document_origin_code_deja_fait[$document_origin_code]++;
 					$department_str=get_department_str ($department_num);
 		
@@ -3397,32 +3394,34 @@ function recuperer_resultat ($tmpresult_num,$full_text_query,$i_deb,$filtre_sql)
 		                        $tableau_resultat[$patient_num][$document_num]['appercu']=resumer_resultat($text,"$full_text_query",$tableau_liste_synonyme,'moteur');
 		                        $tableau_resultat[$patient_num][$document_num]['affiche_direct']="ok";
 		                        $tableau_resultat[$patient_num][$document_num]['object_type']="document";
-		                } else {
+				} else {
+		                        $document_num=$object_num;
+		                        $encounter_num=$objects['encounter_num'];
+		                        $title=$objects['title'];
+		                        $document_date=$objects['document_date'];
+		                        $document_origin_code=$objects['document_origin_code'];
+		                        $author=$objects['author'];
+		                        
+		                        $tableau_resultat[$patient_num][$document_num]['object_type']="document";
 		                        $tableau_resultat[$patient_num][$document_num]['title']=$title;
 		                        $tableau_resultat[$patient_num][$document_num]['document_date']=$document_date;
 		                        $tableau_resultat[$patient_num][$document_num]['document_origin_code']=$document_origin_code;
 		                        $tableau_resultat[$patient_num][$document_num]['author']=$author;
 		                        $tableau_resultat[$patient_num][$document_num]['appercu']="";
 		                        $tableau_resultat[$patient_num][$document_num]['affiche_direct']="";
-		                }
-			}
-			if ( $object_type=='mvt') {
-	                        
+				}
+			} 
+			if ($objects['object_type']=='mvt') {
 	                        if ($nb_doc_par_patient<4) {
-	                       // if ($tableau_document_origin_code_deja_fait[$document_origin_code]=='' || $nb_doc_par_patient<3) {
-					$mvt=get_mvt($document_num);
-		                        $entry_date=$mvt['ENTRY_DATE'];
-		                        $out_date=$mvt['OUT_DATE'];
-					if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
-						$entry_date='[entry_date]';
-						$out_date='[out_date]';
-					}
-		                        $document_origin_code='MVT';
-		                        $department_num=$mvt['DEPARTMENT_NUM'];
-		                        $encounter_num=$mvt['ENCOUNTER_NUM'];
-		                        $type_mvt=$mvt['TYPE_MVT'];   
-		                        $unit_num=$mvt['UNIT_NUM'];    
-		                        $unit_code=$mvt['UNIT_CODE'];  
+		                        $mvt_num=$object_num;
+		                        $entry_date=$objects['entry_date'];
+		                        $out_date=$objects['out_date'];
+		                        $document_origin_code=$objects['document_origin_code'];
+		                        $department_num=$objects['department_num'];
+		                        $encounter_num=$objects['encounter_num'];
+		                        $type_mvt=$objects['type_mvt'];
+		                        $unit_num=$objects['unit_num'];
+		                        $unit_code=$objects['unit_code'];
 		                        
 		               		$tableau_document_origin_code_deja_fait[$document_origin_code]++;
 					$department_str=get_department_str ($department_num);
@@ -3435,20 +3434,28 @@ function recuperer_resultat ($tmpresult_num,$full_text_query,$i_deb,$filtre_sql)
 			                $appercu.="Mouvement de type $type_mvt dans l'unité $unit_code-$unit_str ";
 			                
 			                
-		                        $tableau_resultat[$patient_num][$document_num]['title']="Mouvement";
-		                        $tableau_resultat[$patient_num][$document_num]['document_date']="du $entry_date au $out_date";
-		                        $tableau_resultat[$patient_num][$document_num]['document_origin_code']=$document_origin_code;
-		                        $tableau_resultat[$patient_num][$document_num]['department_str']=$department_str;
-		                        $tableau_resultat[$patient_num][$document_num]['appercu']=$appercu;
-		                        $tableau_resultat[$patient_num][$document_num]['affiche_direct']="ok";
-		                        $tableau_resultat[$patient_num][$document_num]['object_type']="mvt";
+		                        $tableau_resultat[$patient_num][$mvt_num]['title']="Mouvement";
+		                        $tableau_resultat[$patient_num][$mvt_num]['document_date']="du $entry_date au $out_date";
+		                        $tableau_resultat[$patient_num][$mvt_num]['document_origin_code']=$document_origin_code;
+		                        $tableau_resultat[$patient_num][$mvt_num]['department_str']=$department_str;
+		                        $tableau_resultat[$patient_num][$mvt_num]['appercu']=$appercu;
+		                        $tableau_resultat[$patient_num][$mvt_num]['affiche_direct']="ok";
+		                        $tableau_resultat[$patient_num][$mvt_num]['object_type']="mvt";
+		                        
+		                        
 		                } else {
-		                        $tableau_resultat[$patient_num][$document_num]['title']="Mouvement";
-		                        $tableau_resultat[$patient_num][$document_num]['document_date']="du $entry_date au $out_date";
-		                        $tableau_resultat[$patient_num][$document_num]['document_origin_code']=$document_origin_code;
-		                        $tableau_resultat[$patient_num][$document_num]['department_str']=$department_str;
-		                        $tableau_resultat[$patient_num][$document_num]['appercu']="";
-		                        $tableau_resultat[$patient_num][$document_num]['affiche_direct']="";
+		                        $mvt_num=$object_num;
+		                        $entry_date=$objects['entry_date'];
+		                        $out_date=$objects['out_date'];
+		                        $document_origin_code=$objects['document_origin_code'];
+		                        $department_num=$objects['department_num'];
+		                        
+		                        $tableau_resultat[$patient_num][$mvt_num]['object_type']="mvt";
+		                        $tableau_resultat[$patient_num][$mvt_num]['title']="Mouvement";
+		                        $tableau_resultat[$patient_num][$mvt_num]['document_date']="du $entry_date au $out_date";
+		                        $tableau_resultat[$patient_num][$mvt_num]['document_origin_code']=$document_origin_code;
+		                        $tableau_resultat[$patient_num][$mvt_num]['appercu']="";
+		                        $tableau_resultat[$patient_num][$mvt_num]['affiche_direct']="";
 		                }
 			}
                 }
@@ -3456,24 +3463,22 @@ function recuperer_resultat ($tmpresult_num,$full_text_query,$i_deb,$filtre_sql)
         return $tableau_resultat;
 }
 
-function ouvrir_plus_document ($tmpresult_num,$liste_document,$full_text_query,$tableau_liste_synonyme) {
+function ouvrir_plus_document ($tmpresult_num,$liste_object,$full_text_query,$tableau_liste_synonyme) {
         global $dbh,$modulo_ligne_ajoute,$liste_uf_session,$datamart_num,$liste_document_origin_code_session,$user_num_session;
         $res="";
-        if ($liste_document!='') {
-                $list_documents_in_result=get_table_objects_in_result ($tmpresult_num,$user_num_session, "and document_num in ($liste_document)");
-		foreach ($list_documents_in_result as $document_num => $object_type) {
-			//$document_tmp_result=get_object_in_result($tmpresult_num,$user_num_session,$document_num);
-                       // $object_type=$document_tmp_result['object_type'];
-			if ( $object_type=='document') {
-				$document=get_document($document_num);
-	                        $document_num=$document['document_num'];
-	                        $encounter_num=$document['encounter_num'];
-	                        $title=$document['title'];
-	                        $document_date=$document['document_date'];
-	                        $document_origin_code=$document['document_origin_code'];
-	                        $author=$document['author'];
-	                        $department_num=$document['department_num'];
-	                        $text=$document['text'];   
+        if ($liste_object!='') {
+        	$req_filtre_doc="and document_num in ($liste_object)";
+                $list_documents_in_result=get_table_objects_in_result ($tmpresult_num,$user_num_session,$req_filtre_doc);
+		foreach ($list_documents_in_result as $object_num  => $objects) {
+			if ($objects['object_type']=='document') {
+	                        $document_num=$object_num;
+	                        $encounter_num=$objects['encounter_num'];
+	                        $title=$objects['title'];
+	                        $document_date=$objects['document_date'];
+	                        $document_origin_code=$objects['document_origin_code'];
+	                        $author=$objects['author'];
+	                        $department_num=$objects['department_num'];
+	                        $text=$objects['text'];   
 		                
 				$department_str=get_department_str ($department_num);
 	                
@@ -3499,23 +3504,18 @@ function ouvrir_plus_document ($tmpresult_num,$liste_document,$full_text_query,$
 			                $res.= "<div class=\"appercu\">$appercu</div>";
 		                $res.= "</div>";
 		        }
-			if ( $object_type=='mvt') {
-				$mvt=get_mvt($document_num);
+			if ($objects['object_type']=='mvt') {
+	                        $mvt_num=$object_num;
+	                        $entry_date=$objects['entry_date'];
+	                        $out_date=$objects['out_date'];
+	                        $document_origin_code=$objects['document_origin_code'];
+	                        $department_num=$objects['department_num'];
+	                        $encounter_num=$objects['encounter_num'];
+	                        $type_mvt=$objects['type_mvt'];
+	                        $unit_num=$objects['unit_num'];
+	                        $unit_code=$objects['unit_code'];
 	                        
-	                        $entry_date=$mvt['ENTRY_DATE'];
-	                        $out_date=$mvt['OUT_DATE'];
 	                        
-	                        $document_origin_code='MVT';
-	                        $department_num=$mvt['DEPARTMENT_NUM'];
-	                        $encounter_num=$mvt['ENCOUNTER_NUM'];
-	                        $type_mvt=$mvt['TYPE_MVT'];   
-	                        $unit_num=$mvt['UNIT_NUM'];    
-	                        $unit_code=$mvt['UNIT_CODE'];  
-	                        
-				if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
-					$entry_date='[entry_date]';
-					$out_date='[out_date]';
-				}
 				$department_str=get_department_str ($department_num);
 				$unit_str=get_unit_str ($unit_num);
 
@@ -4157,7 +4157,7 @@ function afficher_resultat ($tmpresult_num,$tableau_resultat,$i_deb,$cohort_num_
 	                        $res.= "<div class=\"appercu\">".$tableau_resultat[$patient_num][$document_num]['appercu']."</div>";
 	                        $res.= "</div>";
 	                } else {
-	                	$liste_document.="$document_num,";
+		               $liste_document.="$document_num,";
 	                }
                 }
                 if ($liste_document!='') {
@@ -10343,14 +10343,69 @@ function get_list_objects_in_result ($tmpresult_num,$user_num,$filter='') {
 function get_table_objects_in_result ($tmpresult_num,$user_num,$filter='') {
 	global $dbh;
 	$tableau_document=array();
-	$sel=oci_parse($dbh,"SELECT distinct document_num,document_date,object_type FROM dwh_tmp_result_$user_num WHERE tmpresult_num = $tmpresult_num $filter  order by  document_date desc" );   
+
+        $req="SELECT patient_num,document_num,to_char(document_date,'DD/MM/YYYY') as DOCUMENT_DATE_CHAR,encounter_num,title,document_origin_code,author,department_num,text,document_date FROM  dwh_text 
+where  context='text' and certainty=0 and document_num in (SELECT  document_num FROM dwh_tmp_result_$user_num WHERE tmpresult_num = $tmpresult_num    $filter  and object_type='document')
+ order by  document_date desc";
+	$sel=oci_parse($dbh,$req );   
         oci_execute($sel);
         while ($row_doc = oci_fetch_array($sel, OCI_ASSOC)) {
-    	    $tableau_document[$row_doc['DOCUMENT_NUM']]=$row_doc['OBJECT_TYPE'];
+        	$document_num=$row_doc['DOCUMENT_NUM'];
+		$tableau_document[$document_num]['object_type']='document';
+	        $tableau_document[$document_num]['patient_num']=$row_doc['PATIENT_NUM'];
+	        $tableau_document[$document_num]['document_num']=$row_doc['DOCUMENT_NUM'];
+	        $tableau_document[$document_num]['title']=$row_doc['TITLE'];
+	        $tableau_document[$document_num]['document_date']=$row_doc['DOCUMENT_DATE_CHAR'];
+	        $tableau_document[$document_num]['author']=$row_doc['AUTHOR'];
+	        $tableau_document[$document_num]['document_origin_code']=$row_doc['DOCUMENT_ORIGIN_CODE'];
+	        
+	        if ($row_doc['TEXT']!='') {
+			$tableau_document[$document_num]['text']=$row_doc['TEXT']->load();
+	        }
+	        
+		if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
+			$tableau_document[$document_num]['author']='[AUTHOR]';
+			$tableau_document[$document_num]['document_date']='[DATE]';
+		}
         }
+
+        $req="select  
+        		mvt_num,
+        		encounter_num, 
+			unit_code, 
+			to_char(entry_date,'DD/MM/YYYY HH24:MI') as  entry_date_char,
+			to_char(out_date,'DD/MM/YYYY HH24:MI') out_date , 
+			department_num, unit_num, patient_num, mvt_num, 
+			mvt_entry_mode, mvt_exit_mode, type_mvt, 
+			entry, out, mvt_order,
+			round(out_date-entry_date) as mvt_length,
+			entry_date
+			from dwh_patient_mvt 
+			where mvt_num in (SELECT  document_num FROM dwh_tmp_result_$user_num WHERE tmpresult_num = $tmpresult_num    $filter   and object_type='mvt') 
+			order by entry_date desc ";
+	$sel=oci_parse($dbh,$req);   
+        oci_execute($sel);
+        while ($row_doc = oci_fetch_array($sel, OCI_ASSOC)) {
+        	$mvt_num=$row_doc['MVT_NUM'];
+		$tableau_document[$mvt_num]['object_type']='mvt';
+		$tableau_document[$mvt_num]['entry_date']=$row_doc['ENTRY_DATE_CHAR'];
+		$tableau_document[$mvt_num]['out_date']=$row_doc['OUT_DATE'];
+		if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
+			$tableau_document[$mvt_num]['entry_date']='[entry_date]';
+			$tableau_document[$mvt_num]['out_date']='[out_date]';
+		}
+		$tableau_document[$mvt_num]['document_origin_code']='MVT';
+	
+		$tableau_document[$mvt_num]['department_num']=$row_doc['DEPARTMENT_NUM'];
+		$tableau_document[$mvt_num]['encounter_num']=$row_doc['ENCOUNTER_NUM'];
+		$tableau_document[$mvt_num]['type_mvt']=$row_doc['TYPE_MVT'];
+		$tableau_document[$mvt_num]['unit_num']=$row_doc['UNIT_NUM'];
+		$tableau_document[$mvt_num]['unit_code']=$row_doc['UNIT_CODE'];
+        
+        }
+        
 	return  $tableau_document;
 }
-
 function get_object_in_result ($tmpresult_num,$user_num,$document_num) {
 	global $dbh;
 	$document_result=array();
