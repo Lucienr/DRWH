@@ -1,6 +1,216 @@
 <?
 
 
+$req="select table_name from all_tables where table_name ='DWH_USER_CONNEXION' ";
+$sel = oci_parse($dbh_etl,$req);
+oci_execute($sel);
+$ligne = oci_fetch_array($sel);
+$verif_ecrf = $ligne['TABLE_NAME'];
+if ($verif_ecrf=='') {
+	$req="CREATE TABLE DWH_USER_CONNEXION
+(
+  LOGIN             VARCHAR2(30 CHAR),
+  LAST_UPDATE_DATE  DATE,
+  DATABASE          VARCHAR2(30 CHAR),
+  USER_NAME         VARCHAR2(100 CHAR)
+)
+TABLESPACE TS_DWH
+LOGGING 
+MONITORING";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="GRANT DELETE, INSERT, SELECT, UPDATE ON DWH.DWH_USER_CONNEXION TO DWH_APP ";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="CREATE SYNONYM DWH_USER_CONNEXION FOR DWH.DWH_USER_CONNEXION";
+	$sel = oci_parse($dbh,$req);
+	oci_execute($sel);
+
+}
+
+
+
+$req="select table_name from all_tables where table_name ='DWH_ECRF' ";
+$sel = oci_parse($dbh_etl,$req);
+oci_execute($sel);
+$ligne = oci_fetch_array($sel);
+$verif_ecrf = $ligne['TABLE_NAME'];
+if ($verif_ecrf=='') {
+	$req="CREATE TABLE DWH_ECRF
+(
+  ECRF_NUM          INTEGER,
+  USER_NUM          INTEGER,
+  TITLE_ECRF        VARCHAR2(4000 CHAR),
+  DESCRIPTION_ECRF  VARCHAR2(4000 CHAR),
+  ECRF_DATE         DATE,
+  TOKEN_ECRF        VARCHAR2(200 CHAR),
+  URL_ECRF            VARCHAR(400 CHAR),
+  ECRF_START_DATE     DATE,
+  ECRF_END_DATE       DATE, 
+  ECRF_START_AGE      FLOAT,
+  ECRF_END_AGE        FLOAT,
+  PRIMARY KEY  (ECRF_NUM)
+)
+TABLESPACE TS_DWH
+LOGGING 
+MONITORING";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="GRANT DELETE, INSERT, SELECT, UPDATE ON DWH.DWH_ECRF TO DWH_APP ";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="CREATE SYNONYM DWH_ECRF FOR DWH.DWH_ECRF";
+	$sel = oci_parse($dbh,$req);
+	oci_execute($sel);
+
+
+
+
+
+	$req="CREATE TABLE DWH_ECRF_ITEM
+(
+  ECRF_ITEM_NUM  INTEGER,
+  ECRF_NUM       INTEGER,
+  ITEM_STR       VARCHAR2(4000 CHAR),
+  ITEM_TYPE      VARCHAR2(200 CHAR),
+  ITEM_LIST      VARCHAR2(4000 CHAR),
+  ITEM_EXT_NAME      VARCHAR2(200 CHAR),
+  ITEM_EXT_CODE     VARCHAR2(4000 CHAR),
+  REGEXP         VARCHAR2(500 CHAR),
+  ITEM_LOCAL_CODE    VARCHAR2(4000 CHAR),
+  REGEXP_INDEX   VARCHAR2(10 CHAR),
+  PERIOD         VARCHAR2(50 CHAR),
+  ITEM_ORDER     INTEGER,
+  PRIMARY KEY
+  (ECRF_ITEM_NUM),
+  FOREIGN KEY (ECRF_NUM) 
+  REFERENCES DWH_ECRF (ECRF_NUM)
+  ON DELETE CASCADE
+)
+TABLESPACE TS_DWH
+LOGGING 
+MONITORING";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="GRANT DELETE, INSERT, SELECT, UPDATE ON DWH.DWH_ECRF_ITEM TO DWH_APP ";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="CREATE SYNONYM DWH_ECRF_ITEM FOR DWH.DWH_ECRF_ITEM";
+	$sel = oci_parse($dbh,$req);
+	oci_execute($sel);
+
+
+	$req="CREATE TABLE DWH_ECRF_ANSWER
+(
+  ECRF_ITEM_NUM       INTEGER,
+  ECRF_NUM            INTEGER,
+  PATIENT_NUM         INTEGER,
+  USER_NUM            INTEGER,
+  USER_VALUE          VARCHAR2(4000 CHAR),
+  AUTOMATED_VALUE     VARCHAR2(4000 CHAR),
+  ECRF_ITEM_EXTRACT  CLOB,
+  USER_VALUE_DATE          DATE,
+  AUTOMATED_VALUE_DATE     DATE,
+  USER_VALIDATION          INTEGER, 
+  USER_VALIDATION_DATE     DATE,
+ foreign key (ECRF_ITEM_NUM) references  DWH_ECRF_ITEM (ECRF_ITEM_NUM) on delete cascade
+)
+TABLESPACE TS_DWH
+LOGGING 
+MONITORING";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="GRANT DELETE, INSERT, SELECT, UPDATE ON DWH.DWH_ECRF_ANSWER TO DWH_APP ";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="CREATE SYNONYM DWH_ECRF_ANSWER FOR DWH.DWH_ECRF_ANSWER";
+	$sel = oci_parse($dbh,$req);
+	oci_execute($sel);
+
+
+
+	$req="CREATE TABLE DWH_ECRF_SUB_ITEM
+(
+  ECRF_SUB_ITEM_NUM    INTEGER,
+  ECRF_ITEM_NUM        INTEGER,
+  SUB_ITEM_LOCAL_STR   VARCHAR2(4000 CHAR),
+  SUB_ITEM_LOCAL_CODE  VARCHAR2(4000 CHAR),
+  SUB_ITEM_EXT_CODE    VARCHAR2(4000 CHAR),
+  SUB_ITEM_REGEXP      VARCHAR2(4000 CHAR),
+  PRIMARY KEY
+  (ECRF_SUB_ITEM_NUM),
+  FOREIGN KEY (ECRF_ITEM_NUM) 
+  REFERENCES DWH_ECRF_ITEM (ECRF_ITEM_NUM)
+  ON DELETE CASCADE
+)
+TABLESPACE TS_DWH
+LOGGING 
+MONITORING";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="GRANT DELETE, INSERT, SELECT, UPDATE ON DWH.DWH_ECRF_SUB_ITEM TO DWH_APP ";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="CREATE SYNONYM DWH_ECRF_SUB_ITEM FOR DWH.DWH_ECRF_SUB_ITEM";
+	$sel = oci_parse($dbh,$req);
+	oci_execute($sel);
+
+
+
+	$req="CREATE TABLE DWH_ECRF_USER_RIGHT
+(
+  ECRF_NUM  INTEGER,
+  USER_NUM  INTEGER,
+  RIGHT     VARCHAR2(50 CHAR),
+  FOREIGN KEY (ECRF_NUM) 
+  REFERENCES DWH_ECRF (ECRF_NUM)
+  ON DELETE CASCADE
+)
+TABLESPACE TS_DWH
+LOGGING 
+MONITORING";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="GRANT DELETE, INSERT, SELECT, UPDATE ON DWH.DWH_ECRF_USER_RIGHT TO DWH_APP ";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="CREATE SYNONYM DWH_ECRF_USER_RIGHT FOR DWH.DWH_ECRF_USER_RIGHT";
+	$sel = oci_parse($dbh,$req);
+	oci_execute($sel);
+
+
+	$req="CREATE TABLE DWH_USER_ECRF
+( 
+	USER_NUM INT, 
+	ECRF_NUM INT, 
+	TOKEN_ECRF VARCHAR2 (50) 
+) 
+TABLESPACE TS_DWH";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="GRANT DELETE, INSERT, SELECT, UPDATE ON DWH.DWH_USER_ECRF TO DWH_APP ";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="CREATE SYNONYM DWH_USER_ECRF FOR DWH.DWH_USER_ECRF";
+	$sel = oci_parse($dbh,$req);
+	oci_execute($sel);
+
+}
+
 
 
 $req="select table_name from all_tables where table_name ='DWH_ADMIN_CGU' ";
