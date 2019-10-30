@@ -242,12 +242,6 @@ function rebuild_index_enrsem () {
 	$upd=oci_parse($dbh,"Alter index DWH.DWH_PATIENT_CONSULT_PNUM rebuild TABLESPACE TS_IDX");
 	oci_execute($upd);
 	
-	$upd=oci_parse($dbh,"Alter index DWH.DWH_PATIENT_CONSULTATION_II rebuild TABLESPACE TS_IDX");
-	oci_execute($upd);
-	
-	$upd=oci_parse($dbh,"Alter index DWH.DWH_PATIENT_CONSULTATION_I rebuild TABLESPACE TS_IDX");
-	oci_execute($upd);
-	
 	$upd=oci_parse($dbh,"Alter index DWH.DWH_PATIENT_CITY rebuild TABLESPACE TS_IDX");
 	oci_execute($upd);
 	
