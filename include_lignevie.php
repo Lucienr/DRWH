@@ -133,7 +133,7 @@ Timeline_parameters="bundle=true";
 	
 <?
 
-include "ajax_lignevie.php";
+//include "ajax_lignevie.php";
 
 	
 $selval=oci_parse($dbh,"select to_char (sysdate, 'mm') as sysdatemois,to_char (sysdate, 'yyyy') as sysdatean,to_char (sysdate, 'dd') as sysdatejour from dual");
@@ -286,8 +286,9 @@ function onLoad() {
 	var bandInfosPatient = createBandInfosPatient(eventSource2);
 	timelines[0] = Timeline.create(document.getElementById("timeline_patient"), bandInfosPatient);
 	
-	Timeline.loadXML("./timeline/xml/<? print $patient_num."_timeline.xml?v=$date_today_unique"; ?>",
-	function(xml, url) { eventSource2.loadXML(xml, url); });
+	//Timeline.loadXML("./timeline/xml/<? print $patient_num."_timeline.xml?v=$date_today_unique"; ?>",function(xml, url) { eventSource2.loadXML(xml, url); });
+	Timeline.loadXML("ajax_lignevie.php?patient_num=<? print $patient_num; ?>",	function(xml, url) { eventSource2.loadXML(xml, url); });
+	
 }
 
 var resizeTimerID = null;
@@ -312,8 +313,8 @@ function onResize() {
 	var bandInfosPatient = createBandInfosPatient(eventSource2);
 	timelines[0] = Timeline.create(document.getElementById("timeline_patient"), bandInfosPatient);
 	
-	Timeline.loadXML("timeline/xml/<? print $patient_num."_timeline.xml?v=$date_today_unique"; ?>",
-	function(xml, url) { eventSource2.loadXML(xml, url); });
+//	Timeline.loadXML("timeline/xml/<? print $patient_num."_timeline.xml?v=$date_today_unique"; ?>",	function(xml, url) { eventSource2.loadXML(xml, url); });
+	Timeline.loadXML("ajax_lignevie.php?patient_num=<? print $patient_num; ?>",	function(xml, url) { eventSource2.loadXML(xml, url); });
 }
 
 function filtre_timeline () {

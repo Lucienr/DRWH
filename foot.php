@@ -31,7 +31,8 @@
 	<a href="contact.php"><? print get_translation('CONTACT','Contact');?></a> | 
 	<a href="log.php"><? print get_translation('LOGS','Logs');?></a> | 
 	<a href="etat_etl.php"><? print get_translation('ETL','ETL');?></a> | 
-	<a href="credit.php"><? print get_translation('CREDITS','Credits');?></a>
+	<a href="credit.php"><? print get_translation('CREDITS','Credits');?></a> | 
+	<a href="#" onclick="return false;"><? print get_translation('Lang','Langue');?> : </a><a href="#" onclick="choose_lang('fr');return false;">FR</a> <a href="#" onclick="choose_lang('en');return false;">EN</a> 
 </div>
 	<div style="display:none;position:fixed;background-color:white;border:1px black solid;  padding:30px;top:300px;left:400px;" id="id_div_connexion">
 		<h1><? print get_translation('PLEASE_RECONNECT','Veuillez vous reconnecter :');?> </h1>
@@ -59,6 +60,25 @@
 		<span onclick="plier('id_div_alerte_info2');" style="cursor:pointer;font-weight:bold;">X Fermer cette fenêtre</span>
 	</div>
 	<script language="javascript">
+		function choose_lang (lang) {
+			jQuery.ajax({
+				type:"POST",
+				url:"ajax.php",
+				async:true,
+				data: { action:'choose_lang',lang:lang},
+				beforeSend: function(requester){
+				},
+				success: function(requester){
+					if (requester=='deconnexion') {
+						afficher_connexion(" choose_lang ('"+lang+"') ");
+					} 
+				},
+				complete: function(requester){
+				},
+				error: function(){
+				}
+			});
+		}
 		jQuery(document).ready(function() { 
 			<? 
 			if ($cohort_num_encours!='') { 

@@ -87,6 +87,7 @@ if ($_POST['action']=='rechercher') {
 			$xml_unitaire.="<title_document>".trim($_POST['title_document_'.$i])."</title_document>";
 			$xml_unitaire.="<document_date_start>".trim($_POST['date_deb_document_'.$i])."</document_date_start>";
 			$xml_unitaire.="<document_date_end>".trim($_POST['date_fin_document_'.$i])."</document_date_end>";
+			$xml_unitaire.="<document_last_nb_days>".trim($_POST['document_last_nb_days_'.$i])."</document_last_nb_days>";
 			$xml_unitaire.="<period_document>".trim($_POST['periode_document_'.$i])."</period_document>";
 			$xml_unitaire.="<document_ageyear_start>".trim($_POST['age_deb_document_'.$i])."</document_ageyear_start>";
 			$xml_unitaire.="<document_ageyear_end>".trim($_POST['age_fin_document_'.$i])."</document_ageyear_end>";
@@ -167,6 +168,8 @@ if ($_POST['action']=='rechercher') {
 			$stay_nb_min=trim($_POST['stay_nb_min_'.$i]);
 			$stay_nb_max=trim($_POST['stay_nb_max_'.$i]);
 			
+			$mvt_last_nb_days=trim($_POST['mvt_last_nb_days_'.$i]);
+			
 			$mvt_date_start=trim($_POST['mvt_date_start_'.$i]);
 			$mvt_date_end=trim($_POST['mvt_date_end_'.$i]);
 			$periode_mvt=trim($_POST['periode_mvt_'.$i]);
@@ -190,6 +193,7 @@ if ($_POST['action']=='rechercher') {
 <mvt_nb_max>$mvt_nb_max</mvt_nb_max>
 <stay_nb_min>$stay_nb_min</stay_nb_min>
 <stay_nb_max>$stay_nb_max</stay_nb_max>
+<mvt_last_nb_days>$mvt_last_nb_days</mvt_last_nb_days>
 <mvt_date_start>$mvt_date_start</mvt_date_start>
 <mvt_date_end>$mvt_date_end</mvt_date_end>
 <mvt_ageyear_start>$mvt_ageyear_start</mvt_ageyear_start>
@@ -253,6 +257,7 @@ if ($_POST['action']=='rechercher') {
 			$xml_unitaire.="<certainty></certainty>";
 			$xml_unitaire.="<document_date_start></document_date_start>";
 			$xml_unitaire.="<document_date_end></document_date_end>";
+			$xml_unitaire.="<document_last_nb_days></document_last_nb_days>";
 			$xml_unitaire.="<period_document></period_document>";
 			$xml_unitaire.="<document_ageyear_start></document_ageyear_start>";
 			$xml_unitaire.="<document_ageyear_end></document_ageyear_end>";
@@ -555,8 +560,14 @@ if ($_POST['action']=='rechercher') {
 				<div id="id_div_sauver_requete" style="width:550px;display:none;font-size:13px">
 					<h3><? print get_translation('SAVE_SEARCH_QUERY','Sauver la requête'); ?></h3>
 					<? print get_translation('TITLE','Titre'); ?> : <input type="text" size="40" id="id_titre_requete_sauver" class="input_texte"><br>
-					<? print get_translation('EXECUTE_QUERY_EVERY_MONTH_AUTOMATICALLY','Executer automatiquement cette requête tous les mois'); ?>: <input type="checkbox" id="id_crontab_requete" name="crontab_query" value="1"> 
-					<input type="hidden" id="id_crontab_periode" name="crontab_periode" value="month"> 
+					<? print get_translation('EXECUTE_QUERY_AUTOMATICALLY','Executer automatiquement cette requête'); ?>: <input type="checkbox" id="id_crontab_requete" name="crontab_query" value="1"> <br>
+					<? print get_translation('PERIODICITY','Périodicité'); ?>: 
+						<select id="id_crontab_periode" name="crontab_periode">
+							<option value=''></option>
+							<option value='month'><? print get_translation('EVERY_MONTH','Tous les mois'); ?></option>
+							<option value='week'><? print get_translation('EVERY_WEEK','Toutes les dimanches'); ?></option>
+							<option value='day'><? print get_translation('EVERY_MORNING','Tous les matins'); ?></option>
+						</select>
 					<br> <input type=button value='<? print get_translation('SAVE','sauver'); ?>' onclick="sauver_requete_en_cours();">
 					<input type="hidden" id="query_num_sauver" value="<? print $query_num; ?>">
 					<br>

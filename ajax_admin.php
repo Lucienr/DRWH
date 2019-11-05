@@ -527,14 +527,14 @@ if ($_POST['action']=='display_department' && $_SESSION['dwh_droit_admin']=='ok'
 			</thead>
 			<tbody>";
 	$table_count_departement_and_unit=count_departement_and_unit();
-	$req="select department_num,department_code,department_str from dwh_thesaurus_department  order by department_str";
-	$sel = oci_parse($dbh,$req);
-	oci_execute($sel);
-	while ($ligne = oci_fetch_array($sel)) {
-		$department_num = $ligne['DEPARTMENT_NUM'];
-		$department_code = $ligne['DEPARTMENT_CODE'];
-		$department_str = $ligne['DEPARTMENT_STR'];
-		display_department($department_num,$department_str,$department_code);
+	
+        $table_department=get_list_departments('','');
+        foreach ($table_department as $department) {
+                $department_num=$department['department_num'];
+                $department_str=$department['department_str'];
+		$department_code=$department['department_code'];
+		$department_master=$department['department_master'];
+		display_department($department_num,$department_str,$department_code,$department_master);
 	}
 	print "</tbody></table>";
 }
@@ -563,6 +563,16 @@ if ($_POST['action']=='supprimer_service'  && $_SESSION['dwh_droit_admin']=='ok'
 	oci_execute($sel_user);
 	
 	$req_user="delete dwh_thesaurus_department where department_num=$department_num";
+	$sel_user = oci_parse($dbh,$req_user);
+	oci_execute($sel_user);
+}
+
+if ($_POST['action']=='set_department_master'  && $_SESSION['dwh_droit_admin']=='ok') {
+	$department_num=$_POST['department_num'];
+	$department_code=$_POST['department_code'];
+	$department_master=$_POST['department_master'];
+	
+	$req_user="update dwh_thesaurus_department set department_master='$department_master' where department_num=$department_num and department_code='$department_code'";
 	$sel_user = oci_parse($dbh,$req_user);
 	oci_execute($sel_user);
 }
@@ -1046,7 +1056,7 @@ if ($_POST['action']=='list_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
 			<th>Publié</th>
 			<th>Date publié / dépublié</th>
 			<th>list users</th>
-			<th>Publié</th>
+			<th>Publier</th>
 			<th>suppr</th>
 		</tr>
 	</thead>
@@ -1125,5 +1135,105 @@ if ($_POST['action']=='unpublished_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
 	}
 }
 
+
+
+
+
+if ($_POST['action']=='save_actu' && $_SESSION['dwh_droit_admin']=='ok') {
+	$actu_text=trim(urldecode($_POST['actu_text']));
+	$actu_num=$_POST['actu_num'];
+	if ($actu_text!='') {
+		if ($actu_num=='') {
+			insert_actu ($actu_text);
+		}else {
+			modify_actu ($actu_num,$actu_text);
+		}
+	}
+}
+
+if ($_POST['action']=='list_actu' && $_SESSION['dwh_droit_admin']=='ok') {
+	print "<table class=tablefin id=\"id_table_list_thesaurus_data\">
+	<thead>
+		<tr>
+			<th>Date actu</th>
+			<th>actu</th>
+			<th>Publiée</th>
+			<th>Date publiée</th>
+			<th>Alert</th>
+			<th>Publier</th>
+			<th>Alert</th>
+			<th>Modify</th>
+			<th>suppr</th>
+		</tr>
+	</thead>
+	<tbody>";
+	
+	$tableau_result=get_list_actu('');
+	foreach ($tableau_result as $actu) {
+		$actu_num=$actu['actu_num'];
+		$actu_text=$actu['actu_text'];
+		$actu_date=$actu['actu_date'];
+		$published=$actu['published'];
+		$published_date=$actu['published_date'];
+		$alert=$actu['alert'];
+		
+		
+		print "<tr id=\"id_tr_actu_$actu_num\" onmouseout=\"this.style.backgroundColor='#ffffff';\" onmouseover=\"this.style.backgroundColor='#dcdff5';\">
+			<td style=\"vertical-align:top;padding:15px;\">$actu_date</td>
+			<td style=\"vertical-align:top;padding:15px;max-width:700px\">
+			<div id=\"id_div_actu_$actu_num\">$actu_text</div>
+			</td>
+			<td style=\"vertical-align:top;padding:15px;\">$published</td>
+			<td style=\"vertical-align:top;padding:15px;\">$published_date</td>
+			<td style=\"vertical-align:top;padding:15px;\">$alert</td>";
+		if ($published=='1') {
+			print "<td style=\"vertical-align:top;padding:15px;\"><input type=button onclick=\"unpublished_actu($actu_num);\" value='depublier'></td>";
+		} else {
+			print "<td style=\"vertical-align:top;padding:15px;\"><input type=button onclick=\"published_actu($actu_num);\" value='publier'></td>";
+		}
+		
+		if ($alert=='1') {
+			print "<td style=\"vertical-align:top;padding:15px;\"><input type=button onclick=\"update_actu_alert($actu_num,'0');\" value='not alert'></td>";
+		} else {
+			print "<td style=\"vertical-align:top;padding:15px;\"><input type=button onclick=\"update_actu_alert($actu_num,'1');\" value='alert'></td>";
+		}
+		
+		print "<td style=\"vertical-align:top;padding:15px;\"><input type=button onclick=\"display_modify_actu($actu_num);\" value='modifier'></td>";
+		print "<td style=\"vertical-align:top;padding:15px;\"><input type=button onclick=\"delete_actu($actu_num);\" value='supprimer'></td>";
+		print "</tr>";
+	}
+	
+	print "</tbody></table>";
+}
+
+
+if ($_POST['action']=='delete_actu' && $_SESSION['dwh_droit_admin']=='ok') {
+	$actu_num=$_POST['actu_num'];
+	if ($actu_num!='') {
+		delete_actu ($actu_num);
+	}
+}
+
+if ($_POST['action']=='published_actu' && $_SESSION['dwh_droit_admin']=='ok') {
+	$actu_num=$_POST['actu_num'];
+	if ($actu_num!='') {
+                update_actu ($actu_num,1);
+	}
+}
+
+if ($_POST['action']=='unpublished_actu' && $_SESSION['dwh_droit_admin']=='ok') {
+	$actu_num=$_POST['actu_num'];
+	if ($actu_num!='') {
+                update_actu ($actu_num,0);
+	}
+}
+
+if ($_POST['action']=='update_actu_alert' && $_SESSION['dwh_droit_admin']=='ok') {
+	$actu_num=$_POST['actu_num'];
+	$alert=$_POST['alert'];
+	if ($actu_num!='') {
+                update_actu_alert ($actu_num,$alert);
+	}
+}
 
 ?>

@@ -34,6 +34,11 @@ if ($_SESSION['dwh_droit_admin']!='ok') {
 }
 session_write_close();
 
+if (count($tableau_admin_features)==0) {
+	$tableau_admin_features=array('admin_department','admin_profil','admin_user','opposition','admin_concepts','admin_thesaurus','admin_etl','analyse_requete','admin_outils','admin_cgu','admin_actu','admin_datamart');
+} 
+
+
 $class_admin_department='admin_menu';
 $class_admin_profil='admin_menu';
 $class_admin_user='admin_menu';
@@ -44,6 +49,7 @@ $class_admin_etl='admin_menu';
 $class_analyse_requete='admin_menu';
 $class_admin_outils='admin_menu';
 $class_admin_cgu='admin_menu';
+$class_admin_actu='admin_menu';
 if ($_GET['action']=='admin_department') {
 	$class_admin_department='admin_menu_activated';
 }
@@ -74,6 +80,9 @@ if ($_GET['action']=='admin_outils') {
 if ($_GET['action']=='admin_cgu') {
 	$class_admin_cgu='admin_menu_activated';
 }
+if ($_GET['action']=='admin_actu') {
+	$class_admin_actu='admin_menu_activated';
+}
 
 ?>
 <script src="javascript_admin.js?<? print "v=$date_today_unique"; ?>" type="text/javascript"></script>
@@ -94,36 +103,64 @@ if ($_GET['action']=='admin_cgu') {
 <div id="id_sous_menu_flottant"  align="center"  >
 	<table id="id_tableau_sous_menu_flottant" width="100%" height="25" border="0" cellspacing="0" cellpadding="0" bgcolor="#5F6589" style="border-top:0px white solid;border-bottom:1px white solid;">
 		<tr>
+		<? if (in_array('admin_department',$tableau_admin_features)) {?>
 			<td nowrap="nowrap" class="<? print $class_admin_department; ?>"><a class="connexion" href="admin.php?action=admin_department" nowrap=nowrap><? print get_translation('THE_HOSPITAL_DEPARTMENTS','Les services'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
+		<? } ?>
+		<? if (in_array('admin_profil',$tableau_admin_features)) {?>
 			<td nowrap="nowrap" class="<? print $class_admin_profil; ?>"><a class="connexion" href="admin.php?action=admin_profil" nowrap=nowrap><? print get_translation('THE_PROFILES','Les profils'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
+		<? } ?>
+			
+		<? if (in_array('admin_user',$tableau_admin_features)) {?>
 			<td nowrap="nowrap" class="<? print $class_admin_user; ?>"><a class="connexion" href="admin.php?action=admin_user" nowrap=nowrap><? print get_translation('THE_USERS','Les utilisateurs'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
+		<? } ?>
+		<? if (in_array('admin_datamart',$tableau_admin_features)) {?>
 <!--
-			<td nowrap="nowrap"><a class="connexion" href="admin.php?action=datamart" nowrap=nowrap><? print get_translation('THE_DATAMART','Les datamart'); ?></a></td>
+			<td nowrap="nowrap"><a class="connexion" href="admin.php?action=admin_datamart" nowrap=nowrap><? print get_translation('THE_DATAMART','Les datamart'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 -->
+		<? } ?>
+		<? if (in_array('opposition',$tableau_admin_features)) {?>
 			<td nowrap="nowrap" class="<? print $class_opposition; ?>"><a class="connexion" href="admin.php?action=opposition" nowrap=nowrap><? print get_translation('OPPOSITION','Opposition'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 
+		<? } ?>
+		<? if (in_array('admin_concepts',$tableau_admin_features)) {?>
 			<td nowrap="nowrap" class="<? print $class_admin_concepts; ?>"><a class="connexion" href="admin.php?action=admin_concepts" nowrap=nowrap><? print get_translation('THE_CONCEPTS','Les concepts'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 
+		<? } ?>
+		<? if (in_array('admin_thesaurus',$tableau_admin_features)) {?>
 			<td nowrap="nowrap" class="<? print $class_admin_thesaurus; ?>"><a class="connexion" href="admin.php?action=admin_thesaurus" nowrap=nowrap><? print get_translation('THE_THESAURUS','Les thesaurus'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 			
+		<? } ?>
+		<? if (in_array('admin_etl',$tableau_admin_features)) {?>
 			<td nowrap="nowrap" class="<? print $class_admin_etl; ?>"><a class="connexion" href="admin.php?action=admin_etl" nowrap=nowrap><? print get_translation('ETL','ETL'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 			
+		<? } ?>
+		<? if (in_array('analyse_requete',$tableau_admin_features)) {?>
   			<td nowrap="nowrap" class="<? print $class_analyse_requete; ?>"><a class="connexion" href="admin.php?action=analyse_requete" nowrap=nowrap><? print get_translation('QUERIES','Requêtes'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 			
+		<? } ?>
+		<? if (in_array('admin_outils',$tableau_admin_features)) {?>
 			<td nowrap="nowrap" class="<? print $class_admin_outils; ?>"><a class="connexion" href="admin.php?action=admin_outils" nowrap=nowrap><? print get_translation('THE_TOOLS','Les outils'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 			
+		<? } ?>
+		<? if (in_array('admin_cgu',$tableau_admin_features)) {?>
 			<td nowrap="nowrap" class="<? print $class_admin_cgu; ?>"><a class="connexion" href="admin.php?action=admin_cgu" nowrap=nowrap><? print get_translation('CGU','Les CGU'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
+			
+		<? } ?>
+		<? if (in_array('admin_actu',$tableau_admin_features)) {?>
+			<td nowrap="nowrap" class="<? print $class_admin_actu; ?>"><a class="connexion" href="admin.php?action=admin_actu" nowrap=nowrap><? print get_translation('NEWS','Les actus'); ?></a></td>
+			<td class="connexion" width="1"> | </td>
+		<? } ?>
 			<td width="100%">&nbsp;</td>
 		</tr>
 	</table>
@@ -247,7 +284,7 @@ if ($_GET['action']=='admin_department') {
 
 	<? 
 	$table_user_profil=get_list_user_profil(); 
-	$table_list_department=get_list_department();
+	$table_list_department=get_list_departments('','');
 	?>
 	<h1><? print get_translation('USERS_ADMINISTRATION','Administration des utilisateurs'); ?></h1>
 	<table border="0">
@@ -286,7 +323,9 @@ if ($_GET['action']=='admin_department') {
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('HOSPITAL_DEPARTMENT','Service'); ?> : </td><td>
 					<select id="id_ajouter_select_service_multiple" multiple size="5" class="form chosen-select"><option value=''></option>
 					<?
-						foreach ($table_list_department as $department_num => $department_str) { 
+						foreach ($table_list_department as $department) {
+							$department_num=$department['department_num'];
+							$department_str=$department['department_str'];
 							print "<option  value=\"$department_num\" class=select_ajouter_select_department_num_multiple id=\"id_ajouter_select_department_num_multiple_$department_num\">$department_str</option>";
 						}
 					?>
@@ -315,7 +354,9 @@ if ($_GET['action']=='admin_department') {
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('HOSPITAL_DEPARTMENT','Service'); ?> : </td><td>
 					<select id="id_select_service" class="form chosen-select"><option value=''></option>
 					<?
-						foreach ($table_list_department as $department_num => $department_str) { 
+						foreach ($table_list_department as $department) {
+							$department_num=$department['department_num'];
+							$department_str=$department['department_str'];
 							print "<option  value=\"$department_num\">$department_str</option>";
 						}
 					?>
@@ -353,7 +394,9 @@ if ($_GET['action']=='admin_department') {
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('HOSPITAL_DEPARTMENT','Service'); ?> : </td><td>
 					<select id="id_modifier_select_service_multiple" multiple size="5" class="form chosen-select"><option value=''></option>
 					<?
-						foreach ($table_list_department as $department_num => $department_str) { 
+						foreach ($table_list_department as $department) {
+							$department_num=$department['department_num'];
+							$department_str=$department['department_str'];
 							print "<option  value=\"$department_num\" class=\"select_modifier_select_department_num_multiple\" id=\"id_modifier_select_department_num_multiple_$department_num\">$department_str</option>";
 						}
 					?>
@@ -700,7 +743,7 @@ if ($_GET['action']=='admin_outils') {
 
 <?
 ///////////////// DATAMART //////////////////
-if ($_GET['action']=='datamart') {
+if ($_GET['action']=='admin_datamart') {
 ?>
 	<?
 	$sel_var1=oci_parse($dbh,"select  distinct document_origin_code from dwh_info_load where document_origin_code is not null order by document_origin_code");
@@ -824,20 +867,6 @@ if ($_GET['action']=='admin_concepts') {
 		<? print get_translation('MOTIF_ADD_CONCEPT','Motif ajout'); ?> :  <input type=text id=id_add_mode value='Manual'> <br>
 		<input type=button onclick="ajouter_concepts();" value="<? print get_translation('SAVE','Sauver'); ?>"><br>
 		<div id="id_div_ajouter_concepts"></div>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
 	</div>
 	
 <?
@@ -873,23 +902,6 @@ if ($_GET['action']=='admin_thesaurus') {
 		
 		<div id="id_div_result_thesaurus_data" style="display:none;"></div>
 
-		<br>
-		<br>
-	
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
 	</div>
 	
 <?
@@ -914,7 +926,6 @@ if ($_GET['action']=='admin_cgu') {
 		<? print get_translation('WRITE_OR_MODIFY_LAST_CGU','Rédiger ou modifier le dernier CGU'); ?> : <br>
 		<? 
 			$cgu=get_last_cgu();
-			$cgu['cgu_text']=preg_replace("/<br>/","\n",$cgu['cgu_text']);
 		?>
 		
 		<div id="editor">
@@ -928,23 +939,6 @@ if ($_GET['action']=='admin_cgu') {
 		<div id="id_div_list_cgu">
 		</div>
 
-		<br>
-		<br>
-	
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
 	</div>
 	
 <script language="javascript">
@@ -963,6 +957,69 @@ if ($_GET['action']=='admin_cgu') {
 ?>
 
 
+
+
+
+<?
+///////////////// CONCEPT //////////////////
+if ($_GET['action']=='admin_actu') {
+?>
+	
+	<!-- Theme included stylesheets -->
+	<link href="quill/quill.snow.css" rel="stylesheet">
+	<!-- Include the Quill library -->
+	<script src="quill/quill.js"></script>
+	<div id="id_admin_actu"  class="div_admin" style="max-width:1000px;">
+		<a name="ancre_actu"></a>
+		<h1><? print get_translation('NEWS_MANAGE','Administrer les actualités'); ?></h1>
+		
+		<? print get_translation('WRITE_A_NEWS','Rédiger une actualité'); ?> : <br>
+		<div id="editor">
+		</div>
+		<div id="id_div_button_add_actu">
+		<input type=button onclick="save_actu();" value="<? print get_translation('SAVE','Sauver'); ?>"><br>
+		</div>
+		<div id="id_div_button_modify_actu" style="display:none;">
+			<input type=hidden value="" id="id_input_actu_num_modify">
+			<input type=button onclick="modify_actu();" value="<? print get_translation('MODIFY','Modifier'); ?>">	<input type=button onclick="cancel_modify_actu();" value="<? print get_translation('CNCEL','Annuler'); ?>"><br>
+		</div>
+		
+		<br><br>Tant que l'actu n'est pas publiée, elle ne sera pas visible par les utilisateurs. <br><br>
+		<div id="id_div_list_actu">
+		</div>
+	</div>
+	
+<script language="javascript">
+	$(document).ready(function(){
+	    $('.autosizejs').autosize();   
+	    list_actu ();
+	});
+	<!-- Initialize Quill editor -->
+	  var quill = new Quill('#editor', {
+	    theme: 'snow'
+	  });
+</script>
+	
+<?
+}
+?>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
 
 
 <?

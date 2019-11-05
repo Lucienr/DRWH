@@ -96,10 +96,10 @@ if ($_GET['nb_mini']=='') {
 
 
 if ($tmpresult_num!='') {
-	parcours_complet("json",$tmpresult_num,'','',$unit_or_department,$nb_mini);
-	$json_file_name = "$URL_UPLOAD/tmp_d3_complet_json_$tmpresult_num$unit_or_department$nb_mini.json?".uniqid();
+	$parcours_complet_json=parcours_complet("json",$tmpresult_num,'','',$unit_or_department,$nb_mini);
 }
 
+$parcours_complet_json=preg_replace("/['\n]/"," ",$parcours_complet_json);
 
 if ($tmpresult_num!='') {
 	if ($unit_or_department=='unit') {
@@ -128,7 +128,7 @@ if ($tmpresult_num!='') {
 ?>
 
 <?
-print "<a href=\"$URL_UPLOAD/tmp_d3_complet_json_$tmpresult_num.json\" target=_blank>fichier json</a>";
+print "<a href=\"data: application/json;base64,".base64_encode($parcours_complet_json)."\" target=_blank>fichier json</a>";
 print "<div id=\"chart\">";
 print "</div>";
 
@@ -139,8 +139,9 @@ echo '<script type="text/javascript" src="parcours_complet_d3.js"></script>';
 
 print "<script type=\"text/javascript\">
 	var optArray = [];
-    	var filename = \"$json_file_name\";
-	initVis(filename);
+    	var filename = \"\";
+    	var data_json ='$parcours_complet_json';
+	initVis(filename,data_json);
 	</script>";
 
 ?>

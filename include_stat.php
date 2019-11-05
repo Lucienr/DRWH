@@ -62,8 +62,12 @@
 		".get_translation('STAT_BASED_ON_MVT_PATIENTS_FOUND','Statistiques basées sur les passages des patients retrouvés')."  <a href=\"export_excel.php?tmpresult_num=$tmpresult_num&option=stat_movment\"><img src=\"images/excel_noir.png\" border=\"0\"></a>
 	</h1>
 	<div id=\"id_div_stat_on_mvt_patients_found\" style=\"float:left;display:none;width:100%\">
+		<br><strong>Interactif :</strong></br>
 		<a href=\"parcours_moyen_d3.php?tmpresult_num=$tmpresult_num\" target=\"_blank\">".get_translation('DISPLAY_AVERAGE_JOURNEY_HOSPIT','Afficher le parcours moyen (hospitalisations) des patients')."</a><br>
 		<a href=\"parcours_complet_d3.php?tmpresult_num=$tmpresult_num\" target=\"_blank\">".get_translation('DISPLAY_AVERAGE_JOURNEY_HOSPIT_CONSULT','Afficher le parcours moyen complet (hospitalisations et consultations) des patients')."</a><br>
+		<br><strong>Images :</strong><br>
+		<a href=\"parcours_moyen.php?tmpresult_num=$tmpresult_num\" target=\"_blank\">".get_translation('DISPLAY_AVERAGE_JOURNEY_HOSPIT','Afficher le parcours moyen (hospitalisations) des patients')."</a><br>
+		<a href=\"parcours_complet.php?tmpresult_num=$tmpresult_num\" target=\"_blank\">".get_translation('DISPLAY_AVERAGE_JOURNEY_HOSPIT_CONSULT','Afficher le parcours moyen complet (hospitalisations et consultations) des patients')."</a><br>
 		<div id=\"id_nb_consult_per_unit_per_year_tableau\" style=\"float:none; \"></div>
 		<div id=\"id_nb_hospit_per_unit_per_year_tableau\" style=\"float:none; \"></div>
 		<div id=\"id_nb_patient_per_unit_per_year_tableau\" style=\"float:none; \"></div>

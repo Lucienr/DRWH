@@ -107,33 +107,37 @@ if ($_POST['action']=='process_parcours') {
 	if ($patient_num!='' && $autorisation_voir_patient=='ok') {
 	
 	
-		parcours_sejour_uf ('','',$patient_num,'patient_num',0);
-		parcours_sejour_service ('','',$patient_num,'patient_num',0);
-		parcours_complet('dot','','',$patient_num,'department',0);
-		parcours_complet('dot','','',$patient_num,'unit',0);
+		$parcours_sejour_uf_png=parcours_sejour_uf ('','',$patient_num,'patient_num',0);
+		$parcours_sejour_service_png=parcours_sejour_service ('','',$patient_num,'patient_num',0);
+		$parcours_complet_department_png=parcours_complet('dot','','',$patient_num,'department',0);
+		$parcours_complet_unit_png=parcours_complet('dot','','',$patient_num,'unit',0);
 		
-		if (is_file("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_parcours_sejour_service_$patient_num.png")) {
+		if ($parcours_sejour_uf_png!='') {
 			$parcours_sejour_service='ok';
 		}
-		if (is_file("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_parcours_sejour_uf_$patient_num.png")) {
+		if ($parcours_sejour_service_png!='') {
 			$parcours_sejour_uf='ok';
 		}
-		if (is_file("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_parcours_complet_$patient_num"."department0.png")) {
+		if ($parcours_complet_department_png!='') {
 			$parcours_complet_department='ok';
 		}
-		if (is_file("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_parcours_complet_$patient_num"."unit0.png")) {
+		if ($parcours_complet_unit_png!='') {
 			$parcours_complet_unit='ok';
 		}
 		
-		if ($parcours_sejour_service=='ok') {print "- <span id=\"id_lien_department\" style=\"font-weight:bold;\"><a  href=\"#\" onclick=\"afficher_parcours('department');\">".get_translation('DISPLAY_JOURNEY_STAY_BY_HOSPITAL_DEPARTMENT','Afficher les hospitalisations (niveau service)')."</a></span><br>";}
-		if ($parcours_sejour_uf=='ok') {print "- <span id=\"id_lien_unit\" style=\"font-weight:normal;\"><a  href=\"#\"  onclick=\"afficher_parcours('unit');\">".get_translation('DISPLAY_JOURNEY_STAY_BY_HOSPITAL_UNIT','Afficher les hospitalisations (niveau unité)')."</a></span><br>";}
-		if ($parcours_complet_department=='ok') {print "- <span id=\"id_lien_complet_department\" style=\"font-weight:normal;\"><a  href=\"#\"  onclick=\"afficher_parcours('complet_department');\">".get_translation('DISPLAY_ALL_MOVEMENT_INCLUDING_CONSULT_DEPARTMENT','Afficher tous les passages (niveau service)')."</a></span><br>";}
-		if ($parcours_complet_unit=='ok') {print "- <span id=\"id_lien_complet_unit\" style=\"font-weight:normal;\"><a  href=\"#\"  onclick=\"afficher_parcours('complet_unit');\">".get_translation('DISPLAY_ALL_MOVEMENT_INCLUDING_CONSULT_UNIT','Afficher tous les passages (niveau unité)')."</a></span><br>";}
+		if ($parcours_sejour_service=='ok') {print "- <span id=\"id_lien_department\" style=\"font-weight:bold;\"><a  href=\"#\" onclick=\"afficher_parcours('department');return false;\">".get_translation('DISPLAY_JOURNEY_STAY_BY_HOSPITAL_DEPARTMENT','Afficher les hospitalisations (niveau service)')."</a></span><br>";}
+		if ($parcours_sejour_uf=='ok') {print "- <span id=\"id_lien_unit\" style=\"font-weight:normal;\"><a  href=\"#\"  onclick=\"afficher_parcours('unit');return false;\">".get_translation('DISPLAY_JOURNEY_STAY_BY_HOSPITAL_UNIT','Afficher les hospitalisations (niveau unité)')."</a></span><br>";}
+		if ($parcours_complet_department=='ok') {print "- <span id=\"id_lien_complet_department\" style=\"font-weight:normal;\"><a  href=\"#\"  onclick=\"afficher_parcours('complet_department');return false;\">".get_translation('DISPLAY_ALL_MOVEMENT_INCLUDING_CONSULT_DEPARTMENT','Afficher tous les passages (niveau service)')."</a></span><br>";}
+		if ($parcours_complet_unit=='ok') {print "- <span id=\"id_lien_complet_unit\" style=\"font-weight:normal;\"><a  href=\"#\"  onclick=\"afficher_parcours('complet_unit');return false;\">".get_translation('DISPLAY_ALL_MOVEMENT_INCLUDING_CONSULT_UNIT','Afficher tous les passages (niveau unité)')."</a></span><br>";}
 		print "<br> ";
-		if ($parcours_sejour_service=='ok') {print "<div id=\"id_div_img_parcours_department\" style=\"display:block\"><img src=\"$URL_UPLOAD/tmp_graphviz_parcours_sejour_service_$patient_num.png\"></div> ";}
-		if ($parcours_sejour_uf=='ok') {print "<div id=\"id_div_img_parcours_unit\" style=\"display:none\"><img src=\"$URL_UPLOAD/tmp_graphviz_parcours_sejour_uf_$patient_num.png\"></div> ";}
-		if ($parcours_complet_department=='ok') {print "<div id=\"id_div_img_parcours_complet_department\" style=\"display:none\"><img src=\"$URL_UPLOAD/tmp_graphviz_parcours_complet_$patient_num"."department0.png\"></div> ";}
-		if ($parcours_complet_unit=='ok') {print "<div id=\"id_div_img_parcours_complet_unit\" style=\"display:none\"><img src=\"$URL_UPLOAD/tmp_graphviz_parcours_complet_$patient_num"."unit0.png\"></div> ";}
+
+		if ($parcours_sejour_service=='ok') {print "<div id=\"id_div_img_parcours_department\" style=\"display:block\"><img src=\"data: image/x-png;base64,".base64_encode($parcours_sejour_uf_png)."\"></div> ";}
+		if ($parcours_sejour_uf=='ok') {print "<div id=\"id_div_img_parcours_unit\" style=\"display:none\"><img src=\"data: image/x-png;base64,".base64_encode($parcours_sejour_service_png)."\"></div> ";}
+		if ($parcours_complet_department=='ok') {print "<div id=\"id_div_img_parcours_complet_department\" style=\"display:none\"><img src=\"data: image/x-png;base64,".base64_encode($parcours_complet_department_png)."\"></div> ";}
+		if ($parcours_complet_unit=='ok') {print "<div id=\"id_div_img_parcours_complet_unit\" style=\"display:none\"><img src=\"data: image/x-png;base64,".base64_encode($parcours_complet_unit_png)."\"></div> ";}
+		print "<br> ";
+		print "<br> ";
+		print "<br> ";
 		
 		$tableau_parcours=display_patient_mvt ($patient_num);
 		print $tableau_parcours;

@@ -474,15 +474,13 @@ function nb_patients_service ($tmpresult_num,$id_div) {
 	$liste_nb_patient='';
 	$req="select department_str,count(distinct patient_num) nb_patient from dwh_tmp_result_$user_num_session, dwh_thesaurus_department
 		where tmpresult_num=$tmpresult_num
-		and dwh_tmp_result_$user_num_session.department_num=dwh_thesaurus_department.department_num
+		and dwh_tmp_result_$user_num_session.department_num=dwh_thesaurus_department.department_num and department_master=1
 		group by department_str order by department_str";
 	$sel=oci_parse($dbh,$req);
 	oci_execute($sel) ;
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$department_str=$res['DEPARTMENT_STR'];
 		$nb_patient=$res['NB_PATIENT'];
-		$department_str=preg_replace("/\n/"," ",$department_str);
-		$department_str=preg_replace("/'/"," ",$department_str);
 		$liste_libelle_service.="'$department_str',";
 		$liste_nb_patient.="$nb_patient,";
 		
@@ -548,8 +546,6 @@ function nb_document_document_origin_code ($tmpresult_num,$id_div) {
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$document_origin_code=$res['DOCUMENT_ORIGIN_CODE'];
 		$nb_document=$res['NB_DOCUMENT'];
-		$document_origin_code=preg_replace("/\n/"," ",$document_origin_code);
-		$document_origin_code=preg_replace("/'/"," ",$document_origin_code);
 		$liste_document_origin_code.="'$document_origin_code',";
 		$liste_nb_document.="$nb_document,";
 		
@@ -615,14 +611,12 @@ function nb_nouveau_patients_service ($tmpresult_num,$id_div) {
 	$an_min=2012;
 	
 	$req="select department_str,  patient_num ,document_date from dwh_tmp_result_$user_num_session, dwh_thesaurus_department where tmpresult_num=$tmpresult_num 
-		and dwh_tmp_result_$user_num_session.department_num=dwh_thesaurus_department.department_num  order by document_date";
+		and dwh_tmp_result_$user_num_session.department_num=dwh_thesaurus_department.department_num  and department_master=1 order by document_date";
 	$sel=oci_parse($dbh,$req);
 	oci_execute($sel) ;
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$department_str=$res['DEPARTMENT_STR'];
 		$patient_num=$res['PATIENT_NUM'];
-		$department_str=preg_replace("/\n/"," ",$department_str);
-		$department_str=preg_replace("/'/"," ",$department_str);
 		if (!is_array($tableau_service_patient[$department_str])) {
 			$tableau_service_patient[$department_str]=array();
 		}
@@ -733,14 +727,12 @@ function nb_nouveau_patients_service_hors_mespatients ($tmpresult_num,$id_div) {
 	if ($filtre_sql_service!='') {
 		$req="select department_str,  patient_num ,document_date from dwh_tmp_resultall_$user_num_session, dwh_thesaurus_department 
 		where tmpresult_num=$tmpresult_num and dwh_thesaurus_department.department_num=dwh_tmp_resultall_$user_num_session.department_num
-			  $filtre_sql_service order by document_date";
+			  $filtre_sql_service  and department_master=1 order by document_date";
 		$sel=oci_parse($dbh,$req);
 		oci_execute($sel) ;
 		while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 			$department_str=$res['DEPARTMENT_STR'];
 			$patient_num=$res['PATIENT_NUM'];
-			$department_str=preg_replace("/\n/"," ",$department_str);
-			$department_str=preg_replace("/'/"," ",$department_str);
 			if (!is_array($tableau_service_patient[$department_str])) {
 				$tableau_service_patient[$department_str]=array();
 			}

@@ -952,3 +952,14 @@ font-size:13px;
 .pattern_found {
     color: #00b2d7;
 }
+
+.actu_alert p {
+	padding: 0px;
+	margin: 0px;
+	font-size: 12px;
+}
+
+.actu {
+background-color:lavender;
+}
+

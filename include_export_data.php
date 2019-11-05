@@ -84,7 +84,7 @@
   		 <input type="radio" name="patient_or_document" id="id_radio_patordoc_patient" value="patient" checked> Sur les patients trouvés<br>
  		 <input type="radio" name="patient_or_document" id="id_radio_patordoc_document" value="document"> Uniquement sur les documents trouvés<br>
 		  <br> 
-  		<input type="button" value='<? print get_translation('EXPORT','Export ajax'); ?>' class="bouton_sauver" onclick="plier('id_div_export_concept');execute_process_export_data ();"> 	
+  		<input type="button" value='<? print get_translation('EXPORT','Export'); ?>' class="bouton_sauver" onclick="plier('id_div_export_concept');execute_process_export_data ();"> 	
 	</div>
 	<div id="id_div_data_list" style="width:550px;display:none">
 		<h2><? print get_translation('MY_SAVED_LISTS','Mes listes sauvegardées'); ?>:</h2>

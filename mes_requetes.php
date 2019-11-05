@@ -66,19 +66,19 @@ session_write_close();
 			                	$check_crontab='';
 			                }
 			                if ($crontab_periode=='month') {
-			                	$select_mois='selected';
-			                	$select_semaine='';
-			                	$select_jour='';
+			                	$select_month='selected';
+			                	$select_week='';
+			                	$select_morning='';
 			                } 
 			                if ($crontab_periode=='week') {
-			                	$select_mois='';
-			                	$select_semaine='selected';
-			                	$select_jour='';
+			                	$select_month='';
+			                	$select_week='selected';
+			                	$select_morning='';
 			                } 
 			                if ($crontab_periode=='day') {
-			                	$select_mois='';
-			                	$select_semaine='';
-			                	$select_jour='selected';
+			                	$select_month='';
+			                	$select_week='';
+			                	$select_morning='selected';
 			                } 
 			                $sel_pat=oci_parse($dbh,"select title_datamart from dwh_datamart where datamart_num=$num_datamart_requete");
 			                oci_execute($sel_pat);
@@ -94,15 +94,17 @@ session_write_close();
 					 </span>";
 					print "<span id=\"id_titre_requete_modifier\" style=\"display:none;\"><input type='text' size='50' id='id_input_titre_requete' value=\"$title_query\"> <input class=\"form_submit\" type=\"button\" value=\"Ok\" onclick=\"modifier_requete($query_num_voir);\"></span>";
 					print "</h2>";
-					print get_translation('SAVED_QUERY_MONTHLY_EXECUTION',"Executer automatiquement cette requête tous les mois");
+					print get_translation('EXECUTE_QUERY_AUTOMATICALLY',"Executer automatiquement cette requête");
 					print " : <input type=\"checkbox\" id=\"id_crontab_requete\" name=\"crontab_query\" value=\"1\" $check_crontab onclick=\"modifier_requete($query_num_voir);\"> <br>
-									<input type=\"hidden\" id=\"id_crontab_periode\" name=\"crontab_periode\" value=\"month\"> 
-									<!--Périodicité : 
-									<select id=\"id_crontab_periode\" name=\"crontab_periode\" onchange=\"modifier_requete($query_num_voir);\">
-										<option value='month' $select_mois>monthly</option>
-										<option value='week' $select_semaine>weekly</option>
-										<option value='day' $select_jour>dayly</option>
-									</select> <br>-->";
+					".get_translation('PERIODICITY','Périodicité')."
+						<select id=\"id_crontab_periode\" name=\"crontab_periode\" onchange=\"modifier_requete($query_num_voir);\">
+							<option value=''></option>
+							<option value='month' $select_month>".get_translation('EVERY_MONTH','Tous les mois')."</option>
+							<option value='week' $select_week>".get_translation('EVERY_WEEK','Toutes les dimanches')."</option>
+							<option value='day' $select_morning>".get_translation('EVERY_MORNING','Tous les matins')."</option>
+						</select>
+						<input type=\"hidden\" id=\"id_crontab_periode\" name=\"crontab_periode\" value=\"month\"> 
+						<br>";
 					
 					print "<input type=\"hidden\" value=\"$query_num_voir\" id=\"id_query_num_voir\">";
 					print "
@@ -117,7 +119,7 @@ session_write_close();
 					print "</div>";
 					
 					
-					lister_requete_detail ($query_num_voir);
+					lister_requete_detail ($query_num_voir,$crontab_periode);
 				} else {
 					print get_translation('YOU_CANNOT_SEE_THIS_QUERY',"Vous n'êtes pas autorisé à voir cette requête");
 				}

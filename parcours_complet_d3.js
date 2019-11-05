@@ -24,7 +24,7 @@
  * Created by antoine on 02/12/2015.
  */
 
-initVis = function(filename) {
+initVis = function(filename,data_json) {
     var  h =1000,
         w = h,
         margin = {top: 20, bottom: 20, left:0, right: 0},
@@ -50,8 +50,13 @@ initVis = function(filename) {
         .append("svg:g")
         .attr("transform", "translate(" + (w / 2 + margin.left) + "," + (h / 2 + margin.top)   + ")");
 
-
-    d3.json(filename, ready)
+	if (filename!='') {
+	    d3.json(filename, ready)
+	}
+	if (data_json!='') {
+ 	  data=JSON.parse(data_json);
+ 	  ready('',data)
+	}
 
     function ready(error,  _data) {
         if (error) throw error;

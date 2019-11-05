@@ -567,6 +567,33 @@ function display_department() {
 	});
 }
 
+function set_department_master(department_code,department_num) {
+	if(jQuery('#id_checbox_'+department_code+'_'+department_num).prop('checked')) {
+		department_master=1;
+	} else {
+		department_master=0;
+	}
+	
+	jQuery.ajax({
+	type:"POST",
+	url:"ajax_admin.php",
+	async:true,
+	data: { action:'set_department_master',department_code:department_code,department_num:department_num,department_master:department_master},
+	beforeSend: function(requester){
+	},
+	success: function(requester){
+		contenu=requester;
+		if (contenu=='deconnexion') {
+			afficher_connexion("set_department_master('"+department_code+"','"+department_num+"')");
+		} else {
+		}
+	},
+	complete: function(requester){
+	},
+	error: function(){
+	}
+	});
+}
 
 function supprimer_service(department_num) {
 	if (confirm (get_translation('ETES_VOUS_SUR_DE_VOULOIR_SUPPRIMER_CET_UF','Etes vous sûr de vouloir supprimer ce service')+' ?')) {
@@ -1328,7 +1355,7 @@ function published_cgu (cgu_num) {
 }
 
 function unpublished_cgu (cgu_num) {
-	if (confirm("Etes vous sûr de vouloir publier ce CGU ? ")) {
+	if (confirm("Etes vous sûr de vouloir dépublier ce CGU ? ")) {
 		jQuery.ajax({
 			type:"POST",
 			url:"ajax_admin.php",
@@ -1349,5 +1376,186 @@ function unpublished_cgu (cgu_num) {
 			}
 		});		
 	}	
+}
+
+
+
+
+
+
+function save_actu() {
+	actu_text=jQuery('.ql-editor').html();
+	actu_num=jQuery('#id_input_actu_num_modify').val();
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_admin.php",
+		async:true,
+		data: { action:'save_actu',actu_text:escape(actu_text),actu_num:actu_num},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion("save_actu ();");
+			} else {
+			
+	  			jQuery('.ql-editor').html('');
+	  			jQuery('#id_input_actu_num_modify').val('');
+				list_actu ();
+			}
+		},
+		complete: function(requester){
+		},
+		error: function(){
+		}
+	});
+}
+
+function list_actu () {
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_admin.php",
+		async:true,
+		data: { action:'list_actu'},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion("delete_actu ("+num_actu+");");
+			} else {
+				$("#id_div_list_actu").html(requester);
+			}
+		},
+		complete: function(requester){
+		},
+		error: function(){
+		}
+	});		
+}
+
+function delete_actu (actu_num) {
+	if (confirm("Etes vous sûr de vouloir supprimer ce actu ? ")) {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_admin.php",
+			async:true,
+			data: { action:'delete_actu',actu_num:actu_num},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				if (requester=='deconnexion') {
+					afficher_connexion("delete_actu ("+actu_num+");");
+				} else {
+					$("tr#id_tr_actu_"+actu_num).remove();
+				}
+			},
+			complete: function(requester){
+			},
+			error: function(){
+			}
+		});		
+	}	
+}
+
+function published_actu (actu_num) {
+	if (confirm("Etes vous sûr de vouloir publier ce actu ? ")) {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_admin.php",
+			async:true,
+			data: { action:'published_actu',actu_num:actu_num},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				if (requester=='deconnexion') {
+					afficher_connexion("published_actu ("+actu_num+");");
+				} else {
+					list_actu ();
+				}
+			},
+			complete: function(requester){
+			},
+			error: function(){
+			}
+		});		
+	}	
+}
+
+function unpublished_actu (actu_num) {
+	if (confirm("Etes vous sûr de vouloir dépublier cette actu ? ")) {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_admin.php",
+			async:true,
+			data: { action:'unpublished_actu',actu_num:actu_num},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				if (requester=='deconnexion') {
+					afficher_connexion("unpublished_actu ("+actu_num+");");
+				} else {
+					list_actu ();
+				}
+			},
+			complete: function(requester){
+			},
+			error: function(){
+			}
+		});		
+	}	
+}
+
+
+
+function update_actu_alert (actu_num, alert) {
+	if (alert==1) {
+		message="Etes vous sûr de vouloir mettre cette actu dans les alertes ? ";
+	} else {
+		message="Etes vous sûr de vouloir retirer cette actu des alertes ? ";
+	}
+
+	if (confirm(message)) {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_admin.php",
+			async:true,
+			data: { action:'update_actu_alert',actu_num:actu_num,alert:alert},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				if (requester=='deconnexion') {
+					afficher_connexion("update_actu_alert ('"+actu_num+"','"+alert+"')");
+				} else {
+					list_actu ();
+				}
+			},
+			complete: function(requester){
+			},
+			error: function(){
+			}
+		});		
+	}	
+}
+
+function display_modify_actu( actu_num) {
+	jQuery('.ql-editor').html(jQuery('#id_div_actu_'+actu_num).html());
+	self.location="#ancre_actu";
+	jQuery('#id_input_actu_num_modify').val(actu_num);
+	jQuery('#id_div_button_add_actu').css('display','none');
+	jQuery('#id_div_button_modify_actu').css('display','block');
+}
+
+
+function modify_actu() {
+	save_actu();
+	jQuery('#id_div_button_add_actu').css('display','block');
+	jQuery('#id_div_button_modify_actu').css('display','none');
+}
+
+
+function cancel_modify_actu( actu_num) {
+	jQuery('.ql-editor').html('');
+	jQuery('#id_input_actu_num_modify').val('');
+	jQuery('#id_div_button_add_actu').css('display','block');
+	jQuery('#id_div_button_modify_actu').css('display','none');
 }
 

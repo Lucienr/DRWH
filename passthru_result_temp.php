@@ -101,12 +101,10 @@ while ( $r = oci_fetch_array($sel, OCI_ASSOC+OCI_RETURN_NULLS)) {
 	
 	$tableau_patient_num_json[$patient_num].="{\"document_num\":\"$document_num\",\"query_key\":\"$query_key\",\"document_origin_code\":\"$document_origin_code\",\"document_date\":\"$document_date\",\"object_type\":\"$object_type\"},"; 
 	if ($nb_doc==1000) {
-		print benchmark("1- $nb_doc");
 		$nb_doc=0;
 		$nb_patient=count($tableau_patient_num_json);
 		$upd = oci_parse($dbh,"update  dwh_tmp_query set count_patient=$nb_patient  where query_key='$query_key_arg' and user_num=$user_num and datamart_num=$datamart_num ");   
 		oci_execute($upd);
-		print benchmark("2- $nb_doc");
 	}
 }
 

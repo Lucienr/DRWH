@@ -20,7 +20,7 @@
     75015 Paris
     France
 */
-function initVis(filename, nbMin, particles, firstView) {
+function initVis(filename,data_json, nbMin, particles, firstView) {
     var w = 1400;
     var h = 1000;
     var flexibility = 100;
@@ -79,9 +79,13 @@ function initVis(filename, nbMin, particles, firstView) {
 
     var freqCounter = frequencyRange[0];
 
-
-    d3.json(filename, sankeyDraw);
-
+	if (filename!='') {
+		d3.json(filename, sankeyDraw);
+	}
+	if (data_json!='') {
+		data=JSON.parse(data_json);
+		sankeyDraw(data);
+	}
 
 // Callback to draw on a data set.
     function sankeyDraw(_data) {
@@ -354,12 +358,12 @@ particlesSwitch = function() {
     particles = this.checked;
     rangeValue = d3.select('#nbMin').node().value;
 
-    updateVis(filename, rangeValue, particles, false);
+    updateVis(filename,data_json, rangeValue, particles, false);
 }
 
 valueChange = function() {
     rangeValue = this.value;
-    updateVis(filename, rangeValue, particles, firstView);
+    updateVis(filename,data_json, rangeValue, particles, firstView);
 }
 
 wrangleData = function(data) {
@@ -415,7 +419,7 @@ filterData = function(data, nbMin){
     return data
 }
 
-updateVis = function(filename, rangeValue, particles, firstView) {
+updateVis = function(filename,data_json, rangeValue, particles, firstView) {
     d3.select('svg').selectAll('*').remove();
-    initVis(filename, rangeValue, particles, firstView);
+    initVis(filename,data_json, rangeValue, particles, firstView);
 };

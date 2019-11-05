@@ -159,26 +159,16 @@ if ($tmpresult_num!='') {
 $nb_mini = 1;
 
 if ($tmpresult_num!='' && $unit_or_department=='unit') {
-	//parcours_sejour_uf ($tmpresult_num,'',$patient_num_encounter_num,$nb_mini);
-	parcours_sejour_uf_json ($tmpresult_num,'', '', $patient_num_encounter_num, $nb_mini);
-
-	$json_file_name = "$URL_UPLOAD/tmp_d3_uf_json_$tmpresult_num.json?".uniqid();
-
-	print "<a href=\"$json_file_name\" target=_blank>fichier json</a>";
+	$parcours_sejour=parcours_sejour_uf_json ($tmpresult_num,'', '', $patient_num_encounter_num, $nb_mini);
+	print "<a href=\"data: application/json;base64,".base64_encode($parcours_sejour)."\" target=_blank>fichier json</a>";
 }
 
 
 if ($tmpresult_num!='' && $unit_or_department=='department') {
-	//parcours_sejour_service ($tmpresult_num,'',$patient_num_encounter_num,$nb_mini);
-	parcours_sejour_service_json ($tmpresult_num, '','', $patient_num_encounter_num, $nb_mini);
-
-	$json_file_name = "$URL_UPLOAD/tmp_d3_service_json_$tmpresult_num.json?".uniqid();
-
-	 print "<a href=\"$json_file_name\" target=_blank>fichier json</a>";
-	// print "<img src=\"upload/tmp_graphviz_parcours_sejour_service_$tmpresult_num.png\">";
-
+	$parcours_sejour=parcours_sejour_service_json ($tmpresult_num, '','', $patient_num_encounter_num, $nb_mini);
+	 print "<a href=\"data: application/json;base64,".base64_encode($parcours_sejour)."\" target=_blank>fichier json</a>";
 }
-
+$parcours_sejour=preg_replace("/['\n]/"," ",$parcours_sejour);
 print "<div id=\"chart\">";
 print "<canvas   ></canvas>";
 print "<svg id=\"chartSvg\" ></svg>";
@@ -191,10 +181,11 @@ echo '<script type="text/javascript" src="parcours_moyen_d3.js"></script>';
 print "<script type=\"text/javascript\">
 	var rangeValue = d3.select('#nbMin').node().value;
 	console.log(rangeValue);
-	var filename = \"$json_file_name\";
+	var filename = \"\";
+    	var data_json ='$parcours_sejour';
 	var particles = false;
 	var firstView = true;
-	initVis(filename, rangeValue, particles, firstView);
+	initVis(filename,data_json, rangeValue, particles, firstView);
 	firstView = false;
 	d3.select('#particles_check').on('change', particlesSwitch);
 	d3.select('#nbMin').on('change',valueChange );

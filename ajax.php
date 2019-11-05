@@ -53,6 +53,17 @@ if ($_SESSION['dwh_login']=='') {
 		exit;
 	}
 }
+if ($_POST['action']=='choose_lang') {
+	if($_SESSION['DWH_LANG']=='') {
+		$_SESSION['DEFAULT_DWH_LANG']=$JSON_TRANSLATION_FILE;
+	}
+	if (is_file($_POST['lang'].".json")) {
+		$_SESSION['DWH_LANG']=$_POST['lang'].".json";
+	} else {
+		$_SESSION['DWH_LANG']=$JSON_TRANSLATION_FILE;
+	}
+}
+
 session_write_close();
 
 if ($_POST['action']=='get_translations_json_string') {
@@ -65,7 +76,7 @@ if ($_POST['action']=='get_translations_json_string') {
 	print $json_translation_file;
 	
 }
-	
+
 
 if ($_POST['action']=='calcul_nb_resultat_final_passthru') {
 	$datamart_num=trim($_POST['datamart_num']);
@@ -104,6 +115,7 @@ if ($_POST['action']=='calcul_nb_resultat_filtre_passthru') {
 		$title_document=urldecode(trim($_POST['title_document']));
 		$date_deb_document=urldecode(trim($_POST['date_deb_document']));
 		$date_fin_document=urldecode(trim($_POST['date_fin_document']));
+		$document_last_nb_days=urldecode(trim($_POST['document_last_nb_days']));
 		$periode_document=urldecode(trim($_POST['periode_document']));
 		$age_deb_document=urldecode(trim($_POST['age_deb_document']));
 		$age_fin_document=urldecode(trim($_POST['age_fin_document']));
@@ -143,6 +155,7 @@ if ($_POST['action']=='calcul_nb_resultat_filtre_passthru') {
 <title_document>$title_document</title_document>
 <document_date_start>$date_deb_document</document_date_start>
 <document_date_end>$date_fin_document</document_date_end>
+<document_last_nb_days>$document_last_nb_days</document_last_nb_days>
 <period_document>$periode_document</period_document>
 <document_ageyear_start>$age_deb_document</document_ageyear_start>
 <document_ageyear_end>$age_fin_document</document_ageyear_end>
@@ -180,6 +193,8 @@ if ($_POST['action']=='calcul_nb_resultat_filtre_mvt_passthru') {
 		$stay_nb_min=urldecode(trim($_POST['stay_nb_min']));
 		$stay_nb_max=urldecode(trim($_POST['stay_nb_max']));
 		
+		$mvt_last_nb_days=urldecode(trim($_POST['mvt_last_nb_days']));
+		
 		$mvt_date_start=urldecode(trim($_POST['mvt_date_start']));
 		$mvt_date_end=urldecode(trim($_POST['mvt_date_end']));
 		$periode_mvt=urldecode(trim($_POST['periode_mvt']));
@@ -202,6 +217,7 @@ if ($_POST['action']=='calcul_nb_resultat_filtre_mvt_passthru') {
 <mvt_nb_max>$mvt_nb_max</mvt_nb_max>
 <stay_nb_min>$stay_nb_min</stay_nb_min>
 <stay_nb_max>$stay_nb_max</stay_nb_max>
+<mvt_last_nb_days>$mvt_last_nb_days</mvt_last_nb_days>
 <mvt_date_start>$mvt_date_start</mvt_date_start>
 <mvt_date_end>$mvt_date_end</mvt_date_end>
 <mvt_ageyear_start>$mvt_ageyear_start</mvt_ageyear_start>
@@ -260,6 +276,7 @@ if ($_POST['action']=='calcul_nb_resultat_filtre') {
 	$title_document=urldecode(trim($_POST['title_document']));
 	$date_deb_document=urldecode(trim($_POST['date_deb_document']));
 	$date_fin_document=urldecode(trim($_POST['date_fin_document']));
+	$document_last_nb_days=urldecode(trim($_POST['document_last_nb_days']));
 	$periode_document=urldecode(trim($_POST['periode_document']));
 	$age_deb_document=urldecode(trim($_POST['age_deb_document']));
 	$age_fin_document=urldecode(trim($_POST['age_fin_document']));
@@ -300,6 +317,7 @@ if ($_POST['action']=='calcul_nb_resultat_filtre') {
 <title_document>$title_document</title_document>
 <document_date_start>$date_deb_document</document_date_start>
 <document_date_end>$date_fin_document</document_date_end>
+<document_last_nb_days>$document_last_nb_days</document_last_nb_days>
 <period_document>$periode_document</period_document>
 <document_ageyear_start>$age_deb_document</document_ageyear_start>
 <document_ageyear_end>$age_fin_document</document_ageyear_end>

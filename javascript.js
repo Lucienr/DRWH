@@ -129,6 +129,7 @@ function calcul_nb_resultat_filtre(num_filtre,val_async) {
 				title_document=jQuery('#id_input_filtre_title_document_'+num_filtre).val();
 				date_deb_document=jQuery('#id_input_filtre_date_deb_document_'+num_filtre).val();
 				date_fin_document=jQuery('#id_input_filtre_date_fin_document_'+num_filtre).val();
+				document_last_nb_days=jQuery('#id_input_filtre_document_last_nb_days_'+num_filtre).val();
 				periode_document=jQuery('#id_input_filtre_periode_document_'+num_filtre).val();
 				age_deb_document=jQuery('#id_input_filtre_age_deb_document_'+num_filtre).val();
 				age_fin_document=jQuery('#id_input_filtre_age_fin_document_'+num_filtre).val();
@@ -156,7 +157,7 @@ function calcul_nb_resultat_filtre(num_filtre,val_async) {
 					url:"ajax.php",
 					async:val_async,
 					encoding: 'latin1',
-					data:{ action:'calcul_nb_resultat_filtre_passthru',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,query_type:query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document)},
+					data:{ action:'calcul_nb_resultat_filtre_passthru',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,query_type:query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document),document_last_nb_days:escape(document_last_nb_days)},
 					beforeSend: function(requester){
 						jQuery('#id_span_nbresult_atomique_chargement_'+num_filtre).html('<img src="images/chargement_mac.gif" width="10px">');
 						jQuery('#id_span_nbresult_atomique_'+num_filtre).css('color','red');
@@ -202,6 +203,7 @@ function calcul_nb_resultat_filtre_mvt(num_filtre,val_async) {
 			mvt_nb_max=jQuery('#id_input_filtre_mvt_nb_max_'+num_filtre).val();
 			stay_nb_min=jQuery('#id_input_filtre_stay_nb_min_'+num_filtre).val();
 			stay_nb_max=jQuery('#id_input_filtre_stay_nb_max_'+num_filtre).val();
+			mvt_last_nb_days=jQuery('#id_input_filtre_mvt_last_nb_days_'+num_filtre).val();
 			mvt_date_start=jQuery('#id_input_filtre_mvt_date_start_'+num_filtre).val();
 			mvt_date_end=jQuery('#id_input_filtre_mvt_date_end_'+num_filtre).val();
 			mvt_ageyear_start=jQuery('#id_input_filtre_mvt_ageyear_start_'+num_filtre).val();
@@ -237,6 +239,7 @@ function calcul_nb_resultat_filtre_mvt(num_filtre,val_async) {
 				mvt_nb_max:escape(mvt_nb_max),
 				stay_nb_min:escape(stay_nb_min),
 				stay_nb_max:escape(stay_nb_max),
+				mvt_last_nb_days:escape(mvt_last_nb_days),
 				mvt_date_start:escape(mvt_date_start),
 				mvt_date_end:escape(mvt_date_end),
 				mvt_ageyear_start:escape(mvt_ageyear_start),
@@ -476,6 +479,7 @@ function calcul_nb_resultat_filtre_notpassthru(num_filtre,val_async) {
 			title_document=jQuery('#id_input_filtre_title_document_'+num_filtre).val();
 			date_deb_document=jQuery('#id_input_filtre_date_deb_document_'+num_filtre).val();
 			date_fin_document=jQuery('#id_input_filtre_date_fin_document_'+num_filtre).val();
+			document_last_nb_days=jQuery('#id_input_filtre_document_last_nb_days_'+num_filtre).val();
 			periode_document=jQuery('#id_input_filtre_periode_document_'+num_filtre).val();
 			age_deb_document=jQuery('#id_input_filtre_age_deb_document_'+num_filtre).val();
 			age_fin_document=jQuery('#id_input_filtre_age_fin_document_'+num_filtre).val();
@@ -503,7 +507,7 @@ function calcul_nb_resultat_filtre_notpassthru(num_filtre,val_async) {
 				url:"ajax.php",
 				async:val_async,
 				encoding: 'latin1',
-				data:{ action:'calcul_nb_resultat_filtre',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,id_query_type:id_query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document)},
+				data:{ action:'calcul_nb_resultat_filtre',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,id_query_type:id_query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document),document_last_nb_days:escape(document_last_nb_days)},
 				beforeSend: function(requester){
 					jQuery('#id_span_nbresult_atomique_chargement_'+num_filtre).html('<img src="images/chargement_mac.gif" width="10px">');
 				},

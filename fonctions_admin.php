@@ -33,17 +33,6 @@ function get_list_user_profil() {
 	}
 	return $table_user_profil;
 }
-
-function get_list_department() {
-	global $dbh;
-	$table_list_department=array();
-	$sel_var1=oci_parse($dbh,"select  department_num,department_str from dwh_thesaurus_department order by department_str ");
-	oci_execute($sel_var1);
-	while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
-		$table_list_department[$r['DEPARTMENT_NUM']]=$r['DEPARTMENT_STR'];
-	}
-	return $table_list_department;
-}
 						
 
 function count_departement($department_num) {
@@ -129,7 +118,7 @@ function count_departement_and_unit() {
 
 			
 
-function display_department($department_num,$department_str,$department_code) {
+function display_department($department_num,$department_str,$department_code,$department_master) {
         global $dbh,$login_session,$user_num_session,$table_count_departement_and_unit;
         
         $verif_manager_department=check_user_as_department_manager ($department_num,$user_num_session);
@@ -139,6 +128,11 @@ function display_department($department_num,$department_str,$department_code) {
         $nb_mvt_total=$table_count_departement_and_unit['nb_mvt'][$department_num];
         $nb_patient_total=$table_count_departement_and_unit['nb_patient'][$department_num];
         
+        if ($department_master==1) {
+        	$check_department_master='checked';
+        } else {
+        	$check_department_master='';
+        }
         //////////////// LE SERVICE
         print "<tr id=\"id_tr_service_$department_num\" >
                         <td valign=\"top\" nowrap=\"nowrap\">";
@@ -149,6 +143,7 @@ function display_department($department_num,$department_str,$department_code) {
                                 ".get_translation('HOSPITAL_DEPARTMENT_CODE','Code service')." <input type=\"text\" size=\"3\" id=\"id_input_code_service_$department_num\" value=\"$department_code\"><br>
                                 <input type=\"button\" onclick=\"modifier_libelle_service('$department_num');\" value=\"".get_translation('MODIFY','modifier')."\" class=\"admin_button\">
                         </div>
+                        ".get_translation('MASTER_DEPARTMENT',"Departement maitre")." <input onclick=\"set_department_master('$department_code','$department_num');\" type=\"checkbox\" value=\"1\" id=\"id_checbox_".$department_code."_".$department_num."\" $check_department_master>
                 ";
         } else {
                 print "<strong>$department_str</strong>";
@@ -560,4 +555,72 @@ function delete_cgu_user ($cgu_num) {
 	return $nb;
 
 }
+
+
+
+
+function insert_actu ($actu_text) {
+	global $dbh;
+	if ($actu_text!='') {
+		$actu_num=get_uniqid();
+                $requeteins="insert into dwh_admin_actu  (actu_num, actu_text ,actu_date , published ,alert) values ('$actu_num', :actu_text ,sysdate , 0 ,0)";
+                $stmt = ociparse($dbh,$requeteins);
+                $rowid = ocinewdescriptor($dbh, OCI_D_LOB);
+                ocibindbyname($stmt, ":actu_text",$actu_text);
+                $execState = ociexecute($stmt);
+                ocifreestatement($stmt);
+	}
+}
+
+
+function modify_actu ($actu_num,$actu_text) {
+	global $dbh;
+	if ($actu_num!='') {
+                $requeteins="update  dwh_admin_actu set actu_text=:actu_text where actu_num=$actu_num"; 
+                $stmt = ociparse($dbh,$requeteins);
+                $rowid = ocinewdescriptor($dbh, OCI_D_LOB);
+                ocibindbyname($stmt, ":actu_text",$actu_text);
+                $execState = ociexecute($stmt);
+                ocifreestatement($stmt);
+	}
+}
+
+
+function delete_actu ($actu_num) {
+	global $dbh;
+	if ($actu_num!='') {
+	        $req="delete from dwh_admin_actu where actu_num=$actu_num"; 
+		$del=oci_parse($dbh,$req);
+		oci_execute($del);
+		
+	       
+	}
+}
+
+
+function update_actu ($actu_num,$published) {
+	global $dbh;
+	if ($actu_num!='') {
+		if ($published==1) {
+	                $req="update dwh_admin_actu set published=1,published_date=sysdate where actu_num=$actu_num ";
+	  		$del=oci_parse($dbh,$req);
+			oci_execute($del);
+		} else {
+	                $req="update dwh_admin_actu set published=0 where actu_num=$actu_num ";
+	  		$del=oci_parse($dbh,$req);
+			oci_execute($del);
+		}
+	}
+}
+
+
+function update_actu_alert ($actu_num,$alert) {
+	global $dbh;
+	if ($actu_num!='') {
+                $req="update dwh_admin_actu set alert='$alert' where actu_num=$actu_num ";
+  		$del=oci_parse($dbh,$req);
+		oci_execute($del);
+	}
+}
+
 ?>

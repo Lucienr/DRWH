@@ -80,15 +80,15 @@ if ($_GET['nb_mini']=='') {
 
 
 if ($tmpresult_num!='' && $unit_or_department=='unit') {
-	parcours_complet('dot',$tmpresult_num,'','',$unit_or_department,$nb_mini);
-	parcours_complet('json',$tmpresult_num,'','',$unit_or_department,$nb_mini);
+	$parcours_complet_png=parcours_complet('dot',$tmpresult_num,'','',$unit_or_department,$nb_mini);
+	$parcours_complet_json=parcours_complet('json',$tmpresult_num,'','',$unit_or_department,$nb_mini);
 }
 
 
 
 if ($tmpresult_num!='' && $unit_or_department=='department') {
-	parcours_complet('dot',$tmpresult_num,'','',$unit_or_department,$nb_mini);
-	parcours_complet('json',$tmpresult_num,'','',$unit_or_department,$nb_mini);
+	$parcours_complet_png=parcours_complet('dot',$tmpresult_num,'','',$unit_or_department,$nb_mini);
+	$parcours_complet_json=parcours_complet('json',$tmpresult_num,'','',$unit_or_department,$nb_mini);
 }
 
 
@@ -111,10 +111,14 @@ if ($tmpresult_num!='') {
 		<input type=\"hidden\" name=\"tmpresult_num\" value=\"$tmpresult_num\">
 	</form>";
 }
+if ($parcours_complet_json!='') {
+	//print "<a href=\"$URL_UPLOAD/tmp_d3_complet_json_$tmpresult_num$unit_or_department$nb_mini.json\" target=_blank>fichier json</a>";
+	print "<a href=\"data: application/json;base64,".base64_encode($parcours_complet_json)."\" target=_blank>fichier json</a>";
+}
 
-print "<a href=\"$URL_UPLOAD/tmp_d3_complet_json_$tmpresult_num$unit_or_department$nb_mini.json\" target=_blank>fichier json</a>";
-
-print "<img src=\"$URL_UPLOAD/tmp_graphviz_parcours_complet_$tmpresult_num$unit_or_department$nb_mini.png\">";
+if ($parcours_complet_png!='') {
+	print "<img src=\"data: image/x-png;base64,".base64_encode($parcours_complet_png)."\">";
+}
 
 
 ?>

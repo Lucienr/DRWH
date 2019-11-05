@@ -1,6 +1,49 @@
 <?
 
 
+
+$req="select table_name from all_tables where table_name ='DWH_ADMIN_ACTU' ";
+$sel = oci_parse($dbh_etl,$req);
+oci_execute($sel);
+$ligne = oci_fetch_array($sel);
+$verif_DWH_ADMIN_ACTU = $ligne['TABLE_NAME'];
+if ($verif_DWH_ADMIN_ACTU=='') {
+	$req="CREATE TABLE DWH_ADMIN_ACTU
+		(
+		 actu_num int, 
+		 actu_text clob,
+		 actu_date date,
+		 published int,
+		 published_date date,
+		 alert int, 
+		 primary key (actu_num)
+		)
+		TABLESPACE TS_DWH
+		LOGGING 
+		MONITORING";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="GRANT DELETE, INSERT, SELECT, UPDATE ON DWH.DWH_ADMIN_ACTU TO DWH_APP ";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="CREATE SYNONYM DWH_ADMIN_ACTU FOR DWH.DWH_ADMIN_ACTU";
+	$sel = oci_parse($dbh,$req);
+	oci_execute($sel);
+}
+
+
+$sel = oci_parse($dbh_etl, "select count(*) verif from user_tab_columns where table_name='DWH_THESAURUS_DEPARTMENT' and column_name ='DEPARTMENT_MASTER'  ");   
+oci_execute($sel);
+$r = oci_fetch_array($sel, OCI_ASSOC);
+$verif=$r['VERIF'];
+if ($verif==0) {
+	$sel = oci_parse($dbh_etl, "alter table DWH_THESAURUS_DEPARTMENT add DEPARTMENT_MASTER int");   
+	oci_execute($sel);
+}
+
+
 $req="select table_name from all_tables where table_name ='DWH_USER_CONNEXION' ";
 $sel = oci_parse($dbh_etl,$req);
 oci_execute($sel);

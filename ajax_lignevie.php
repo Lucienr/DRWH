@@ -21,10 +21,43 @@
     75015 Paris
     France
 */
+session_start();
+
+putenv("NLS_LANG=French");
+
+include_once "parametrage.php";
+include_once "connexion_bdd.php";
+include_once("ldap.php");
+include_once("fonctions_droit.php");
+include_once("fonctions_dwh.php");
+
+
+if ($_POST['action']=='connexion') {
+	$erreur=verif_connexion($_POST['login'],$_POST['passwd'],'page_ajax');
+	print "$erreur";
+	exit;
+}
+
+if ($_SESSION['dwh_login']=='') {
+	print "deconnexion";
+	exit;
+} else {
+	include_once("verif_droit.php");
+	if ($erreur_droit!='') {
+		print "$erreur_droit";
+		exit;
+	}
+}
+
+$patient_num=$_GET['patient_num'];
+
+
 $autorisation_voir_patient=autorisation_voir_patient ($patient_num,$user_num_session);
 if ($autorisation_voir_patient=='') {
 	exit;
 }
+
+
 
 /* icons must be in the directory : dwh/timeline/timeline_js/images */
 $table_icon_type_mvt['J']="dark-green-circle.png";
@@ -210,7 +243,7 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 					       &lt;br/&gt;";
 			} else {
 				$xml_uf.="
-				<event start=\"$unit_start_date\"  classname=\"class_uf $liste_class_id_doc\" isDuration=\"false\" title=\"($type_mvt) $unit_str\" color=\"#285B40\" icon=\"../../timeline/timeline_js/images/".$table_icon_type_mvt[$type_mvt]."\">
+				<event start=\"$unit_start_date\"  classname=\"class_uf $liste_class_id_doc\" isDuration=\"false\" title=\"($type_mvt) $unit_str\" color=\"#285B40\" icon=\"timeline/timeline_js/images/".$table_icon_type_mvt[$type_mvt]."\">
 				       $unit_str ".get_translation('JS_DATE_FROM','du')." $jour_deb_uf/$mois_deb_uf/$an_deb_uf ".get_translation('JS_DATE_TO','au')." $jour_sortie_uf/$mois_sortie_uf/$an_sortie_uf &lt;br&gt;
 				       &lt;br/&gt;";
 				$json.="
@@ -218,7 +251,7 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 					'start':'$unit_start_date',
 					'classname':'class_uf $liste_class_id_doc',
 					'isDuration':'false',
-					'icon':'../../timeline/timeline_js/images/".$table_icon_type_mvt[$type_mvt]."',
+					'icon':'timeline/timeline_js/images/".$table_icon_type_mvt[$type_mvt]."',
 					'title':'$unit_str ',
 					'color':'#285B40',
 					'description':' $unit_str ".get_translation('JS_DATE_FROM','du')." $jour_deb_uf/$mois_deb_uf/$an_deb_uf ".get_translation('JS_DATE_TO','au')." $jour_sortie_uf/$mois_sortie_uf/$an_sortie_uf &lt;br&gt;
@@ -422,7 +455,7 @@ while ($resuf=oci_fetch_array($requf,OCI_ASSOC)) {
 	$liste_id_doc=substr($liste_id_doc,0,-1);
 	
 	$xml.="
-	<event start=\"$unit_start_date\"  classname=\"class_uf $liste_class_id_doc\" isDuration=\"false\" title=\"($type_mvt) $unit_str\" color=\"#285B40\" icon=\"../../timeline/timeline_js/images/".$table_icon_type_mvt[$type_mvt]."\">
+	<event start=\"$unit_start_date\"  classname=\"class_uf $liste_class_id_doc\" isDuration=\"false\" title=\"($type_mvt) $unit_str\" color=\"#285B40\" icon=\"timeline/timeline_js/images/".$table_icon_type_mvt[$type_mvt]."\">
 	       $unit_str ".get_translation('JS_DATE_FROM','du')." $jour_deb_uf/$mois_deb_uf/$an_deb_uf ".get_translation('JS_DATE_TO','au')." $jour_sortie_uf/$mois_sortie_uf/$an_sortie_uf &lt;br&gt;
 	       &lt;br/&gt;";
 	$json.="
@@ -430,7 +463,7 @@ while ($resuf=oci_fetch_array($requf,OCI_ASSOC)) {
 		'start':'$unit_start_date',
 		'classname':'class_uf $liste_class_id_doc',
 		'isDuration':'false',
-		'icon':'../../timeline/timeline_js/images/".$table_icon_type_mvt[$type_mvt]."',
+		'icon':'timeline/timeline_js/images/".$table_icon_type_mvt[$type_mvt]."',
 		'title':'$unit_str ',
 		'color':'#285B40',
 		'description':' $unit_str ".get_translation('JS_DATE_FROM','du')." $jour_deb_uf/$mois_deb_uf/$an_deb_uf ".get_translation('JS_DATE_TO','au')." $jour_sortie_uf/$mois_sortie_uf/$an_sortie_uf &lt;br&gt;
@@ -499,7 +532,7 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 	} 
 
 	$xml.="
-	<event start=\"$date_deb\"  classname=\"class_consult class_$document_num\" isDuration=\"false\" title=\"$unit_str \" color=\"#285B40\"  icon=\"../../timeline/timeline_js/images/".$table_icon_type_mvt['DOCUMENT']."\">
+	<event start=\"$date_deb\"  classname=\"class_consult class_$document_num\" isDuration=\"false\" title=\"$unit_str \" color=\"#285B40\"  icon=\"timeline/timeline_js/images/".$table_icon_type_mvt['DOCUMENT']."\">
 	       $unit_str ".get_translation('JS_A_DATE','du')." $jour_deb/$mois_deb/$an_deb  &lt;br&gt;
 	        &lt;br/&gt;
 	";
@@ -508,7 +541,7 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		'start':'$date_deb',
 		'classname':'class_consult $liste_class_id_doc',
 		'isDuration':'false',
-		'icon':'../../timeline/timeline_js/images/".$table_icon_type_mvt['DOCUMENT']."',
+		'icon':'timeline/timeline_js/images/".$table_icon_type_mvt['DOCUMENT']."',
 		'title':'$unit_str ',
 		'color':'#285B40',
 		'description':'    $unit_str ".get_translation('JS_A_DATE','du')." $jour_deb/$mois_deb/$an_deb  &lt;br&gt;
@@ -569,7 +602,7 @@ if ($death_dateclair=='') {
 	";
 }
 
-$monfichier = fopen("timeline/xml/".$patient_num."_timeline.xml", 'w+');
-fputs($monfichier,"$xml");
-fclose($monfichier);
+header('Content-type: application/xml');
+print "$xml";
+
 ?>

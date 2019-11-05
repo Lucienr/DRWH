@@ -138,15 +138,12 @@ if ($tmpresult_num!='') {
 
 if ($nb_mini!='') {
 	if ($tmpresult_num!='' && $unit_or_department=='unit') {
-		parcours_sejour_uf ($tmpresult_num,'','',$patient_num_encounter_num,$nb_mini);
-		print "<img src=\"$URL_UPLOAD/tmp_graphviz_parcours_sejour_uf_$tmpresult_num.png?".uniqid()."\">";
+		$parcours_sejour_uf=parcours_sejour_uf ($tmpresult_num,'','',$patient_num_encounter_num,$nb_mini);
+		print "<img src=\"data: image/x-png;base64,".base64_encode($parcours_sejour_uf)."\">";
 	}
-
-
 	if ($tmpresult_num!='' && $unit_or_department=='department') {
-		parcours_sejour_service ($tmpresult_num,'','',$patient_num_encounter_num,$nb_mini);
-	//	parcours_sejour_service_json ($tmpresult_num, '','', $patient_num_encounter_num, $nb_mini);
-		print "<img src=\"$URL_UPLOAD/tmp_graphviz_parcours_sejour_service_$tmpresult_num.png?".uniqid()."\">";
+		$parcours_sejour_service=parcours_sejour_service ($tmpresult_num,'','',$patient_num_encounter_num,$nb_mini);
+		print "<img src=\"data: image/x-png;base64,".base64_encode($parcours_sejour_service)."\">";
 	}
 } else {
 	print "Pas de séjours trouvés";
