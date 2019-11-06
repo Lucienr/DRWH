@@ -279,6 +279,9 @@ function affiche_onglet_stat(tmpresult_num) {
 					afficher_connexion("affiche_onglet_stat("+tmpresult_num+")");
 				} else {
 					jQuery('#id_nb_patient_per_unit_per_year_tableau').html(data);
+					$("#id_table_nb_patient_per_unit_per_year_tableau").dataTable( {  "columnDefs": [ {"targets": 'no-sort',"orderable": false}],"order": [[ 0, "asc" ]],  "paging": false});
+					$("#id_table_nb_patient_per_department_per_year_tableau").dataTable( {  "columnDefs": [ {"targets": 'no-sort',"orderable": false}],"order": [[ 0, "asc" ]],  "paging": false});
+					
 				}
 			},
 			error: function(){

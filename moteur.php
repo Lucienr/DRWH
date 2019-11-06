@@ -477,7 +477,7 @@ if ($_POST['action']=='rechercher') {
 					<li class="color-bullet" id="id_bouton_admin_datamart"><span class="li-content"><img src="images/datamart.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('admin_datamart');return false;"><? print get_translation('DATAMART','Datamart'); ?></a></span></li>
 			<? } ?>
 			<? if ($_SESSION['dwh_droit_export_data']=='ok') { ?>
-			<li class="color-bullet" id="id_bouton_export_data"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('export_data');return false;"><? print get_translation('EXPORT_DATA','EXport données'); ?></a></span></li>
+			<li class="color-bullet" id="id_bouton_export_data"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('export_data');return false;"><? print get_translation('EXPORT_DATA','Export données'); ?></a></span></li>
 			<? } ?>
 			<? if ($_SESSION['dwh_droit_regexp']=='ok') { ?>
 			<li class="color-bullet" id="id_bouton_regexp"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('regexp');return false;"><? print get_translation('EXTRACTION','Extraction'); ?></a></span></li>

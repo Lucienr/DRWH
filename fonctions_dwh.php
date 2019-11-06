@@ -1885,7 +1885,7 @@ function lister_requete_sauve_accueil () {
         			<th>".get_translation('DATAMART','Datamart')."</th>";
        	$i=0;
         $sel = oci_parse($dbh, " select distinct to_number(to_char(load_date,'MM')) as mois_chargement,to_number(to_char(load_date,'YYYY')) as an_chargement from dwh_query_result where query_num in (select query_num from dwh_query where user_num=$user_num_session and query_type='sauve' and crontab_query=1) 
-        and sysdate-load_date<150
+        and sysdate-load_date<120
         order by to_number(to_char(load_date,'YYYY'))  asc,to_number(to_char(load_date,'MM'))  asc");   
         oci_execute($sel);
         while ($r = oci_fetch_array($sel, OCI_ASSOC)) {
