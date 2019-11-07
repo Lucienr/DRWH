@@ -565,7 +565,7 @@ if ($_POST['action']=='rechercher') {
 						<select id="id_crontab_periode" name="crontab_periode">
 							<option value=''></option>
 							<option value='month'><? print get_translation('EVERY_MONTH','Tous les mois'); ?></option>
-							<option value='week'><? print get_translation('EVERY_WEEK','Toutes les dimanches'); ?></option>
+							<option value='week'><? print get_translation('EVERY_WEEK','Tous les dimanches'); ?></option>
 							<option value='day'><? print get_translation('EVERY_MORNING','Tous les matins'); ?></option>
 						</select>
 					<br> <input type=button value='<? print get_translation('SAVE','sauver'); ?>' onclick="sauver_requete_en_cours();">

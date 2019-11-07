@@ -100,7 +100,7 @@ session_write_close();
 						<select id=\"id_crontab_periode\" name=\"crontab_periode\" onchange=\"modifier_requete($query_num_voir);\">
 							<option value=''></option>
 							<option value='month' $select_month>".get_translation('EVERY_MONTH','Tous les mois')."</option>
-							<option value='week' $select_week>".get_translation('EVERY_WEEK','Toutes les dimanches')."</option>
+							<option value='week' $select_week>".get_translation('EVERY_WEEK','Tous les dimanches')."</option>
 							<option value='day' $select_morning>".get_translation('EVERY_MORNING','Tous les matins')."</option>
 						</select>
 						<input type=\"hidden\" id=\"id_crontab_periode\" name=\"crontab_periode\" value=\"month\"> 
