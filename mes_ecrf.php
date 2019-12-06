@@ -67,7 +67,7 @@ if ($_POST['action']=='ajouter_ecrf' ) {
 	$ecrf_url=nettoyer_pour_insert(urldecode(trim($_POST['ecrf_url'])));
 	if ($title_ecrf!='') {
 		print("--".$ecrf_url."--");
-		$ecrf_num_ajout=insert_ecrf ($ecrf_num_ajout,$title_ecrf,$description_ecrf,$ecrf_url,$user_num);
+		$ecrf_num_ajout=insert_ecrf ($ecrf_num_ajout,$title_ecrf,$description_ecrf,$ecrf_url,$user_num_session);
 		insert_ecrf_user_right ($ecrf_num_ajout,$user_num_session,'modifier');
 		insert_ecrf_user_right ($ecrf_num_ajout,$user_num_session,'utiliser');
 		
