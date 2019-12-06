@@ -1,6 +1,32 @@
 <?
 
 
+$req="select table_name from all_tables where table_name ='DWH_ADMIN_PARAMETERS' ";
+$sel = oci_parse($dbh_etl,$req);
+oci_execute($sel);
+$ligne = oci_fetch_array($sel);
+$verif_DWH_ADMIN_PARAMETERS = $ligne['TABLE_NAME'];
+if ($verif_DWH_ADMIN_PARAMETERS=='') {
+	$req="CREATE TABLE DWH_ADMIN_PARAMETERS
+		(
+		 contact clob
+		)
+		TABLESPACE TS_DWH
+		LOGGING 
+		MONITORING";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="GRANT DELETE, INSERT, SELECT, UPDATE ON DWH.DWH_ADMIN_PARAMETERS TO DWH_APP ";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+	
+	$req="CREATE SYNONYM DWH_ADMIN_PARAMETERS FOR DWH.DWH_ADMIN_PARAMETERS";
+	$sel = oci_parse($dbh,$req);
+	oci_execute($sel);
+}
+
+
 
 $req="select table_name from all_tables where table_name ='DWH_ADMIN_ACTU' ";
 $sel = oci_parse($dbh_etl,$req);
