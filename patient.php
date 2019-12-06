@@ -92,6 +92,7 @@ include "fonctions_ecrf.php";
 		jQuery(document).ready(function() {
 			select_history_query_patient ('<? print $patient_num; ?>');
 			process_parcours ('<? print $patient_num; ?>');
+			process_pmsi_patient  ('<? print $patient_num; ?>');
 		})
 	</script>
 			
@@ -200,6 +201,9 @@ include "fonctions_ecrf.php";
 		<? if ($_SESSION['dwh_droit_patient_carepath']=='ok') {  ?>
 			<li class="color-bullet" id="id_bouton_parcours"><span class="li-content"><a href="#" onclick="voir_patient_onglet('parcours',<? print $patient_num; ?>);return false;"><? print get_translation('JOURNEY','Parcours'); ?></a></span></li>
 		<? } ?>
+		<? if ($_SESSION['dwh_droit_patient_pmsi']=='ok') {  ?>
+			<li class="color-bullet" id="id_bouton_pmsi"><span class="li-content"><a href="#" onclick="voir_patient_onglet('pmsi',<? print $patient_num; ?>);return false;"><? print get_translation('PMSI','PMSI'); ?></a></span></li>
+		<? } ?>
 		<? if ($_SESSION['dwh_droit_patient_cohort']=='ok') {  ?>
 			<li class="color-bullet" id="id_bouton_cohorte"><span class="li-content"><a href="#" onclick="voir_patient_onglet('cohorte',<? print $patient_num; ?>);return false;"><? print get_translation('COHORT','Cohorte'); ?></a></span></li>
 		<? } ?>
@@ -298,6 +302,13 @@ include "fonctions_ecrf.php";
 				<h2><? print get_translation('JOURNEY','Parcours'); ?></h2>
 				<div style="width:800px" id="id_div_process_parcours_patient">
 					<? //parcours_patient ($patient_num); ?>
+				</div>
+			</div>
+			
+			
+			<div id="id_div_patient_pmsi" class="div_result" style="display:none;" >
+				<div style="width:100%" id="id_div_process_pmsi_patient">
+					
 				</div>
 			</div>
 			

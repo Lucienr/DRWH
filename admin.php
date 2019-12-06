@@ -155,12 +155,13 @@ if ($_GET['action']=='admin_actu') {
 		<? if (in_array('admin_cgu',$tableau_admin_features)) {?>
 			<td nowrap="nowrap" class="<? print $class_admin_cgu; ?>"><a class="connexion" href="admin.php?action=admin_cgu" nowrap=nowrap><? print get_translation('CGU','Les CGU'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
-			
 		<? } ?>
 		<? if (in_array('admin_actu',$tableau_admin_features)) {?>
 			<td nowrap="nowrap" class="<? print $class_admin_actu; ?>"><a class="connexion" href="admin.php?action=admin_actu" nowrap=nowrap><? print get_translation('NEWS','Les actus'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 		<? } ?>
+		<td nowrap="nowrap" class="<? print $class_admin_contact; ?>"><a class="connexion" href="admin.php?action=admin_contact" nowrap=nowrap><? print get_translation('CONTACT','Les contacts'); ?></a></td>
+		<td class="connexion" width="1"> | </td>
 			<td width="100%">&nbsp;</td>
 		</tr>
 	</table>
@@ -974,7 +975,54 @@ if ($_GET['action']=='admin_actu') {
 		<h1><? print get_translation('NEWS_MANAGE','Administrer les actualités'); ?></h1>
 		
 		<? print get_translation('WRITE_A_NEWS','Rédiger une actualité'); ?> : <br>
-		<div id="editor">
+		<div id="super_editor">
+			<div id="toolbar-toolbar" class="toolbar">
+			    <span class="ql-formats">
+			      <select class="ql-font"></select>
+			      <select class="ql-size"></select>
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-bold"></button>
+			      <button class="ql-italic"></button>
+			      <button class="ql-underline"></button>
+			      <button class="ql-strike"></button>
+			    </span>
+			    <span class="ql-formats">
+			      <select class="ql-color"></select>
+			      <select class="ql-background"></select>
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-script" value="sub"></button>
+			      <button class="ql-script" value="super"></button>
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-header" value="1"></button>
+			      <button class="ql-header" value="2"></button>
+			      <button class="ql-blockquote"></button>
+			      <button class="ql-code-block"></button>
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-list" value="ordered"></button>
+			      <button class="ql-list" value="bullet"></button>
+			      <button class="ql-indent" value="-1"></button>
+			      <button class="ql-indent" value="+1"></button>
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-direction" value="rtl"></button>
+			      <select class="ql-align"></select>
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-link"></button>
+			      <button class="ql-image"></button>
+			      <button class="ql-video"></button>
+			      <!--<button class="ql-formula"></button>-->
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-clean" alt="clean" title="clean"></button>
+			    </span>
+			</div>
+			<div id="editor">
+			</div>
 		</div>
 		<div id="id_div_button_add_actu">
 		<input type=button onclick="save_actu();" value="<? print get_translation('SAVE','Sauver'); ?>"><br>
@@ -996,9 +1044,104 @@ if ($_GET['action']=='admin_actu') {
 	});
 	<!-- Initialize Quill editor -->
 	  var quill = new Quill('#editor', {
+		  modules: {
+	      toolbar: { container: '#toolbar-toolbar' }
+	    },
 	    theme: 'snow'
 	  });
 </script>
+	
+<?
+}
+?>
+
+
+
+<?
+///////////////// CONCEPT //////////////////
+if ($_GET['action']=='admin_contact') {
+	$parameters=get_parameters();
+	$contact=$parameters['contact'];
+?>
+	
+	<!-- Theme included stylesheets -->
+	<link href="quill/quill.snow.css" rel="stylesheet">
+	<!-- Include the Quill library -->
+	<script src="quill/quill.js"></script>
+	<div id="id_admin_contact"  class="div_admin" style="max-width:1000px;">
+		<a name="ancre_contact"></a>
+		<h1><? print get_translation('CONTACT_MANAGE','Administrer les contacts'); ?></h1>
+		
+		<div id="super_editor">
+			<div id="toolbar-toolbar" class="toolbar">
+			    <span class="ql-formats">
+			      <select class="ql-font"></select>
+			      <select class="ql-size"></select>
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-bold"></button>
+			      <button class="ql-italic"></button>
+			      <button class="ql-underline"></button>
+			      <button class="ql-strike"></button>
+			    </span>
+			    <span class="ql-formats">
+			      <select class="ql-color"></select>
+			      <select class="ql-background"></select>
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-script" value="sub"></button>
+			      <button class="ql-script" value="super"></button>
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-header" value="1"></button>
+			      <button class="ql-header" value="2"></button>
+			      <button class="ql-blockquote"></button>
+			      <button class="ql-code-block"></button>
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-list" value="ordered"></button>
+			      <button class="ql-list" value="bullet"></button>
+			      <button class="ql-indent" value="-1"></button>
+			      <button class="ql-indent" value="+1"></button>
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-direction" value="rtl"></button>
+			      <select class="ql-align"></select>
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-link"></button>
+			      <button class="ql-image"></button>
+			      <button class="ql-video"></button>
+			      <!--<button class="ql-formula"></button>-->
+			    </span>
+			    <span class="ql-formats">
+			      <button class="ql-clean" alt="clean" title="clean"></button>
+			    </span>
+			</div>
+			<div id="editor">
+			<? print $contact; ?>
+			</div>
+		</div>
+		<div id="id_div_button_add_contact">
+		<input type=button onclick="save_contact();" value="<? print get_translation('SAVE','Sauver'); ?>"><br>
+		</div>
+		<div id="id_div_admin_contact_save_text">
+		</div>
+		
+	</div>
+		
+	<script language="javascript">
+		$(document).ready(function(){
+		    $('.autosizejs').autosize();   
+		});
+		<!-- Initialize Quill editor -->
+		  var quill = new Quill('#editor', {
+			  modules: {
+		      toolbar: { container: '#toolbar-toolbar' }
+		    },
+		    theme: 'snow'
+		  });
+	</script>
 	
 <?
 }

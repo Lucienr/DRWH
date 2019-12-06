@@ -87,6 +87,8 @@ if ($_POST['action']=='rechercher') {
 			$xml_unitaire.="<title_document>".trim($_POST['title_document_'.$i])."</title_document>";
 			$xml_unitaire.="<document_date_start>".trim($_POST['date_deb_document_'.$i])."</document_date_start>";
 			$xml_unitaire.="<document_date_end>".trim($_POST['date_fin_document_'.$i])."</document_date_end>";
+			$xml_unitaire.="<stay_length_min>".trim($_POST['stay_length_min_'.$i])."</stay_length_min>";
+			$xml_unitaire.="<stay_length_max>".trim($_POST['stay_length_max_'.$i])."</stay_length_max>";
 			$xml_unitaire.="<document_last_nb_days>".trim($_POST['document_last_nb_days_'.$i])."</document_last_nb_days>";
 			$xml_unitaire.="<period_document>".trim($_POST['periode_document_'.$i])."</period_document>";
 			$xml_unitaire.="<document_ageyear_start>".trim($_POST['age_deb_document_'.$i])."</document_ageyear_start>";
@@ -607,7 +609,7 @@ if ($_POST['action']=='rechercher') {
 				
 				<div id="id_div_alimenter_cohorte" style="width:550px;display:none;font-size:13px">
 					<? include_once "javascript_cohorte.php"; ?>
-					<h3 onclick="plier_deplier('id_div_liste_creer_cohorte');plier('id_div_list_choose_cohort');" class="link"><span id="plus_id_div_liste_creer_cohorte">+</span> <? print get_translation('ADD_PATIENT_IN_NEW_COHORT','Ajouter des patients dans un nouvelle cohorte'); ?></h3>
+					<h3 onclick="plier_deplier('id_div_liste_creer_cohorte');plier('id_div_list_choose_cohort');" class="link"><span id="plus_id_div_liste_creer_cohorte">+</span> <? print get_translation('ADD_PATIENT_IN_NEW_COHORT','Ajouter des patients dans une nouvelle cohorte'); ?></h3>
 					<div id="id_div_liste_creer_cohorte" style="display:none;">
 						<table border="0">
 							<tr><td><? print get_translation('TITLE','Titre'); ?> : </td><td><input type="text" size="50" id="id_ajouter_titre_cohorte" class="form"></td></tr>

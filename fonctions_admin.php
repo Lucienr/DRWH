@@ -623,4 +623,29 @@ function update_actu_alert ($actu_num,$alert) {
 	}
 }
 
+
+function save_parameters ($colonne,$value) {
+	global $dbh;
+	$sel=oci_parse($dbh,"select count(*) as nb from DWH_ADMIN_PARAMETERS");
+	oci_execute($sel);
+	$res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+	$nb=$res['NB'];
+	if ($nb==0) {
+                $requeteins="insert into DWH_ADMIN_PARAMETERS ($colonne) values (:value )";
+                $stmt = ociparse($dbh,$requeteins);
+                $rowid = ocinewdescriptor($dbh, OCI_D_LOB);
+                ocibindbyname($stmt, ":value",$value);
+                $execState = ociexecute($stmt);
+                ocifreestatement($stmt);
+	} else {
+                $requeteins="update  DWH_ADMIN_PARAMETERS set $colonne=:value"; 
+                $stmt = ociparse($dbh,$requeteins);
+                $rowid = ocinewdescriptor($dbh, OCI_D_LOB);
+                ocibindbyname($stmt, ":value",$value);
+                $execState = ociexecute($stmt);
+                ocifreestatement($stmt);
+	}
+}
+
+
 ?>

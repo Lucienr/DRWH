@@ -1142,6 +1142,7 @@ if ($_POST['action']=='unpublished_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
 if ($_POST['action']=='save_actu' && $_SESSION['dwh_droit_admin']=='ok') {
 	$actu_text=trim(urldecode($_POST['actu_text']));
 	$actu_num=$_POST['actu_num'];
+        $actu_text=preg_replace("/;plus;/","+",$actu_text);
 	if ($actu_text!='') {
 		if ($actu_num=='') {
 			insert_actu ($actu_text);
@@ -1236,4 +1237,9 @@ if ($_POST['action']=='update_actu_alert' && $_SESSION['dwh_droit_admin']=='ok')
 	}
 }
 
+if ($_POST['action']=='save_contact' && $_SESSION['dwh_droit_admin']=='ok') {
+	$contact_text=trim(urldecode($_POST['contact_text']));
+        $contact_text=preg_replace("/;plus;/","+",$contact_text);
+	save_parameters ('contact',$contact_text);
+}
 ?>

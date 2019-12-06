@@ -1386,6 +1386,7 @@ function unpublished_cgu (cgu_num) {
 function save_actu() {
 	actu_text=jQuery('.ql-editor').html();
 	actu_num=jQuery('#id_input_actu_num_modify').val();
+	actu_text=actu_text.replace(/\+/g,';plus;');
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_admin.php",
@@ -1559,3 +1560,31 @@ function cancel_modify_actu( actu_num) {
 	jQuery('#id_div_button_modify_actu').css('display','none');
 }
 
+
+
+
+
+function save_contact() {
+	contact_text=jQuery('.ql-editor').html();
+	contact_text=contact_text.replace(/\+/g,';plus;');
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_admin.php",
+		async:true,
+		data: { action:'save_contact',contact_text:escape(contact_text)},
+		beforeSend: function(requester){
+			jQuery('#id_div_admin_contact_save_text').html('Saving...');
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion("save_contact ();");
+			} else {
+				setTimeout("jQuery('#id_div_admin_contact_save_text').html('Contact saved')",2000);
+			}
+		},
+		complete: function(requester){
+		},
+		error: function(){
+		}
+	});
+}
