@@ -64,6 +64,7 @@ $table_icon_type_mvt['J']="dark-green-circle.png";
 $table_icon_type_mvt['C']="dark-blue-circle.png";
 $table_icon_type_mvt['U']="dull-red-circle.png";
 $table_icon_type_mvt['DOCUMENT']="gray-circle.png";
+$table_icon_type_mvt['H']="gray-circle.png";
 
 
 $selval=oci_parse($dbh,"select 
@@ -520,6 +521,7 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 	$date_deb="$mois_deb_trad $jour_deb $an_deb 00:00:00 GMT";
 	$document_origin_code=$res['DOCUMENT_ORIGIN_CODE'];
 	$title=$res['TITLE'];
+	$title=nettoyer_accent_timeline($title);
 	
 
 	$unit_str=get_unit_str ($unit_num,'cs');
@@ -529,6 +531,9 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 	}
 	if ($unit_str=='') {
 		$unit_str=$department_str;
+	} 
+	if ($unit_str=='') {
+		$unit_str=$title;
 	} 
 
 	$xml.="
@@ -547,7 +552,6 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		'description':'    $unit_str ".get_translation('JS_A_DATE','du')." $jour_deb/$mois_deb/$an_deb  &lt;br&gt;
 	        &lt;br/&gt;";
 	
-	$title=nettoyer_accent_timeline($title);
 	$texte_doc="&lt;a href=\"#\" class=\"class_doc class_doc_$document_num\" onclick=\"ouvrir_document_timeline($document_num);\"&gt; $document_date $document_origin_code $title &lt;a/&gt;  &lt;br/&gt; 
 	";
 	$texte_doc=" &lt;a href=\"#\" class=\"class_doc class_doc_$document_num\" onclick=\"ouvrir_document_timeline($document_num);return false;\"&gt; $document_date $document_origin_code $title &lt;a/&gt;   &lt;br/&gt; 
