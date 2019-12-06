@@ -481,6 +481,8 @@ function nb_patients_service ($tmpresult_num,$id_div) {
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$department_str=$res['DEPARTMENT_STR'];
 		$nb_patient=$res['NB_PATIENT'];
+		$department_str=preg_replace("/'/"," ",$department_str);
+		$department_str=preg_replace("/\"/"," ",$department_str);
 		$liste_libelle_service.="'$department_str',";
 		$liste_nb_patient.="$nb_patient,";
 		
@@ -546,6 +548,8 @@ function nb_document_document_origin_code ($tmpresult_num,$id_div) {
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$document_origin_code=$res['DOCUMENT_ORIGIN_CODE'];
 		$nb_document=$res['NB_DOCUMENT'];
+		$document_origin_code=preg_replace("/'/"," ",$document_origin_code);
+		$document_origin_code=preg_replace("/\"/"," ",$document_origin_code);
 		$liste_document_origin_code.="'$document_origin_code',";
 		$liste_nb_document.="$nb_document,";
 		
@@ -616,6 +620,8 @@ function nb_nouveau_patients_service ($tmpresult_num,$id_div) {
 	oci_execute($sel) ;
 	while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$department_str=$res['DEPARTMENT_STR'];
+		$department_str=preg_replace("/'/"," ",$department_str);
+		$department_str=preg_replace("/\"/"," ",$department_str);
 		$patient_num=$res['PATIENT_NUM'];
 		if (!is_array($tableau_service_patient[$department_str])) {
 			$tableau_service_patient[$department_str]=array();
@@ -732,6 +738,8 @@ function nb_nouveau_patients_service_hors_mespatients ($tmpresult_num,$id_div) {
 		oci_execute($sel) ;
 		while ($res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 			$department_str=$res['DEPARTMENT_STR'];
+			$department_str=preg_replace("/'/"," ",$department_str);
+			$department_str=preg_replace("/\"/"," ",$department_str);
 			$patient_num=$res['PATIENT_NUM'];
 			if (!is_array($tableau_service_patient[$department_str])) {
 				$tableau_service_patient[$department_str]=array();
@@ -969,6 +977,8 @@ function nb_patient_per_unit_per_year_tableau ($tmpresult_num) {
 	<tbody>";
 	foreach ($tableau_nb_patient_department as $department_num => $nb_patient) {
                 $department_str=get_department_str ($department_num);    
+		$department_str=preg_replace("/'/"," ",$department_str);
+		$department_str=preg_replace("/\"/"," ",$department_str);
 		print "<tr class=\"over_color\"><td nowrap>$department_str</td>";
 		$year_before="<$year_min";
 		if ($tableau_nb_dejavu_patient_department[$department_num][$year_before]=='') {
@@ -1022,6 +1032,8 @@ function nb_patient_per_unit_per_year_tableau ($tmpresult_num) {
 		
 	foreach ($tableau_nb_patient_unit as $unit_num => $nb_patient) {
                 $unit_str=get_unit_str ($unit_num);    
+		$unit_str=preg_replace("/'/"," ",$unit_str);
+		$unit_str=preg_replace("/\"/"," ",$unit_str);
 		print "<tr class=\"over_color\"><td nowrap>$unit_str</td>";
 		$year_before="<$year_min";
 		if ($tableau_nb_dejavu_patient_unit[$unit_num][$year_before]=='') {
@@ -1105,6 +1117,8 @@ function nb_consult_per_unit_per_year_tableau ($tmpresult_num) {
 			
 		foreach ($tableau_nb_patient_department as $department_num => $nb_patient) {
 	                $department_str=get_department_str ($department_num);    
+			$department_str=preg_replace("/'/"," ",$department_str);
+			$department_str=preg_replace("/\"/"," ",$department_str);
 			print "<tr class=\"over_color\"><td nowrap>$department_str</td>";
 			for ($year=$year_min;$year<=$year_max;$year++) {
 				if ($tableau_nb_patient_department_year[$department_num][$year]=='') {
@@ -1135,6 +1149,8 @@ function nb_consult_per_unit_per_year_tableau ($tmpresult_num) {
 			
 		foreach ($tableau_nb_patient_unit as $unit_num => $nb_patient) {
 	                $unit_str=get_unit_str ($unit_num);    
+			$unit_str=preg_replace("/'/"," ",$unit_str);
+			$unit_str=preg_replace("/\"/"," ",$unit_str);
 			print "<tr class=\"over_color\"><td nowrap>$unit_str</td>";
 			for ($year=$year_min;$year<=$year_max;$year++) {
 				if ($tableau_nb_patient_unit_year[$unit_num][$year]=='') {
@@ -1210,6 +1226,8 @@ function nb_hospit_per_unit_per_year_tableau ($tmpresult_num) {
 		
 	foreach ($tableau_nb_patient_department as $department_num => $nb_patient) {
                 $department_str=get_department_str ($department_num);    
+		$department_str=preg_replace("/'/"," ",$department_str);
+		$department_str=preg_replace("/\"/"," ",$department_str);
 		print "<tr class=\"over_color\"><td nowrap>$department_str</td>";
 		for ($year=$year_min;$year<=$year_max;$year++) {
 			if ($tableau_nb_patient_department_year[$department_num][$year]=='') {
@@ -1240,6 +1258,8 @@ function nb_hospit_per_unit_per_year_tableau ($tmpresult_num) {
 		
 	foreach ($tableau_nb_patient_unit as $unit_num => $nb_patient) {
                 $unit_str=get_unit_str ($unit_num);    
+		$unit_str=preg_replace("/'/"," ",$unit_str);
+		$unit_str=preg_replace("/\"/"," ",$unit_str);
 		print "<tr class=\"over_color\"><td nowrap>$unit_str</td>";
 		for ($year=$year_min;$year<=$year_max;$year++) {
 			if ($tableau_nb_patient_unit_year[$unit_num][$year]=='') {
