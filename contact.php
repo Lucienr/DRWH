@@ -24,37 +24,15 @@
 include "head.php";
 include "menu.php";
 session_write_close();
+$parameters=get_parameters();
+$contact=$parameters['contact'];
 ?>
 
 	<div style="padding-left:3px;">
 		<h1><? print get_translation('CONTACT','Contact'); ?> :</h1>
 		<h2><? print get_translation('TO_CONTACT_DATAWAREHOUSE_TEAM',"Pour contacter l'équipe Entrepôt de données"); ?> :</h2>
 		<br>
-		Nicolas Garcelon
-		<br>
-		<img src="images/picto-phone.png">
-		01 42 75 44 57
-		<br>
-		<img src="images/picto-mail.png">
-		<a href="mailto:nicolas.garcelon@institutimagine.org"> nicolas.garcelon@institutimagine.org</a>
-		<br>
-		Bâtiment Imagine
-		<br>
-		2ième étage - bureau 241 
-		<br>
-		<br>
-		<br>
-		Vincent Benoit
-		<br>
-		<img src="images/picto-phone.png">
-		01 42 75 44 62
-		<br>
-		<img src="images/picto-mail.png">
-		<a href="mailto:vincent.benoit@institutimagine.org"> vincent.benoit@institutimagine.org</a>
-		<br>
-		Bâtiment Imagine
-		<br>
-		2ième étage - bureau 238 
+		<? print $contact; ?>
 	</div>
 	
 <? include "foot.php"; ?>
