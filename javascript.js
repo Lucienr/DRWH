@@ -133,6 +133,8 @@ function calcul_nb_resultat_filtre(num_filtre,val_async) {
 				periode_document=jQuery('#id_input_filtre_periode_document_'+num_filtre).val();
 				age_deb_document=jQuery('#id_input_filtre_age_deb_document_'+num_filtre).val();
 				age_fin_document=jQuery('#id_input_filtre_age_fin_document_'+num_filtre).val();
+				stay_length_min=jQuery('#id_input_filtre_stay_length_min_'+num_filtre).val();
+				stay_length_max=jQuery('#id_input_filtre_stay_length_max_'+num_filtre).val();
 				agemois_deb_document=jQuery('#id_input_filtre_agemois_deb_document_'+num_filtre).val();
 				agemois_fin_document=jQuery('#id_input_filtre_agemois_fin_document_'+num_filtre).val();
 				context=jQuery('#id_select_filtre_contexte_'+num_filtre).val();
@@ -157,7 +159,7 @@ function calcul_nb_resultat_filtre(num_filtre,val_async) {
 					url:"ajax.php",
 					async:val_async,
 					encoding: 'latin1',
-					data:{ action:'calcul_nb_resultat_filtre_passthru',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,query_type:query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document),document_last_nb_days:escape(document_last_nb_days)},
+					data:{ action:'calcul_nb_resultat_filtre_passthru',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,query_type:query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document),document_last_nb_days:escape(document_last_nb_days),stay_length_min:escape(stay_length_min),stay_length_max:escape(stay_length_max)},
 					beforeSend: function(requester){
 						jQuery('#id_span_nbresult_atomique_chargement_'+num_filtre).html('<img src="images/chargement_mac.gif" width="10px">');
 						jQuery('#id_span_nbresult_atomique_'+num_filtre).css('color','red');
@@ -483,6 +485,8 @@ function calcul_nb_resultat_filtre_notpassthru(num_filtre,val_async) {
 			periode_document=jQuery('#id_input_filtre_periode_document_'+num_filtre).val();
 			age_deb_document=jQuery('#id_input_filtre_age_deb_document_'+num_filtre).val();
 			age_fin_document=jQuery('#id_input_filtre_age_fin_document_'+num_filtre).val();
+			stay_length_min=jQuery('#id_input_filtre_stay_length_min_'+num_filtre).val();
+			stay_length_max=jQuery('#id_input_filtre_stay_length_max_'+num_filtre).val();
 			agemois_deb_document=jQuery('#id_input_filtre_agemois_deb_document_'+num_filtre).val();
 			agemois_fin_document=jQuery('#id_input_filtre_agemois_fin_document_'+num_filtre).val();
 			context=jQuery('#id_select_filtre_contexte_'+num_filtre).val();
@@ -507,7 +511,7 @@ function calcul_nb_resultat_filtre_notpassthru(num_filtre,val_async) {
 				url:"ajax.php",
 				async:val_async,
 				encoding: 'latin1',
-				data:{ action:'calcul_nb_resultat_filtre',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,id_query_type:id_query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document),document_last_nb_days:escape(document_last_nb_days)},
+				data:{ action:'calcul_nb_resultat_filtre',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,id_query_type:id_query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document),document_last_nb_days:escape(document_last_nb_days),stay_length_min:escape(stay_length_min),stay_length_max:escape(stay_length_max)},
 				beforeSend: function(requester){
 					jQuery('#id_span_nbresult_atomique_chargement_'+num_filtre).html('<img src="images/chargement_mac.gif" width="10px">');
 				},
@@ -2173,7 +2177,7 @@ function crontab_alerte_notification () {
 						jQuery('#id_alerte_notification').css('backgroundColor','transparent');
 					}
 					
-					setTimeout("crontab_alerte_notification();",4000);
+					setTimeout("crontab_alerte_notification();",20000);
 				}
 			} 
 		},
