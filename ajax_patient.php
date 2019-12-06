@@ -187,4 +187,17 @@ if ($_POST['action']=='display_biological_table') {
 	affiche_tableau_biologie($patient_num);
 }
 
+
+if ($_POST['action']=='process_pmsi_patient') {
+	$patient_num=$_POST['patient_num'];
+	display_pmsi_patient ($patient_num);
+}
+
+if ($_POST['action']=='display_sentence_with_term') {
+	$patient_num=$_POST['patient_num'];
+	$concept_str=$_POST['concept_str'];
+	
+	$appercu=display_sentence_with_term ($patient_num,$_POST['list_document_num'],$concept_str);
+	print "$appercu";
+}
 ?>

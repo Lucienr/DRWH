@@ -24,17 +24,14 @@
 
 var id_tr_selectionne;
 function afficher_document_patient (document_num,id_voir,id_query) {
-	jQuery(".tr_document_patient").css("backgroundColor","#ffffff");
+//	jQuery(".tr_document_patient").css("backgroundColor","#ffffff");
 	jQuery(".tr_document_patient").css("fontWeight","normal");
 	jQuery(".tr_document_patient").css("color","black");
 	
-//	jQuery("#id_document_patient_"+document_num).css("fontWeight","bold");
-//	jQuery("#id_document_patient_"+document_num).css("color","#CB1B3E");
-//	jQuery("#id_document_patient_"+document_num).css("backgroundColor","#dcdff5");
 	
 	jQuery(".id_document_patient_"+document_num).css("fontWeight","bold");
 	jQuery(".id_document_patient_"+document_num).css("color","#CB1B3E");
-	jQuery(".id_document_patient_"+document_num).css("backgroundColor","#dcdff5");
+//	jQuery(".id_document_patient_"+document_num).css("backgroundColor","#dcdff5");
 	id_tr_selectionne="id_document_patient_"+document_num;
 	requete=jQuery('#'+id_query).val(); //id_input_filtre_patient_texte
 	requete=requete.replace(/\+/g,';plus;');
@@ -491,7 +488,7 @@ function voir_patient_onglet_biologie (onglet,patient_num) {
 	}	
 }
 
-function customize_tableau_biologie() {
+function customize_tableau_biologie_old() {
 	if ( $.fn.dataTable.isDataTable( '#id_tableau_bilan_biologie' ) ) {
 	} else {
 		var widthwindow= jQuery(window).width()-20;
@@ -528,6 +525,43 @@ function customize_tableau_biologie() {
 		}
 	}
 } 
+
+function customize_tableau_biologie() {
+	if ( $.fn.dataTable.isDataTable( '#id_tableau_bilan_biologie' ) ) {
+	} else {
+		var widthwindow= $(window).width()-20;
+		var widthdiv=$('#id_tableau_bilan_biologie').width()+40;
+		if ($('#id_tableau_bilan_biologie').width() < widthwindow) {
+			$('#id_div_patient_biologie_tableau').width(widthdiv);
+		} else {
+			$('#id_div_patient_biologie_tableau').width(widthwindow);
+		}
+		//if ($(window).height()<700) {
+		//	height=700;
+		//} else {
+			height=$(window).height()-80;
+		//}
+		
+		var widthcol_examen=$('#id_colonne_examen').width();
+		$('#id_colonne_examen').css('width',widthcol_examen);
+		$('.class_libelle_examen').css('width',widthcol_examen);
+		
+		 var oTable = $('#id_tableau_bilan_biologie').DataTable( {
+		        "scrollY": height+"px",
+			"scrollX":        true,
+		        "scrollCollapse": true,
+		        "paging": false,
+			  "bSort": false
+		        
+		    } );
+		    new $.fn.dataTable.FixedColumns( oTable , { leftColumns: 1} );
+			$(".DTFC_LeftBodyLiner").css("overflow","hidden");
+			//$( ".dataTables_scrollBody" ).scrollLeft( $('#id_tableau_bilan_biologie').width() );
+			//jQuery('.dataTable').wrap('<div class="dataTables_scroll" />');
+			
+	}
+}
+
 function inclure_patient (status,patient_num) {
 	cohort_num=document.getElementById('id_select_ajouter_patient_cohorte').value;
 	jQuery.ajax({
@@ -652,3 +686,50 @@ function process_parcours (patient_num) {
 		error: function(){}
 	});
 }
+
+		
+function process_pmsi_patient (patient_num) {
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_patient.php",
+		async:true,
+		encoding: 'latin1',
+		data:{ action:'process_pmsi_patient',patient_num:patient_num},
+		beforeSend: function(requester){
+			jQuery("#id_div_process_pmsi_patient").html("<img src='images/chargement_mac.gif'>"); 
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion("process_pmsi_patient ('"+patient_num+"')");
+			} else { 
+				jQuery("#id_div_process_pmsi_patient").html(requester); 
+			}
+		},
+		complete: function(requester){},
+		error: function(){}
+	});
+}
+
+function display_sentence_with_term (patient_num,list_document_num,concept_str,id) {
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_patient.php",
+		async:true,
+		encoding: 'latin1',
+		data:{ action:'display_sentence_with_term',patient_num:patient_num,list_document_num:list_document_num,concept_str:concept_str},
+		beforeSend: function(requester){
+			jQuery("#"+id).html("<img src='images/chargement_mac.gif'>"); 
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion("display_sentence_with_term ('"+patient_num+"','"+list_document_num+"','"+concept_str+"','"+id+"')");
+			} else { 
+				jQuery("#"+id).html(requester); 
+			}
+		},
+		complete: function(requester){},
+		error: function(){}
+	});
+}
+
+

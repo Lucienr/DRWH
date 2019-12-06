@@ -330,4 +330,175 @@ function get_query_patient_user($patient_num,$user_num) {
 }
 
 
+function display_pmsi_patient ($patient_num) {
+	global $dbh,$thesaurus_code_pmsi;
+	
+        $nb_encounter_num=0;
+        $encounter_num_before='';
+        $color_odd_encounter_num='#dde9f0';
+        $color_even_encounter_num='#ede6ed';
+	
+	$tab_encounter=get_encounter_info_by_patient ($patient_num,'desc') ;
+	foreach ($tab_encounter as $encounter) {
+		$encounter_num=$encounter['ENCOUNTER_NUM'];
+		$entry_mode=$encounter['ENTRY_MODE'];
+		$out_mode=$encounter['OUT_MODE'];
+		$entry_date=$encounter['ENTRY_DATE_DMY'];
+		$out_date=$encounter['OUT_DATE_DMY'];
+		
+		if ($encounter_num!=$encounter_num_before) {
+			$nb_encounter_num++;
+		}
+		if ($nb_encounter_num % 2 ==0) {
+			$backgroundColor=$color_odd_encounter_num;
+		} else {
+			$backgroundColor=$color_even_encounter_num;
+		}
+		
+		$tableau_document=get_document_for_a_patient($patient_num," and encounter_num='$encounter_num' ");
+		
+		$data_upper=get_data_out_of_range ($patient_num,'upper'," and encounter_num='$encounter_num' ");
+		$data_lower=get_data_out_of_range ($patient_num,'lower'," and encounter_num='$encounter_num' ");
+		
+		$data_cim10=get_data ($patient_num,$thesaurus_code_pmsi," and encounter_num='$encounter_num' ");
+		
+		$table_concept=get_concept_patient ($patient_num," and document_num in (select document_num from dwh_document where patient_num=$patient_num and encounter_num='$encounter_num') ") ;
+		$table_mvt=get_mvt_info_by_encounter ($encounter_num,'desc');
+		print "<div class=\"patient_stay\" style=\"background-color:$backgroundColor;\">
+		
+		<h2 style=\"cursor:pointer\" onclick=\"plier_deplier('id_div_stay_$encounter_num');\"><span id=\"plus_id_div_stay_$encounter_num\">+</span> Séjour $encounter_num du $entry_date au $out_date</h2>
+		<div id=\"id_div_stay_$encounter_num\" style=\"display:none;\">";
+		print "<br><strong>Mouvement dans le séjour</strong><br>";
+		print "<table>
+		<thead>
+			<tr>
+				<th>Departement</th>
+				<th>Unité</th>
+				<th>Entrée</th>
+				<th>Sortie</th>
+				<th>Type</th>
+				<th>Durée (jours)</th>
+			</tr>
+		</thead>
+		<tbody>";
+		foreach ($table_mvt as $i => $mvt) {
+			$unit_num=$mvt['UNIT_NUM'];
+			$department_num=$mvt['DEPARTMENT_NUM'];
+			$entry_date=$mvt['ENTRY_DATE'];
+			$out_date=$mvt['OUT_DATE'];
+			$mvt_entry_mode=$mvt['MVT_ENTRY_MODE'];
+			$mvt_exit_mode=$mvt['MVT_EXIT_MODE'];
+			$type_mvt=$mvt['TYPE_MVT'];
+			$mvt_length=$mvt['MVT_LENGTH'];
+			$department_str=get_department_str($department_num);
+			$unit_str=get_unit_str($unit_num);
+			print"<tr>
+				<td>$department_str</td>
+				<td>$unit_str</td>
+				<td>$entry_date</td>
+				<td>$out_date</td>
+				<td>$type_mvt</td>
+				<td>$mvt_length</td>
+				</tr>
+			";
+		}
+		print "</tbody></table>";
+		
+		if (count($data_cim10)>0) {
+			print "<br><strong>Cim10</strong><br>";
+			print "<table>
+			<thead>
+			<tr><th>Code</th><th>Libellé</th><th>type</th></tr>
+			</thead>
+			<tbody>";
+			foreach ($data_cim10 as $i => $data) {
+				$concept_code=$data['CONCEPT_CODE'];
+				$concept_str=$data['CONCEPT_STR'];
+				$val_text=$data['VAL_TEXT'];
+				print "<tr><td>$concept_code</td><td>$concept_str</td><td>$val_text</td></td>";
+			}
+			print "</tbody></table>";
+		}
+		
+		if (count($data_upper)>0) {
+			print "<br><strong>Data au dessus de la borne</strong><br>";
+			print "<table>
+			<thead>
+			<tr><th>Examen</th><th>Nb val > borne sup</th><th>Max val</th></tr>
+			</thead>
+			<tbody>";
+			foreach ($data_upper as $i => $data) {
+				$val_numeric=$data['VAL_NUMERIC'];
+				$concept_str=$data['CONCEPT_STR'];
+				$info_complement=$data['INFO_COMPLEMENT'];
+				$measuring_unit=$data['MEASURING_UNIT'];
+				$lower_bound=$data['LOWER_BOUND'];
+				$upper_bound=$data['UPPER_BOUND'];
+				$nb_out=$data['NB_OUT'];
+				print "<tr><td>$concept_str $measuring_unit ($info_complement)</td><td>$nb_out x > $upper_bound $measuring_unit</td><td>$val_numeric $measuring_unit</td></td>";
+			}
+			print "</tbody></table>";
+		}
+		if (count($data_lower)>0) {
+			print "<br><strong>Data en dessous de la borne</strong><br>";
+			print "<table>
+			<thead>
+			<tr><th>Examen</th><th>Nb val < borne inf</th><th>Min val</th></tr>
+			</thead>
+			<tbody>";
+			foreach ($data_lower as $i => $data) {
+				$val_numeric=$data['VAL_NUMERIC'];
+				$concept_str=$data['CONCEPT_STR'];
+				$info_complement=$data['INFO_COMPLEMENT'];
+				$measuring_unit=$data['MEASURING_UNIT'];
+				$lower_bound=$data['LOWER_BOUND'];
+				$upper_bound=$data['UPPER_BOUND'];
+				$nb_out=$data['NB_OUT'];
+				print "<tr><td>$concept_str $measuring_unit ($info_complement)</td><td>$nb_out x < $lower_bound $measuring_unit</td><td>$val_numeric $measuring_unit</td></td>";
+			}
+			print "</tbody></table>";
+		}
+
+#		print "<br><strong>Documents</strong><br>";
+#		print "<table>
+#		<thead>
+#		<tr><th>Titre</th><th>Date</th><th>Auteur</th><th>Source</th></tr>
+#		</thead>
+#		<tbody>";
+#		foreach ($tableau_document as $document_num) {
+#			$document=get_document ($document_num);
+#			$title= $document['title'];
+#			$document_date= $document['document_date'];
+#			$author= $document['author'];
+#			$document_origin_code= $document['document_origin_code'];
+#			$department_num= $document['department_num'];
+#			print "<tr><td>$title</td><td>$document_date</td><td>$author</td><td>$document_origin_code</td></tr>";
+#			
+#		}
+#		print "</tbody></table>";
+		
+		if (count($table_concept)>0) {
+			print "<br><strong>Concepts extracted</strong><br>";
+			print "<table>
+			<thead>
+			<tr><th>Termes</th><th>Extrait</th></tr>
+			</thead>
+			<tbody>";
+			foreach ($table_concept as $i => $concept) {
+				$concept_str=$concept['CONCEPT_STR_FOUND'];
+				$nb_str=$concept['NB_STR'];
+				$list_document_num=$concept['LIST_DOCUMENT_NUM'];
+				$concept_code=$concept['CONCEPT_CODE'];
+				$summary=display_sentence_with_term ($patient_num,$list_document_num,$concept_str);
+				#print "<span onmouseover=\"display_sentence_with_term($patient_num,'$list_document_num','$concept_str','id_span_sentence_with_term_$concept_code');\">$concept_str x $nb_str</span><span id=\"id_span_sentence_with_term_$concept_code\"></span> <br>";
+				print "<tr><td>$concept_str x $nb_str</td><td>$summary</td></tr>";
+			}
+			print "</tbody></table>";
+		}
+		print "</div>";
+		print "</div>";
+		$encounter_num_before=$encounter_num;
+	}
+	return $tableau_query;	
+}
 ?>
