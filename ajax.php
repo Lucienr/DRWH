@@ -119,6 +119,8 @@ if ($_POST['action']=='calcul_nb_resultat_filtre_passthru') {
 		$periode_document=urldecode(trim($_POST['periode_document']));
 		$age_deb_document=urldecode(trim($_POST['age_deb_document']));
 		$age_fin_document=urldecode(trim($_POST['age_fin_document']));
+		$stay_length_min=urldecode(trim($_POST['stay_length_min']));
+		$stay_length_max=urldecode(trim($_POST['stay_length_max']));
 		$agemois_deb_document=urldecode(trim($_POST['agemois_deb_document']));
 		$agemois_fin_document=urldecode(trim($_POST['agemois_fin_document']));
 		$document_origin_code=urldecode(trim($_POST['document_origin_code']));
@@ -159,6 +161,8 @@ if ($_POST['action']=='calcul_nb_resultat_filtre_passthru') {
 <period_document>$periode_document</period_document>
 <document_ageyear_start>$age_deb_document</document_ageyear_start>
 <document_ageyear_end>$age_fin_document</document_ageyear_end>
+<stay_length_min>$stay_length_min</stay_length_min>
+<stay_length_max>$stay_length_max</stay_length_max>
 <document_agemonth_start>$agemois_deb_document</document_agemonth_start>
 <document_agemonth_end>$agemois_fin_document</document_agemonth_end>
 <document_origin_code>$liste_document_origin_code</document_origin_code>
@@ -280,6 +284,8 @@ if ($_POST['action']=='calcul_nb_resultat_filtre') {
 	$periode_document=urldecode(trim($_POST['periode_document']));
 	$age_deb_document=urldecode(trim($_POST['age_deb_document']));
 	$age_fin_document=urldecode(trim($_POST['age_fin_document']));
+	$stay_length_min=urldecode(trim($_POST['stay_length_min']));
+	$stay_length_max=urldecode(trim($_POST['stay_length_max']));
 	$agemois_deb_document=urldecode(trim($_POST['agemois_deb_document']));
 	$agemois_fin_document=urldecode(trim($_POST['agemois_fin_document']));
 	$document_origin_code=urldecode(trim($_POST['document_origin_code']));
@@ -321,6 +327,8 @@ if ($_POST['action']=='calcul_nb_resultat_filtre') {
 <period_document>$periode_document</period_document>
 <document_ageyear_start>$age_deb_document</document_ageyear_start>
 <document_ageyear_end>$age_fin_document</document_ageyear_end>
+<stay_length_min>$stay_length_min</stay_length_min>
+<stay_length_max>$stay_length_max</stay_length_max>
 <document_agemonth_start>$agemois_deb_document</document_agemonth_start>
 <document_agemonth_end>$agemois_fin_document</document_agemonth_end>
 <document_origin_code>$liste_document_origin_code</document_origin_code>
@@ -2330,6 +2338,7 @@ if ($_POST['action']=='crontab_alerte_notification') {
 	$nb=$r['NB']; // non vu par responsable service
   
 	print "$nb";
+	
 }
 
 
