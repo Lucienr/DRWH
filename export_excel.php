@@ -239,7 +239,7 @@ if ( $tmpresult_num!='' && $option=='encounter_result') {
 		$type='H';
 		$list_mvt=array();
 		if ($entry_date=='') {
-			$list_mvt=get_mvt_info_by_encounter ($encounter_num);
+			$list_mvt=get_mvt_info_by_encounter ($encounter_num,'asc');
 			$entry_date=$list_mvt[0]['ENTRY_DATE'];
 			$out_date=$list_mvt[0]['OUT_DATE'];
 			$entry_mode=$list_mvt[0]['MVT_ENTRY_MODE'];
@@ -293,11 +293,11 @@ if ( $tmpresult_num!='' && $option=='encounter_all') {
         while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
                 $patient_num=$r['PATIENT_NUM'];
 		$patient=get_patient($patient_num);
-                $list_encounter=get_encounter_info_by_patient($patient_num);
+                $list_encounter=get_encounter_info_by_patient($patient_num,"asc");
                 foreach ($list_encounter as $encounter) {
 	                $encounter_num=$encounter['ENCOUNTER_NUM'];
-	                $entry_date=$encounter['ENTRY_DATE'];
-	                $out_date=$encounter['OUT_DATE'];
+	                $entry_date=$encounter['ENTRY_DATE_YMDH24'];
+	                $out_date=$encounter['OUT_DATE_YMDH24'];
 			print "<tr>";
 			print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
 			print "<td>".$patient['LASTNAME']."</td>";
@@ -315,7 +315,7 @@ if ( $tmpresult_num!='' && $option=='encounter_all') {
 			print "</tr>";
 		}
                 
-                $list_mvt=get_mvt_info_by_patient($patient_num);
+                $list_mvt=get_mvt_info_by_patient($patient_num,"asc");
                 foreach ($list_mvt as $mvt) {
 	                $encounter_num=$mvt['ENCOUNTER_NUM'];
 	                $entry_date=$mvt['ENTRY_DATE'];
