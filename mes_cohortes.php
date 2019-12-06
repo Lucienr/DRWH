@@ -310,7 +310,7 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 								<span id=\"id_nb_patient_cohorte_doute\" style=\"color: red; font-weight: bold; left: 0px; position: relative;top: -11px; display: inline;\">$nb_patient_cohorte_doute</span>
 							</li>
 							<li class=\"color-bullet\" id=\"id_bouton_patient_import\">
-								<span class=\"li-content\"><a href=\"#\" onclick=\"voir_cohorte_onglet('patient_import');return false;\">".get_translation('IMPORTED_PATIENTS','Patients importés')."</a></span>
+								<span class=\"li-content\"><a href=\"#\" onclick=\"voir_cohorte_onglet('patient_import');return false;\">".get_translation('IMPORT_PATIENTS','Importer des patients')."</a></span>
 								<span id=\"id_nb_patient_cohorte_import\" style=\"color: red; font-weight: bold; left: 0px; position: relative;top: -11px; display: inline;\">$nb_patient_cohorte_import</span>
 							</li>
 							<li class=\"color-bullet\" id=\"id_bouton_patient_commentaire\">
@@ -437,7 +437,7 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 							</td><td style=\"vertical-align:top;\"><div id=\"id_journal_import_patient\" style=\"overflow: auto;width:500px;height:177px;font-family:monospace;font-size:10px;\"></div></td></tr>
 						</table>
 						<br>
-						<input type=\"button\" value=\"importer ces patients\" onclick=\"importer_patient_cohorte($cohort_num_voir,'importer');\"> 
+						<!--<input type=\"button\" value=\"importer ces patients\" onclick=\"importer_patient_cohorte($cohort_num_voir,'importer');\"> -->
 						<input type=\"button\" value=\"Inclure ces patients\" onclick=\"importer_patient_cohorte($cohort_num_voir,'inclure');\"> 
 						<input type=\"button\" value=\"Exclure ces patients\" onclick=\"importer_patient_cohorte($cohort_num_voir,'exclure');\">";
 						
