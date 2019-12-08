@@ -62,6 +62,7 @@ if ($_POST['action']=='rechercher') {
 	$max_num_filtre=$_POST['max_num_filtre'];
 	$xml="<query>";
 	$full_text_query="";
+	$json_ft_query='';
 	for ($i=1;$i<=$max_num_filtre;$i++) {
 		if ($_POST['text_'.$i]!='' && strlen(trim($_POST['text_'.$i]))>1 || $_POST['chaine_requete_code_'.$i]!='') {
 			$xml_unitaire="<text_filter>";
@@ -70,16 +71,30 @@ if ($_POST['action']=='rechercher') {
 			//// text 
 			$xml_unitaire.="<text>".nettoyer_pour_requete(trim($_POST['text_'.$i]))."</text>";
 			$xml_unitaire.="<synonym_expansion>".$_POST['etendre_syno_'.$i]."</synonym_expansion>";
-			$full_text_query.=nettoyer_pour_requete(trim($_POST['text_'.$i])).";requete_unitaire;";
+			
+			if (trim($_POST['text_'.$i])!='') {
+				$str=nettoyer_pour_requete(trim($_POST['text_'.$i]));
+				$full_text_query.="$str;requete_unitaire;";
+				$requete_json=nettoyer_pour_inserer ($str);
+				$requete_json=replace_accent($requete_json);
+				$json_ft_query.="{'query':'$requete_json','type':'fulltext','synonym':'".$_POST['etendre_syno_'.$i]."'},";
+			}
+			
 			//// code
 			if (trim($_POST['thesaurus_data_num_'.$i])!='') {
-				$libelle_code=get_data_concept_str (trim($_POST['thesaurus_data_num_'.$i]));
-				$full_text_query.=nettoyer_pour_requete(trim($libelle_code)).";requete_unitaire;";
+				$libelle_code=nettoyer_pour_insert(get_data_concept_str (trim($_POST['thesaurus_data_num_'.$i])));
+				$requete_full_text=analyse_chaine_requete_code (trim($_POST['thesaurus_data_num_'.$i]),trim($_POST['chaine_requete_code_'.$i]),'surligner',$i);
+				$concept_code=analyse_chaine_requete_code (trim($_POST['thesaurus_data_num_'.$i]),trim($_POST['chaine_requete_code_'.$i]),'get_concept_code',$i);
+				$thesaurus_code=analyse_chaine_requete_code (trim($_POST['thesaurus_data_num_'.$i]),trim($_POST['chaine_requete_code_'.$i]),'get_thesaurus_code',$i);
+				$requete_json=nettoyer_pour_inserer ($requete_full_text);
+				$requete_json=replace_accent($requete_json);
+				$json_ft_query.="{'query':'$requete_json','type':'data','concept_code':'$concept_code','thesaurus_code':'$thesaurus_code','synonym':''},";
 			}
 			$xml_unitaire.="<thesaurus_data_num>".trim($_POST['thesaurus_data_num_'.$i])."</thesaurus_data_num>";
 			$xml_unitaire.="<str_structured_query>".trim($_POST['chaine_requete_code_'.$i])."</str_structured_query>";
 			$xml_unitaire.="<query_type>".trim($_POST['query_type_'.$i])."</query_type>";
 			
+			//// advanced
 			$xml_unitaire.="<exclude>".trim($_POST['exclure_'.$i])."</exclude>";
 			//$xml_unitaire.="<document_origin_code>".trim($_POST['document_origin_code_'.$i])."</document_origin_code>";
 			$xml_unitaire.="<context>".trim($_POST['context_'.$i])."</context>";
@@ -218,6 +233,7 @@ if ($_POST['action']=='rechercher') {
 		}
 	}
 	
+	$json_full_text_queries=substr($json_ft_query,0,-1);
 	
 	$xml.="<datamart_num>$datamart_num</datamart_num>";
 	$xml.="<sex>".trim($_POST['sex'])."</sex>";
@@ -660,6 +676,7 @@ if ($_POST['action']=='rechercher') {
 				print "<table class=\"tableau_resultat\" id=\"id_tableau_resultat\">$lignes</table>";
 				print "<input type=\"hidden\" value=\"0\" id=\"id_num_last_ligne\">";
 				print "<input type=\"hidden\" value=\"$full_text_query\" id=\"id_full_text_query\">";
+				print "<input type=\"hidden\" value=\"$json_full_text_queries\" id=\"id_json_full_text_queries\">";
 				print "<input type=\"hidden\" value=\"$modulo_ligne_ajoute\" id=\"id_modulo_ligne_ajoute\">";
 				print "<input type=\"hidden\" value=\"$nb_patient_user\" id=\"id_total_ligne\">";
 				print "<input type=\"hidden\" value=\"\" id=\"id_exclure_cohorte_resultat\">";

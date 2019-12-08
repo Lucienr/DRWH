@@ -1023,7 +1023,9 @@ function repartition_concepts_resumer_texte ($tmpresult_num,$phenotype_genotype,
   		if ($r['TEXT']) {
 			$text=$r['TEXT']->load();
 		}
-		$resumer=resumer_resultat($text,$concept_str,array(),'');
+		$requete_json=nettoyer_pour_inserer ($concept_str);
+		$requete_json=replace_accent($requete_json);
+		$resumer=resumer_resultat($text,"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'');
 		$tableau_resumer[$resumer]=$concept_str;
 	}
 	foreach ($tableau_resumer as $resumer => $concept_str) {

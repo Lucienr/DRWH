@@ -837,6 +837,7 @@ function afficher_suite() {
 	tmpresult_num=jQuery('#id_num_temp').val();
 	num_last_ligne=jQuery('#id_num_last_ligne').val();
 	full_text_query=jQuery('#id_full_text_query').val();
+	json_full_text_queries=jQuery('#id_json_full_text_queries').val();
 	datamart_num=jQuery('#id_num_datamart').val();
 	cohort_num_encours=jQuery('#id_cohort_num_encours').val();
 	val_exclure_cohorte_resultat=jQuery('#id_exclure_cohorte_resultat').val();
@@ -844,6 +845,7 @@ function afficher_suite() {
 	if (filtre_resultat_texte!='') {
 		filtre_resultat_texte=filtre_resultat_texte.replace("'"," ");
 		full_text_query=full_text_query+';requete_unitaire;'+filtre_resultat_texte+';requete_unitaire;';
+		json_full_text_queries=json_full_text_queries+",{'query':'"+filtre_resultat_texte+"','type':'fulltext','synonym':''}";
 	}
 
 	jQuery.ajax({
@@ -851,7 +853,7 @@ function afficher_suite() {
 		url:"ajax.php",
 		async:true,
 		encoding: 'latin1',
-		data:{ action:'afficher_resultat',tmpresult_num:tmpresult_num,num_last_ligne:num_last_ligne,full_text_query:escape(full_text_query),datamart_num:datamart_num,val_exclure_cohorte_resultat:val_exclure_cohorte_resultat,cohort_num_encours:cohort_num_encours,filtre_resultat_texte:escape(filtre_resultat_texte)},
+		data:{ action:'afficher_resultat',tmpresult_num:tmpresult_num,num_last_ligne:num_last_ligne,full_text_query:escape(full_text_query),json_full_text_queries:escape(json_full_text_queries),datamart_num:datamart_num,val_exclure_cohorte_resultat:val_exclure_cohorte_resultat,cohort_num_encours:cohort_num_encours,filtre_resultat_texte:escape(filtre_resultat_texte)},
 		beforeSend: function(requester){
 			jQuery("#id_span_chargement").css('display','block');
 			jQuery("#id_span_afficher_suite").css('display','none');
@@ -881,12 +883,11 @@ function afficher_suite() {
 	});
 }
 
-
-
 function affiner_resultat () {
 	tmpresult_num=jQuery('#id_num_temp').val();
 	num_last_ligne=jQuery('#id_num_last_ligne').val();
 	full_text_query=jQuery('#id_full_text_query').val();
+	json_full_text_queries=jQuery('#id_json_full_text_queries').val();
 	datamart_num=jQuery('#id_num_datamart').val();
 	cohort_num_encours=jQuery('#id_cohort_num_encours').val();
 
@@ -895,7 +896,7 @@ function affiner_resultat () {
 		url:"ajax.php",
 		async:false,
 		encoding: 'latin1',
-		data:{ action:'afficher_resultat',tmpresult_num:tmpresult_num,num_last_ligne:num_last_ligne,full_text_query:escape(full_text_query),datamart_num:datamart_num},
+		data:{ action:'afficher_resultat',tmpresult_num:tmpresult_num,num_last_ligne:num_last_ligne,full_text_query:escape(full_text_query),json_full_text_queries:escape(json_full_text_queries),datamart_num:datamart_num},
 		beforeSend: function(requester){
 		},
 		success: function(requester){
@@ -982,10 +983,13 @@ function connecter() {
 function afficher_document(document_num) {
 	tmpresult_num=jQuery('#id_num_temp').val();
 	full_text_query=jQuery('#id_full_text_query').val();
+	json_full_text_queries=jQuery('#id_json_full_text_queries').val();
 	datamart_num=jQuery('#id_num_datamart').val();
 	filtre_resultat_texte=jQuery('#id_filtre_resultat_texte').val();
 	if (filtre_resultat_texte!='') {
+		filtre_resultat_texte=filtre_resultat_texte.replace("'"," ");
 		full_text_query=full_text_query+';requete_unitaire;'+filtre_resultat_texte;
+		json_full_text_queries=json_full_text_queries+",{'query':'"+filtre_resultat_texte+"','type':'fulltext','synonym':''}";
 	}
 
 	if (!document.getElementById('id_doc_document_'+document_num)) {
@@ -994,7 +998,7 @@ function afficher_document(document_num) {
 			url:"ajax.php",
 			async:false,
 			encoding: 'latin1',
-			data:{ action:'afficher_document',tmpresult_num:tmpresult_num,document_num:document_num,full_text_query:escape(full_text_query),datamart_num:datamart_num},
+			data:{ action:'afficher_document',tmpresult_num:tmpresult_num,document_num:document_num,full_text_query:escape(full_text_query),json_full_text_queries:escape(json_full_text_queries),datamart_num:datamart_num},
 			beforeSend: function(requester){
 			},
 			success: function(requester){
@@ -1076,7 +1080,7 @@ function afficher_document_patient_popup(document_num,full_text_query,datamart_n
 			success: function(requester){
 				var contenu=requester;
 				if (contenu=='deconnexion') {
-					afficher_connexion("afficher_document_patient_popup('"+document_num+"','"+full_text_query+"',"+datamart_num+",'"+id_cle+"')");
+					afficher_connexion("afficher_document_patient_popup('"+document_num+"','"+concept_str+"',"+datamart_num+",'"+id_cle+"')");
 				} else {
 					jQuery("#id_div_list_div_affichage").append(contenu); 
 					
@@ -1104,6 +1108,7 @@ function afficher_document_patient_popup(document_num,full_text_query,datamart_n
 function ouvrir_plus_document (patient_num,tmpresult_num) {
 	liste_document=jQuery('#id_input_liste_document_plus_'+patient_num).val();
 	full_text_query=jQuery('#id_full_text_query').val();
+	json_full_text_queries=jQuery('#id_json_full_text_queries').val();
 	datamart_num=jQuery('#id_num_datamart').val();
 	filtre_resultat_texte=jQuery('#id_filtre_resultat_texte').val();
 	if (filtre_resultat_texte!='') {
@@ -1118,7 +1123,7 @@ function ouvrir_plus_document (patient_num,tmpresult_num) {
 			url:"ajax.php",
 			async:false,
 			encoding: 'latin1',
-			data:{ action:'ouvrir_plus_document',patient_num:patient_num,tmpresult_num:tmpresult_num,liste_document:liste_document,full_text_query:escape(full_text_query),datamart_num:datamart_num},
+			data:{ action:'ouvrir_plus_document',patient_num:patient_num,tmpresult_num:tmpresult_num,liste_document:liste_document,full_text_query:escape(full_text_query),json_full_text_queries:escape(json_full_text_queries),datamart_num:datamart_num},
 			beforeSend: function(requester){
 			},
 			success: function(requester){
@@ -1948,6 +1953,7 @@ function ouvrir_document_print (document_num) {
 	}
 	if (document.getElementById('id_full_text_query')) {
 		full_text_query=jQuery('#id_full_text_query').val();
+		json_full_text_queries=jQuery('#id_json_full_text_queries').val();
 	}
 	if (document.getElementById('id_num_datamart')) {
 		datamart_num=jQuery('#id_num_datamart').val();
@@ -1978,6 +1984,7 @@ function ouvrir_liste_document_print (patient_num) {
 	
 	if (document.getElementById('id_full_text_query')) {
 		full_text_query=jQuery('#id_full_text_query').val();
+		json_full_text_queries=jQuery('#id_json_full_text_queries').val();
 		filtre_resultat_texte='';
 		full_text_query='';
 		if (document.getElementById('id_filtre_resultat_texte')) {

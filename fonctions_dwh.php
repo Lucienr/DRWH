@@ -2389,15 +2389,19 @@ function nettoyer_float($nombre) {
 function analyse_chaine_requete_code ($thesaurus_data_num,$chaine_requete_code,$option,$num_filtre) {
 	global $dbh;
 	
-	$sel=oci_parse($dbh,"select concept_str,measuring_unit,info_complement,value_type,list_values,thesaurus_parent_num,thesaurus_code from dwh_thesaurus_data where thesaurus_data_num=$thesaurus_data_num ");
+	$sel=oci_parse($dbh,"select concept_str,concept_code,measuring_unit,info_complement,value_type,list_values,thesaurus_parent_num,thesaurus_code from dwh_thesaurus_data where thesaurus_data_num=$thesaurus_data_num ");
 	oci_execute($sel);
 	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
 	$concept_str=$r['CONCEPT_STR'];
+	$concept_code=$r['CONCEPT_CODE'];
 	$measuring_unit=$r['MEASURING_UNIT'];
 	$info_complement=$r['INFO_COMPLEMENT'];
 	$thesaurus_code=$r['THESAURUS_CODE'];
 	$list_values=$r['LIST_VALUES'];
 	$value_type=$r['VALUE_TYPE'];
+	if ($option=='surligner') {
+		$res.=" $concept_str and $concept_code";
+	}
 	
 	if ($option=='clair') {
 		$res="$concept_str ";
@@ -2427,8 +2431,15 @@ function analyse_chaine_requete_code ($thesaurus_data_num,$chaine_requete_code,$
 	$valeur_sup_n_x_borne_sup=nettoyer_float($tableau_requete_code[5]);
 	$valeur_inf_n_x_borne_inf=nettoyer_float($tableau_requete_code[6]);
 	$liste_valeur_possible=nettoyer_float($tableau_requete_code[7]);
-	
 
+	if ($option=='get_concept_code') {
+		$res.="$concept_code";
+	}
+
+	if ($option=='get_thesaurus_code') {
+		$res.="$thesaurus_code";
+	}
+	
 	if ($option=='sql') {
 		$res.=" thesaurus_data_num=$thesaurus_data_num ";
 	}
@@ -2512,6 +2523,9 @@ function analyse_chaine_requete_code ($thesaurus_data_num,$chaine_requete_code,$
 			foreach ($tab_valeur_possible as $valeur_possible) {
 				if ($valeur_possible!='') {
 					$liste_val.="$valeur_possible, ";
+					if ($option=='surligner') {
+						$res.=" and $valeur_possible";
+					}
 				}
 			}
 			$liste_val=substr($liste_val,0,-2);
@@ -3674,14 +3688,13 @@ function intersect_resultat_texte ($requete_sql,$tmpresult_num, $perimetre_inter
 	inserer_resultat_texte ("$requete_sql_completee   AND dwh_document.document_num NOT IN (SELECT dwh_tmp_result_$user_num_session.document_num FROM dwh_tmp_result_$user_num_session WHERE tmpresult_num = $tmpresult_num  and object_type='document') ",$tmpresult_num);
 }
 
-function recuperer_resultat ($tmpresult_num,$full_text_query,$i_deb,$filtre_sql) {
+function recuperer_resultat ($tmpresult_num,$json_full_text_queries,$i_deb,$filtre_sql) {
         global $dbh,$modulo_ligne_ajoute,$liste_uf_session,$datamart_num,$liste_document_origin_code_session,$liste_service_session,$login_session,$user_num_session;
         
         //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
 	$filter_query_user_right=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
         
-	//$liste_synonyme=recupere_liste_concept_full_texte ($full_text_query);
-	$tableau_liste_synonyme=recupere_liste_concept_full_texte ($full_text_query,50);
+	$tableau_liste_synonyme=recupere_liste_concept_full_texte ($json_full_text_queries,50);
         $tableau_resultat=array();
         $i_fin=$i_deb+$modulo_ligne_ajoute;
         $sel = oci_parse($dbh,"select patient_num from (select rownum i, patient_num from dwh_patient where patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num $filtre_sql $filter_query_user_right) and rownum<=$i_fin  order by patient_num desc ) t where i>$i_deb and i<=$i_fin  order by i asc" );   
@@ -3712,7 +3725,7 @@ function recuperer_resultat ($tmpresult_num,$full_text_query,$i_deb,$filtre_sql)
 		                        $tableau_resultat[$patient_num][$document_num]['document_origin_code']=$document_origin_code;
 		                        $tableau_resultat[$patient_num][$document_num]['department_str']=$department_str;
 		                        $tableau_resultat[$patient_num][$document_num]['author']=$author;
-		                        $tableau_resultat[$patient_num][$document_num]['appercu']=resumer_resultat($text,"$full_text_query",$tableau_liste_synonyme,'moteur');
+		                        $tableau_resultat[$patient_num][$document_num]['appercu']=resumer_resultat($text,$json_full_text_queries,$tableau_liste_synonyme,'moteur');
 		                        $tableau_resultat[$patient_num][$document_num]['affiche_direct']="ok";
 		                        $tableau_resultat[$patient_num][$document_num]['object_type']="document";
 				} else {
@@ -3784,7 +3797,7 @@ function recuperer_resultat ($tmpresult_num,$full_text_query,$i_deb,$filtre_sql)
         return $tableau_resultat;
 }
 
-function ouvrir_plus_document ($tmpresult_num,$liste_object,$full_text_query,$tableau_liste_synonyme) {
+function ouvrir_plus_document ($tmpresult_num,$liste_object,$json_full_text_queries,$tableau_liste_synonyme) {
         global $dbh,$modulo_ligne_ajoute,$liste_uf_session,$datamart_num,$liste_document_origin_code_session,$user_num_session;
         $res="";
         if ($liste_object!='') {
@@ -3803,7 +3816,7 @@ function ouvrir_plus_document ($tmpresult_num,$liste_object,$full_text_query,$ta
 		                
 				$department_str=get_department_str ($department_num);
 	                
-				$appercu=resumer_resultat($text,"$full_text_query",$tableau_liste_synonyme,'moteur');
+				$appercu=resumer_resultat($text,$json_full_text_queries,$tableau_liste_synonyme,'moteur');
 	                
 		                if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
 		                	$document_date='[DATE]';
@@ -3860,198 +3873,16 @@ function ouvrir_plus_document ($tmpresult_num,$liste_object,$full_text_query,$ta
         return $res;
 }
 
-function recuperer_resultat_ancien ($tmpresult_num,$full_text_query,$i_deb,$filtre_sql) {
-        global $dbh,$modulo_ligne_ajoute,$liste_uf_session,$datamart_num,$liste_document_origin_code_session,$liste_service_session,$login_session,$user_num_session;
-        
-        //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
-	$filter_query_user_right=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
-        
-	//$liste_synonyme=recupere_liste_concept_full_texte ($full_text_query);
-	$tableau_liste_synonyme=recupere_liste_concept_full_texte ($full_text_query,50);
-        $tableau_resultat=array();
-        $i_fin=$i_deb+$modulo_ligne_ajoute;
-        $sel = oci_parse($dbh,"select patient_num from (select rownum i, patient_num from dwh_patient where patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num $filtre_sql $filter_query_user_right) and rownum<=$i_fin  order by patient_num desc ) t where i>$i_deb and i<=$i_fin  order by i asc" );   
-        oci_execute($sel);
-        while ($row = oci_fetch_array($sel, OCI_ASSOC)) {
-                $patient_num=$row['PATIENT_NUM'];
-                $nb_doc_par_patient=0;
-                $tableau_document_origin_code_deja_fait=array();
-                
-                $list_documents_in_result=get_table_objects_in_result ($tmpresult_num,$user_num_session, "and patient_num=$patient_num $filtre_sql $filter_query_user_right");
-		foreach ($list_documents_in_result as $document_num => $object_type) {
-			//$document_tmp_result=get_object_in_result($tmpresult_num,$user_num_session,$document_num);
-                        //$object_type=$document_tmp_result['object_type'];
-		        $nb_doc_par_patient++;
-			if ( $object_type=='document') {
-	                        if ($nb_doc_par_patient<4) {
-					$document=get_document($document_num);
-		                        $document_num=$document['document_num'];
-		                        $encounter_num=$document['encounter_num'];
-		                        $title=$document['title'];
-		                        $document_date=$document['document_date'];
-		                        $document_origin_code=$document['document_origin_code'];
-		                        $author=$document['author'];
-		                        $department_num=$document['department_num'];
-		                        $text=$document['text'];   
-		               		$tableau_document_origin_code_deja_fait[$document_origin_code]++;
-					$department_str=get_department_str ($department_num);
-		
-		                        $tableau_resultat[$patient_num][$document_num]['title']=$title;
-		                        $tableau_resultat[$patient_num][$document_num]['document_date']=$document_date;
-		                        $tableau_resultat[$patient_num][$document_num]['document_origin_code']=$document_origin_code;
-		                        $tableau_resultat[$patient_num][$document_num]['department_str']=$department_str;
-		                        $tableau_resultat[$patient_num][$document_num]['author']=$author;
-		                        $tableau_resultat[$patient_num][$document_num]['appercu']=resumer_resultat($text,"$full_text_query",$tableau_liste_synonyme,'moteur');
-		                        $tableau_resultat[$patient_num][$document_num]['affiche_direct']="ok";
-		                        $tableau_resultat[$patient_num][$document_num]['object_type']="document";
-		                } else {
-		                        $tableau_resultat[$patient_num][$document_num]['title']=$title;
-		                        $tableau_resultat[$patient_num][$document_num]['document_date']=$document_date;
-		                        $tableau_resultat[$patient_num][$document_num]['document_origin_code']=$document_origin_code;
-		                        $tableau_resultat[$patient_num][$document_num]['author']=$author;
-		                        $tableau_resultat[$patient_num][$document_num]['appercu']="";
-		                        $tableau_resultat[$patient_num][$document_num]['affiche_direct']="";
-		                }
-			}
-			if ( $object_type=='mvt') {
-	                        
-	                        if ($nb_doc_par_patient<4) {
-	                       // if ($tableau_document_origin_code_deja_fait[$document_origin_code]=='' || $nb_doc_par_patient<3) {
-					$mvt=get_mvt($document_num);
-		                        $entry_date=$mvt['ENTRY_DATE'];
-		                        $out_date=$mvt['OUT_DATE'];
-					if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
-						$entry_date='[entry_date]';
-						$out_date='[out_date]';
-					}
-		                        $document_origin_code='MVT';
-		                        $department_num=$mvt['DEPARTMENT_NUM'];
-		                        $encounter_num=$mvt['ENCOUNTER_NUM'];
-		                        $type_mvt=$mvt['TYPE_MVT'];   
-		                        $unit_num=$mvt['UNIT_NUM'];    
-		                        $unit_code=$mvt['UNIT_CODE'];  
-		                        
-		               		$tableau_document_origin_code_deja_fait[$document_origin_code]++;
-					$department_str=get_department_str ($department_num);
-					$unit_str=get_unit_str ($unit_num);
-		
-			                $appercu="";
-			                if ($encounter_num!='') {
-			                        $appercu.=" ".get_translation('ENCOUNTER','Séjour')." N° $encounter_num<br>";
-			                }
-			                $appercu.="Mouvement de type $type_mvt dans l'unité $unit_code-$unit_str ";
-			                
-			                
-		                        $tableau_resultat[$patient_num][$document_num]['title']="Mouvement";
-		                        $tableau_resultat[$patient_num][$document_num]['document_date']="du $entry_date au $out_date";
-		                        $tableau_resultat[$patient_num][$document_num]['document_origin_code']=$document_origin_code;
-		                        $tableau_resultat[$patient_num][$document_num]['department_str']=$department_str;
-		                        $tableau_resultat[$patient_num][$document_num]['appercu']=$appercu;
-		                        $tableau_resultat[$patient_num][$document_num]['affiche_direct']="ok";
-		                        $tableau_resultat[$patient_num][$document_num]['object_type']="mvt";
-		                } else {
-		                        $tableau_resultat[$patient_num][$document_num]['title']="Mouvement";
-		                        $tableau_resultat[$patient_num][$document_num]['document_date']="du $entry_date au $out_date";
-		                        $tableau_resultat[$patient_num][$document_num]['document_origin_code']=$document_origin_code;
-		                        $tableau_resultat[$patient_num][$document_num]['department_str']=$department_str;
-		                        $tableau_resultat[$patient_num][$document_num]['appercu']="";
-		                        $tableau_resultat[$patient_num][$document_num]['affiche_direct']="";
-		                }
-			}
-                }
-        }
-        return $tableau_resultat;
-}
-function ouvrir_plus_document_ancien ($tmpresult_num,$liste_document,$full_text_query,$tableau_liste_synonyme) {
-        global $dbh,$modulo_ligne_ajoute,$liste_uf_session,$datamart_num,$liste_document_origin_code_session,$user_num_session;
-        $res="";
-        if ($liste_document!='') {
-                $list_documents_in_result=get_table_objects_in_result_ancien ($tmpresult_num,$user_num_session, "and document_num in ($liste_document)");
-		foreach ($list_documents_in_result as $document_num => $object_type) {
-			//$document_tmp_result=get_object_in_result($tmpresult_num,$user_num_session,$document_num);
-                       // $object_type=$document_tmp_result['object_type'];
-			if ( $object_type=='document') {
-				$document=get_document($document_num);
-	                        $document_num=$document['document_num'];
-	                        $encounter_num=$document['encounter_num'];
-	                        $title=$document['title'];
-	                        $document_date=$document['document_date'];
-	                        $document_origin_code=$document['document_origin_code'];
-	                        $author=$document['author'];
-	                        $department_num=$document['department_num'];
-	                        $text=$document['text'];   
-		                
-				$department_str=get_department_str ($department_num);
-	                
-				$appercu=resumer_resultat($text,"$full_text_query",$tableau_liste_synonyme,'moteur');
-	                
-		                if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
-		                	$document_date='[DATE]';
-		                	$author='[AUTHOR]';
-		                }
-	                
-		                $res.= "<div id=\"id_tr_document_$document_num\" class=\"document_resultat\">";
-			                $res.= "<div id=\"id_button_$document_num\" class=\"div_voir_document\"><a class=\"voir_document\" href=\"#\" onclick=\"afficher_document('$document_num','$datamart_num');return false;\">";
-			                
-				                $res.= "$title ".get_translation('FROM_DATE','par')." $document_date ($document_origin_code)";
-				                if ($author!='') {
-				                        $res.=" ".get_translation('BY_FOLLOWED_BY_NAME','par')." $author";
-				                }
-				                if ($department_str!='') {
-				                        $res.=" - $department_str";
-				                }
-				                $res.=" :</a>";
-			                $res.= "</div>";
-			                $res.= "<div class=\"appercu\">$appercu</div>";
-		                $res.= "</div>";
-		        }
-			if ( $object_type=='mvt') {
-				$mvt=get_mvt($document_num);
-	                        
-	                        $entry_date=$mvt['ENTRY_DATE'];
-	                        $out_date=$mvt['OUT_DATE'];
-	                        
-	                        $document_origin_code='MVT';
-	                        $department_num=$mvt['DEPARTMENT_NUM'];
-	                        $encounter_num=$mvt['ENCOUNTER_NUM'];
-	                        $type_mvt=$mvt['TYPE_MVT'];   
-	                        $unit_num=$mvt['UNIT_NUM'];    
-	                        $unit_code=$mvt['UNIT_CODE'];  
-	                        
-				if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
-					$entry_date='[entry_date]';
-					$out_date='[out_date]';
-				}
-				$department_str=get_department_str ($department_num);
-				$unit_str=get_unit_str ($unit_num);
 
-		                $appercu="";
-		                if ($encounter_num!='') {
-		                        $appercu.=" ".get_translation('ENCOUNTER','Séjour')." N° $encounter_num<br>";
-		                }
-			        $appercu.="Mouvement de type $type_mvt dans l'unité $unit_code-$unit_str ";
-		                $res.= "<div id=\"id_tr_document_$document_num\" class=\"document_resultat\">";
-			                $res.= "<div id=\"id_button_$document_num\" class=\"div_voir_document\"><a class=\"voir_document\" href=\"#\" onclick=\"afficher_mvt('$document_num','$datamart_num');return false;\">";
-			                
-				                $res.= "Mouvement du $entry_date au $out_date - $unit_str";
-				                $res.=" :</a>";
-			                $res.= "</div>";
-			                $res.= "<div class=\"appercu\">$appercu</div>";
-		                $res.= "</div>";
-			}
-		        
-	        }
-	}
-        return $res;
-}
-
-
-function appercu_liste_document ($liste_document,$full_text_query) {
+function appercu_liste_document ($liste_document,$concept_str) {
         global $dbh,$modulo_ligne_ajoute,$liste_uf_session,$datamart_num,$liste_document_origin_code_session,$login_session;
         $res="";
         $i=0;
-	$tableau_liste_synonyme=recupere_liste_concept_full_texte ($full_text_query,50);
-	$id_full_text_query=preg_replace("/[^a-z0-9]/i","",$full_text_query);
+
+	$requete_json=nettoyer_pour_inserer ($concept_str);
+	$requete_json=replace_accent($requete_json);
+	$tableau_liste_synonyme=recupere_liste_concept_full_texte ("{'query':'$requete_json','type':'fulltext','synonym':''}",50);
+	$id_concept_str=preg_replace("/[^a-z0-9]/i","",$concept_str);
 	
         if ($liste_document!='') {
 	        $sel_doc = oci_parse($dbh,"select  document_num,patient_num,encounter_num, title,author,document_date,document_origin_code,text,department_num from dwh_text where document_num in ($liste_document) and context='text' and certainty=0 order by  document_date desc " );   
@@ -4065,13 +3896,13 @@ function appercu_liste_document ($liste_document,$full_text_query) {
 	                $document_origin_code=$row_doc['DOCUMENT_ORIGIN_CODE'];
 	                $author=$row_doc['AUTHOR'];
 	                $department_num=$row_doc['DEPARTMENT_NUM'];
-	                $id_cle=$document_num.$id_full_text_query;
+	                $id_cle=$document_num.$id_concept_str;
 	                if ($i<=5) {
 		                if ($row_doc['TEXT']!='') {
 		                        $text=$row_doc['TEXT']->load();             
 		                }
 				$department_str=get_department_str ($department_num);
-		                $appercu=resumer_resultat($text,"$full_text_query",$tableau_liste_synonyme,'moteur');
+		                $appercu=resumer_resultat($text,"{'query':'$requete_json','type':'fulltext','synonym':''}",$tableau_liste_synonyme,'moteur');
 		                
 		                if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
 		                	$document_date='[DATE]';
@@ -4079,7 +3910,7 @@ function appercu_liste_document ($liste_document,$full_text_query) {
 		                }
 		                
 		                $res.= "<div id=\"id_tr_document_$id_cle\" class=\"document_resultat\">";
-			                $res.= "<div id=\"id_button_".$id_cle."\" class=\"div_voir_document\"><a class=\"voir_document\" href=\"#\" onclick=\"afficher_document_patient_popup('$document_num','$full_text_query','$datamart_num','$id_cle');return false;\">";
+			                $res.= "<div id=\"id_button_".$id_cle."\" class=\"div_voir_document\"><a class=\"voir_document\" href=\"#\" onclick=\"afficher_document_patient_popup('$document_num','$concept_str','$datamart_num','$id_cle');return false;\">";
 				                $res.= "$title ".get_translation('FROM_DATE','par')." $document_date ($document_origin_code)";
 				                if ($author!='') {
 				                        $res.=" ".get_translation('BY_FOLLOWED_BY_NAME','par')." $author";
@@ -4752,24 +4583,25 @@ function supprimer_html ($text) {
 	return $text;
 }
 
-function resumer_resultat($text,$full_text_query,$tableau_liste_synonyme,$type_affichage) {
+function resumer_resultat($text,$json_full_text_queries,$tableau_liste_synonyme,$type_affichage) {
 	global $login_session;
 	// si requete est une expression reguliere
 //	$text=supprimer_html ($text); // peut etre supprimer ce passage ... 2019 06 14 
 	$tableau_texte=array();
 	$test_expression_reguliere='';
-	if (preg_match("/[[|?+{]/",$full_text_query)) {
+	if (preg_match("/[[|?+(]/",$json_full_text_queries)) {
 		$test_expression_reguliere='ok';
 	}
 	if ($type_affichage=='patient' && $test_expression_reguliere=='ok') {
-		$text=surligner_resultat_exp_reguliere ($text,$full_text_query,'non');
+		$text=surligner_resultat_exp_reguliere ($text,$json_full_text_queries,'non');
 	} else {
-		$text=surligner_resultat ($text,$full_text_query,'','non',$tableau_liste_synonyme,'');
+	
+		$text=surligner_resultat ($text,$json_full_text_queries,'','non',$tableau_liste_synonyme,'');
 		if (!preg_match("/highlight/i"," $text ")) {
-			$text=surligner_resultat ($text,$full_text_query,'maxdistance','non',$tableau_liste_synonyme,'');
+			$text=surligner_resultat ($text,$json_full_text_queries,'maxdistance','non',$tableau_liste_synonyme,'');
 		}
 		if (!preg_match("/highlight/i"," $text ")) {
-			$text=surligner_resultat ($text,$full_text_query,'unitaire','non',$tableau_liste_synonyme,'');
+			$text=surligner_resultat ($text,$json_full_text_queries,'unitaire','non',$tableau_liste_synonyme,'');
 		}
 		
 		// NG 2019 06 13
@@ -4800,7 +4632,7 @@ function resumer_resultat($text,$full_text_query,$tableau_liste_synonyme,$type_a
 	return $texte_appercu;
 }
 
-function afficher_document($document_num,$full_text_query,$tableau_liste_synonyme) {
+function afficher_document($document_num,$json_full_text_queries,$tableau_liste_synonyme) {
         global $dbh,$datamart_num,$user_num_session;
         $document=get_document ($document_num);
         //$sel_texte = oci_parse($dbh,"select displayed_text,title,patient_num,to_char(document_date,'DD/MM/YYYY') as char_date_document from dwh_document where document_num=$document_num" );   
@@ -4825,12 +4657,12 @@ function afficher_document($document_num,$full_text_query,$tableau_liste_synonym
         }
         
         $displayed_text=nettoyer_pour_afficher ($displayed_text);
-        $displayed_text=surligner_resultat ($displayed_text,$full_text_query,'','oui',$tableau_liste_synonyme,'');
+        $displayed_text=surligner_resultat ($displayed_text,$json_full_text_queries,'','oui',$tableau_liste_synonyme,'');
         if (!preg_match("/highlight/",$displayed_text) ) {
-                $displayed_text=surligner_resultat ($displayed_text,$full_text_query,'maxdistance','oui',$tableau_liste_synonyme,'');
+                $displayed_text=surligner_resultat ($displayed_text,$json_full_text_queries,'maxdistance','oui',$tableau_liste_synonyme,'');
         }
         if (!preg_match("/highlight/",$displayed_text) ) {
-                $displayed_text=surligner_resultat ($displayed_text,$full_text_query,'unitaire','oui',$tableau_liste_synonyme,'');
+                $displayed_text=surligner_resultat ($displayed_text,$json_full_text_queries,'unitaire','oui',$tableau_liste_synonyme,'');
         }
 	$displayed_text=display_image_in_document ($patient_num,$document_num,$user_num_session,$displayed_text);
         
@@ -4940,7 +4772,7 @@ function afficher_mvt($mvt_num) {
 }
 
 
-function afficher_document_patient_popup($document_num,$full_text_query,$tableau_liste_synonyme,$id_cle) {
+function afficher_document_patient_popup($document_num,$json_full_text_queries,$tableau_liste_synonyme,$id_cle) {
         global $dbh,$datamart_num,$user_num_session;
         $document=get_document ($document_num);
 	$displayed_text=$document['displayed_text'];     
@@ -4965,13 +4797,12 @@ function afficher_document_patient_popup($document_num,$full_text_query,$tableau
     }
     
     $displayed_text=nettoyer_pour_afficher ($displayed_text);
-    $displayed_text=surligner_resultat ($displayed_text,$full_text_query,'','oui',$tableau_liste_synonyme,'');
+    $displayed_text=surligner_resultat ($displayed_text,$json_full_text_queries,'','oui',$tableau_liste_synonyme,'');
     if (!preg_match("/highlight/",$displayed_text) ) {
-            $displayed_text=surligner_resultat ($displayed_text,$full_text_query,'maxdistance','oui',$tableau_liste_synonyme,'');
+            $displayed_text=surligner_resultat ($displayed_text,$json_full_text_queries,'maxdistance','oui',$tableau_liste_synonyme,'');
     }
     if (!preg_match("/highlight/",$displayed_text) ) {
-            //$displayed_text=surligner_resultat ($displayed_text,$full_text_query,'unitaire','oui');
-            $displayed_text=surligner_resultat ($displayed_text,$full_text_query,'unitaire','oui',$tableau_liste_synonyme,'');
+            $displayed_text=surligner_resultat ($displayed_text,$json_full_text_queries,'unitaire','oui',$tableau_liste_synonyme,'');
     }
     
     
@@ -5004,53 +4835,106 @@ function afficher_document_patient_popup($document_num,$full_text_query,$tableau
     return $res;
 }
 
-function recupere_liste_concept_full_texte ($full_text_query,$limite_syno=50) {
+function recupere_liste_concept_full_texte ($json_full_text_queries,$limite_syno=50) {
 	global $dbh,$user_num_session,$login_session;
 	$tableau_code_libelle_deja=array();
 	$tableau_etendre_requete_unitaire_deja_fait=array();
 	$tableau_etendre_requete_unitaire=array();
-	$tableau_requete_unitaire=array_values(array_unique(preg_split("/ or | and | not |;requete_unitaire;/i"," $full_text_query ")));
-        foreach ($tableau_requete_unitaire as $requete_unitaire) {
-                $requete_unitaire=strtolower(trim($requete_unitaire));
-		 if ($requete_unitaire!='' && strlen($requete_unitaire)>1 && $tableau_etendre_requete_unitaire_deja_fait[trim($requete_unitaire)]=='') {
-		 	$tableau_code_libelle_deja[$requete_unitaire]='ok';
-		 	$requete_unitaire=preg_replace("/'/"," ",$requete_unitaire);
-		 	$requete_unitaire=preg_replace("/[(),]/"," ",$requete_unitaire);
-		 	$requete_unitaire=preg_replace("/[^a-z]near[^a-z]/"," "," $requete_unitaire ");
-			$i=0;
-			$liste_code_libelle='';
-		        $sel = oci_parse($dbh,"select  concept_str,length(concept_str),count_doc_concept_str from dwh_thesaurus_enrsem where length(concept_str)>2 and length(concept_str)<50 and concept_code in (select  concept_code from dwh_thesaurus_enrsem where contains(concept_str,'$requete_unitaire')>0 ) order by count_doc_concept_str desc, length(concept_str) desc " );   
-		        oci_execute($sel);
-		        while ($row = oci_fetch_array($sel, OCI_ASSOC)) {
-			        $concept_str=strtolower($row['CONCEPT_STR']);
-			        if ($tableau_code_libelle_deja[$concept_str]=='' && $i<=$limite_syno) {
-			        	$i++;
-					$liste_code_libelle.=";requete_unitaire;".$concept_str;
-			 		$tableau_code_libelle_deja[$concept_str]='ok';
-			 	}
-		        }
-			$tableau_etendre_requete_unitaire[trim($requete_unitaire)]['synonyme']=$liste_code_libelle;
-		        
-			$i=0;
-			$liste_code_libelle='';
-		        $sel = oci_parse($dbh,"
-		        select  fils.concept_str,length(fils.concept_str),count_doc_concept_str from dwh_thesaurus_enrsem fils,dwh_thesaurus_enrsem_graph graph where
-		        graph.concept_code_son=fils.concept_code and
-		         graph.concept_code_father in (select  concept_code from dwh_thesaurus_enrsem where contains(concept_str,'$requete_unitaire')>0 )
-		      order by count_doc_concept_str desc, length(fils.concept_str) desc  " ); 
-		        oci_execute($sel);
-		        while ($row = oci_fetch_array($sel, OCI_ASSOC)) {
-			        $concept_str=strtolower($row['CONCEPT_STR']);
-			        if ($tableau_code_libelle_deja[$concept_str]=='' && $i<=$limite_syno) {
-		        		$i++;
-					$liste_code_libelle.=";requete_unitaire;".$concept_str;
-		 			$tableau_code_libelle_deja[$concept_str]='ok';
+	//{'query':'str','type':'fulltext','synonym':''}
+	$json_full_text_queries=replace_accent($json_full_text_queries);
+	$json_full_text_queries=str_replace("'","\"",$json_full_text_queries);
+	$json_full_text_queries_final="{\"list_queries\":[$json_full_text_queries]}";
+	$parsed_json = json_decode($json_full_text_queries_final);
+	foreach ($parsed_json->{'list_queries'} as $query) {
+		$full_text_query= $query->{'query'};
+		$type= $query->{'type'};
+		$synonym= $query->{'synonym'};
+
+		if ($type=='fulltext') {
+			if ($synonym==1) {
+				$tableau_requete_unitaire=array_values(array_unique(preg_split("/ or | and | not /i"," $full_text_query ")));
+			        foreach ($tableau_requete_unitaire as $requete_unitaire) {
+			                $requete_unitaire=strtolower(trim($requete_unitaire));
+					 if ($requete_unitaire!='' && strlen($requete_unitaire)>1 && $tableau_etendre_requete_unitaire_deja_fait[trim($requete_unitaire)]=='') {
+					 	$tableau_code_libelle_deja[$requete_unitaire]='ok';
+					 	$requete_unitaire=preg_replace("/'/"," ",$requete_unitaire);
+					 	$requete_unitaire=preg_replace("/[(),]/"," ",$requete_unitaire);
+					 	$requete_unitaire=preg_replace("/[^a-z]near[^a-z]/"," "," $requete_unitaire ");
+						$i=0;
+						$liste_code_libelle='';
+					        $sel = oci_parse($dbh,"select  concept_str,length(concept_str),count_doc_concept_str from dwh_thesaurus_enrsem where length(concept_str)>2 and length(concept_str)<50 and concept_code in (select  concept_code from dwh_thesaurus_enrsem where contains(concept_str,'$requete_unitaire')>0 ) order by count_doc_concept_str desc, length(concept_str) desc " );   
+					        oci_execute($sel);
+					        while ($row = oci_fetch_array($sel, OCI_ASSOC)) {
+						        $concept_str=strtolower($row['CONCEPT_STR']);
+						        if ($concept_str!='' && $tableau_code_libelle_deja[$concept_str]=='' && $i<=$limite_syno) {
+						        	$i++;
+								//$liste_code_libelle.=";requete_unitaire;".$concept_str;
+								$requete_json=nettoyer_pour_inserer ($concept_str);
+								$requete_json=replace_accent($requete_json);
+								$liste_code_libelle.="{'query':'$requete_json','type':'fulltext','synonym':''},";
+						 		$tableau_code_libelle_deja[$concept_str]='ok';
+						 	}
+					        }
+						$tableau_etendre_requete_unitaire[trim($requete_unitaire)]['synonyme']=substr($liste_code_libelle,0,-1);
+					        
+						$i=0;
+						$liste_code_libelle='';
+					        $sel = oci_parse($dbh,"
+					        select  fils.concept_str,length(fils.concept_str),count_doc_concept_str from dwh_thesaurus_enrsem fils,dwh_thesaurus_enrsem_graph graph where
+					        graph.concept_code_son=fils.concept_code and
+					         graph.concept_code_father in (select  concept_code from dwh_thesaurus_enrsem where contains(concept_str,'$requete_unitaire')>0 )
+					      order by count_doc_concept_str desc, length(fils.concept_str) desc  " ); 
+					        oci_execute($sel);
+					        while ($row = oci_fetch_array($sel, OCI_ASSOC)) {
+						        $concept_str=strtolower($row['CONCEPT_STR']);
+						        if ($concept_str!='' && $tableau_code_libelle_deja[$concept_str]=='' && $i<=$limite_syno) {
+					        		$i++;
+								//$liste_code_libelle.=";requete_unitaire;".$concept_str;
+								$requete_json=nettoyer_pour_inserer ($concept_str);
+								$requete_json=replace_accent($requete_json);
+								$liste_code_libelle.="{'query':'$requete_json','type':'fulltext','synonym':''},";
+					 			$tableau_code_libelle_deja[$concept_str]='ok';
+							}
+					        }
+					        $tableau_etendre_requete_unitaire[trim($requete_unitaire)]['fils']=substr($liste_code_libelle,0,-1);
+					        
+					        $tableau_etendre_requete_unitaire_deja_fait[trim($requete_unitaire)]='ok';
+				        }
 				}
-		        }
-		        $tableau_etendre_requete_unitaire[trim($requete_unitaire)]['fils']=$liste_code_libelle;
-		        
-		        $tableau_etendre_requete_unitaire_deja_fait[trim($requete_unitaire)]='ok';
-	        }
+			}
+		}
+		if ($type=='data') {
+			$concept_code= $query->{'concept_code'};
+			$thesaurus_code= $query->{'thesaurus_code'};
+			if ($concept_code!='' && $thesaurus_code!='' && $tableau_etendre_requete_unitaire_deja_fait[trim($concept_code)]=='') {
+				$i=0;
+				$liste_code_libelle='';
+			        $sel = oci_parse($dbh,"
+			        select concept_code,  fils.concept_str,length(fils.concept_str),count_data_used from dwh_thesaurus_data fils,dwh_thesaurus_data_graph graph where
+			        graph.thesaurus_data_son_num=fils.thesaurus_data_num and  count_data_used >0 and
+			         graph.thesaurus_data_father_num in (select  thesaurus_data_num from dwh_thesaurus_data where concept_code='$concept_code' and thesaurus_code='$thesaurus_code' )
+			      order by length(fils.concept_str) desc  " ); 
+			        oci_execute($sel);
+			        while ($row = oci_fetch_array($sel, OCI_ASSOC)) {
+				        $concept_str_son=$row['CONCEPT_CODE']." or ".strtolower($row['CONCEPT_STR']);
+				        $concept_code_son=$row['CONCEPT_CODE'];
+				        if ($concept_str_son!='' && $i<=$limite_syno) {
+			        		$i++;
+						//$liste_code_libelle.=";requete_unitaire;".$concept_str;
+						$requete_json=nettoyer_pour_inserer ($concept_str_son);
+						$requete_json=preg_replace ("/[(),]/"," ",$requete_json);
+						$requete_json=replace_accent($requete_json);
+						$liste_code_libelle.="{'query':'$requete_json','type':'data','concept_code':'$concept_code_son','thesaurus_code':'$thesaurus_code','synonym':''},";
+			 			$tableau_code_libelle_deja[$concept_code]='ok';
+					}
+			        }
+			        $tableau_etendre_requete_unitaire[trim($concept_code)]['fils']=substr($liste_code_libelle,0,-1);
+			        $tableau_etendre_requete_unitaire[trim($full_text_query)]['fils']=substr($liste_code_libelle,0,-1);
+			        
+			        $tableau_etendre_requete_unitaire_deja_fait[trim($concept_code)]='ok';
+			        $tableau_etendre_requete_unitaire_deja_fait[trim($full_text_query)]='ok';
+			}
+		}
 	}
        return $tableau_etendre_requete_unitaire;
 }
@@ -5081,7 +4965,7 @@ function surligner_resultat_exp_reguliere ($text,$pattern,$colorer) {
 }
 
 
-function surligner_resultat ($text,$full_text_query,$option,$colorer,$tableau_liste_synonyme,$test_unique) {
+function surligner_resultat ($text,$json_full_text_queries,$option,$colorer,$tableau_liste_synonyme,$test_unique) {
         global $dbh,$tableau_couleur,$login_session;
         global $stop_words;
         $num_couleur=-1;
@@ -5092,8 +4976,17 @@ function surligner_resultat ($text,$full_text_query,$option,$colorer,$tableau_li
         $expression_bloc_deja_trouve='';
         $text=str_replace("\n","\n ",$text);
         $text_final=" $text ";
-        $tableau_bloc_requete=array_values(array_unique(explode(";requete_unitaire;",$full_text_query)));
-        foreach ($tableau_bloc_requete as $full_text_query_bloc) {
+        #$tableau_bloc_requete=array_values(array_unique(explode(";requete_unitaire;",$full_text_query)));
+        #foreach ($tableau_bloc_requete as $full_text_query_bloc) {
+	$json_full_text_queries=str_replace("'","\"",$json_full_text_queries);
+	$json_full_text_queries=replace_accent($json_full_text_queries);
+	$json_full_text_queries="{\"list_queries\":[$json_full_text_queries]}";
+	$parsed_json = json_decode($json_full_text_queries);
+	foreach ($parsed_json->{'list_queries'} as $query) {
+		$full_text_query_bloc= $query->{'query'};
+		$type= $query->{'type'};
+		$synonym= $query->{'synonym'};
+        
 	        $tableau_requete_unitaire=array_values(array_unique(preg_split("/(near|[\(\),]| and | or | not )/i"," $full_text_query_bloc ")));
 	        $full_text_query_join_pointvirgule=preg_replace("/(near|[\(\),]| and | or | not )/i","; $1",trim($full_text_query_bloc));
 	        
@@ -5154,7 +5047,6 @@ function surligner_resultat ($text,$full_text_query,$option,$colorer,$tableau_li
 	                        }
 	                }
 	        }
-
 	        uksort($tableau_liste_texte_query, 'compareStrlenInverse');        // on trie par longueur de chaine decroissante //
 	        foreach ($tableau_liste_texte_query as $sous_requete_unitaire => $sous_requete_unitaire_normalise) {
 	                $deja_fait=0;
@@ -6239,6 +6131,8 @@ function affiche_liste_document_patient($patient_num,$requete) {
 		} else {
 			$cellspacing="";
 		}
+		$requete_json=nettoyer_pour_inserer ($requete);
+		$requete_json=replace_accent($requete_json);
 	        $tableau_liste_synonyme=array();
 		if ($requete!='') {
 			if ($test_expression_reguliere=='ok') {
@@ -6247,7 +6141,7 @@ function affiche_liste_document_patient($patient_num,$requete) {
 			} else {
 				//$req="and document_num in (select document_num from dwh_text where patient_num=$patient_num and (contains(enrich_text,'$requete')>0 or contains(title,'$requete')>0) ) ";
 				$req="and document_num in (select document_num from dwh_text where patient_num=$patient_num and (contains(text,'$requete')>0 or contains(title,'$requete')>0) ) ";
-				$tableau_liste_synonyme=recupere_liste_concept_full_texte ($requete,400);
+				$tableau_liste_synonyme=recupere_liste_concept_full_texte ("{'query':'$requete_json','type':'fulltext','synonym':''}",50);
 			}
 		}
 		$liste_document_origin_code=list_authorized_document_origin_code_for_one_patient($patient_num,$user_num_session);
@@ -6310,8 +6204,8 @@ function affiche_liste_document_patient($patient_num,$requete) {
 					<td>$document_date</td>";
 					$res.= "</tr>";
 					if ($requete!='') {
-						$appercu=resumer_resultat($text,$requete,$tableau_liste_synonyme,'patient');
-						$res.= "<tr><td colspan=\"4\" class=\"appercu\"><i>$appercu</i></td><tr>";
+						$appercu=resumer_resultat($text,"{'query':'$requete_json','type':'fulltext','synonym':''}",$tableau_liste_synonyme,'patient');
+						$res.= "<tr><td colspan=\"4\" class=\"appercu\"><i>$appercu</i>test</td><tr>";
 					}
 					$res.= "<tr><td colspan=\"4\"><hr  style=\"height:1px;border-top:0px;padding:0px;margin:0px;\"></td>";
 				}
@@ -6400,7 +6294,9 @@ function affiche_liste_document_biologie($patient_num,$requete) {
 							<td>$document_origin_code</td>
 							<td>$author</td>
 							</tr>";
-						$appercu=resumer_resultat($text,$requete,$tableau_liste_synonyme,'patient');
+						$requete_json=nettoyer_pour_inserer ($requete);
+						$requete_json=replace_accent($requete_json);
+						$appercu=resumer_resultat($text,"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'patient');
 						$res.= "<tr><td colspan=\"4\"><i>$appercu</i></td><tr>";
 						$res.= "<tr><td colspan=\"4\"><hr  style=\"height:1px;border-top:0px;padding:0px;margin:0px;\"></td>";
 					}
@@ -6442,7 +6338,9 @@ function affiche_liste_id_document_patient($patient_num,$requete) {
 			} else {
 				//$req="and document_num in (select document_num from dwh_text where (contains(enrich_text,'$requete')>0 or contains(title,'$requete')>0) and patient_num=$patient_num) ";
 				$req="and document_num in (select document_num from dwh_text where (contains(text,'$requete')>0 or contains(title,'$requete')>0) and patient_num=$patient_num) ";
-				$tableau_liste_synonyme=recupere_liste_concept_full_texte ($requete,400);
+				$requete_json=nettoyer_pour_inserer ($requete);
+				$requete_json=replace_accent($requete_json);
+				$tableau_liste_synonyme=recupere_liste_concept_full_texte ("{'query':'$requete_json','type':'fulltext','synonym':''}",400);
 			}
 		}
 		$liste_document_origin_code=list_authorized_document_origin_code_for_one_patient($patient_num,$user_num_session);
@@ -6506,10 +6404,6 @@ function afficher_document_patient($document_num,$full_text_query,$user_num) {
 	                $document_date='[DATE]';
 	        }
 	        
-	        $tableau_liste_synonyme=array();
-		if (!preg_match("/[[|?+]/",$full_text_query)) {
-			$tableau_liste_synonyme=recupere_liste_concept_full_texte ($full_text_query,400);
-		}
 	        $autorisation_voir_patient_nominative=autorisation_voir_patient_nominative ($patient_num,$user_num);
 	        if ($autorisation_voir_patient_nominative=='') {
 	                $displayed_text=anonymisation_document ($document_num,$displayed_text);
@@ -6522,14 +6416,18 @@ function afficher_document_patient($document_num,$full_text_query,$user_num) {
 		if (preg_match("/[[|?+{]/",$full_text_query)) {
 			$displayed_text=surligner_resultat_exp_reguliere ($displayed_text,$full_text_query,'oui');
 		} else {
+			$requete_json=nettoyer_pour_inserer ($full_text_query);
+			$requete_json=replace_accent($requete_json);
+	        	$tableau_liste_synonyme=array();
+			$tableau_liste_synonyme=recupere_liste_concept_full_texte ("{'query':'$requete_json','type':'fulltext','synonym':'1'}",50);
 		        if ($full_text_query!='') {
-			        $displayed_text=surligner_resultat ($displayed_text,$full_text_query,'','oui',$tableau_liste_synonyme,'');
+			        $displayed_text=surligner_resultat ($displayed_text,"{'query':'$requete_json','type':'fulltext','synonym':''}",'','oui',$tableau_liste_synonyme,'');
 			}
 		        if (!preg_match("/highlight/",$displayed_text) ) {
-		                $displayed_text=surligner_resultat ($displayed_text,$full_text_query,'maxdistance','oui',$tableau_liste_synonyme,'');
+		                $displayed_text=surligner_resultat ($displayed_text,"{'query':'$requete_json','type':'fulltext','synonym':''}",'maxdistance','oui',$tableau_liste_synonyme,'');
 		        }
 		        if (!preg_match("/highlight/",$displayed_text) ) {
-		                $displayed_text=surligner_resultat ($displayed_text,$full_text_query,'unitaire','oui',$tableau_liste_synonyme,'');
+		                $displayed_text=surligner_resultat ($displayed_text,"{'query':'$requete_json','type':'fulltext','synonym':''}",'unitaire','oui',$tableau_liste_synonyme,'');
 		        }
 		}
 		$displayed_text=display_image_in_document ($patient_num,$document_num,$user_num,$displayed_text);
@@ -6568,7 +6466,9 @@ function affiche_contenu_liste_document_patient($patient_num,$requete,$user_num)
 			} else {
 				#$req="and document_num in (select document_num from dwh_text where patient_num=$patient_num and (contains(enrich_text,'$requete')>0 or contains(title,'$requete')>0) ) ";
 				$req="and document_num in (select document_num from dwh_text where patient_num=$patient_num and (contains(text,'$requete')>0 or contains(title,'$requete')>0) ) ";
-				$tableau_liste_synonyme=recupere_liste_concept_full_texte ($requete,400);
+				$requete_json=nettoyer_pour_inserer ($requete);
+				$requete_json=replace_accent($requete_json);
+				$tableau_liste_synonyme=recupere_liste_concept_full_texte ("{'query':'$requete_json','type':'fulltext','synonym':'1'}",50);
 			}
 		}
 		$liste_document_origin_code=list_authorized_document_origin_code_for_one_patient($patient_num,$user_num);
@@ -6592,7 +6492,6 @@ function affiche_contenu_liste_document_patient($patient_num,$requete,$user_num)
 			$text=$document['text'];    
 			$displayed_text=$document['displayed_text'];    
 	                if ($displayed_text!='') {
-			        $tableau_liste_synonyme=array();
 			        $autorisation_voir_patient_nominative=autorisation_voir_patient_nominative ($patient_num,$user_num);
 			        if ($autorisation_voir_patient_nominative=='') {
 			                $displayed_text=anonymisation_document ($document_num,$displayed_text);
@@ -6605,12 +6504,13 @@ function affiche_contenu_liste_document_patient($patient_num,$requete,$user_num)
 				if (preg_match("/[[|?+{]/",$requete)) {
 					$displayed_text=surligner_resultat_exp_reguliere ($displayed_text,$requete,'oui');
 				} else {
-					$tableau_liste_synonyme=recupere_liste_concept_full_texte ($requete,400);
+					$requete_json=nettoyer_pour_inserer ($requete);
+					$requete_json=replace_accent($requete_json);
 				        if ($requete!='') {
-					        $displayed_text=surligner_resultat ($displayed_text,$requete,'','oui',$tableau_liste_synonyme,1);
+					        $displayed_text=surligner_resultat ($displayed_text,"{'query':'$requete_json','type':'fulltext','synonym':'1'}",'','oui',$tableau_liste_synonyme,1);
 					}
 				        if (!preg_match("/highlight/",$displayed_text) ) {
-				                $displayed_text=surligner_resultat ($displayed_text,$requete,'unitaire','oui',$tableau_liste_synonyme,1);
+				                $displayed_text=surligner_resultat ($displayed_text,"{'query':'$requete_json','type':'fulltext','synonym':'1'}",'unitaire','oui',$tableau_liste_synonyme,1);
 				        }
 				}
 			        $texte_final.= "<h2>$title,";
@@ -9348,7 +9248,7 @@ function trouver_coordonnees ($zip_code,$city,$country) {
 
 
 function update_column_enrich_text($document_num,$context,$certainty) {
-	global $dbh;
+	global $dbh,$dbh_etl;
 	
 	$text='';
 	$requete_cui="select text from dwh_text where  document_num=$document_num and context='$context' and certainty=$certainty";
@@ -9383,8 +9283,8 @@ function update_column_enrich_text($document_num,$context,$certainty) {
 	
 	$enrich_text="$text . $liste_concepts . $liste_concepts_peres";
 	$requeteins="update dwh_text set enrich_text=:enrich_text where document_num=$document_num and context='$context' and certainty=$certainty  ";
-	$stmtupd = ociparse($dbh,$requeteins);
-	$rowid = ocinewdescriptor($dbh, OCI_D_LOB);
+	$stmtupd = ociparse($dbh_etl,$requeteins);
+	$rowid = ocinewdescriptor($dbh_etl, OCI_D_LOB);
 	ocibindbyname($stmtupd, ":enrich_text",$enrich_text );
 	$execState = ociexecute($stmtupd);
 	ocifreestatement($stmtupd);
@@ -9393,7 +9293,7 @@ function update_column_enrich_text($document_num,$context,$certainty) {
 
 
 function update_preferred_term ($code_filtre) {
-	global $dbh;
+	global $dbh_etl,$dbh;
 	
 	if ($code_filtre!='') {
 		$req1=" where concept_code='$code_filtre' ";
@@ -9404,11 +9304,11 @@ function update_preferred_term ($code_filtre) {
 	}
 	
 	$req="update dwh_thesaurus_enrsem set count_doc_concept_str=0, count_patient=0,count_patient_subsumption=0,PREF= NULL $req1";
-	$stmtreq=oci_parse($dbh,$req);
+	$stmtreq=oci_parse($dbh_etl,$req);
 	oci_execute($stmtreq);
 	
 	$requete_cui="select  lower(concept_str_found) concept_str_found, count (distinct document_num) nb_document ,concept_code from dwh_enrsem where context='patient_text' and certainty=1 $req2 group by lower(concept_str_found),concept_code";
-	$stmt=oci_parse($dbh,$requete_cui);
+	$stmt=oci_parse($dbh_etl,$requete_cui);
 	oci_execute($stmt);
 	while ($row=oci_fetch_array($stmt,OCI_RETURN_NULLS+OCI_ASSOC)){
 		$concept_str_found=$row['CONCEPT_STR_FOUND'];
@@ -9417,24 +9317,24 @@ function update_preferred_term ($code_filtre) {
 		$concept_str_found=preg_replace("/'/","''",$concept_str_found);
 		
 		$req="update dwh_thesaurus_enrsem set count_doc_concept_str=$nb_document where concept_code='$concept_code' and lower(concept_str)='$concept_str_found'";
-		$stmtreq=oci_parse($dbh,$req);
+		$stmtreq=oci_parse($dbh_etl,$req);
 		oci_execute($stmtreq);
 	}
 
 	
 	$requete_cui="select distinct concept_code from dwh_thesaurus_enrsem  $req1";
-	$stmt=oci_parse($dbh,$requete_cui);
+	$stmt=oci_parse($dbh_etl,$requete_cui);
 	oci_execute($stmt);
 	while ($row=oci_fetch_array($stmt,OCI_RETURN_NULLS+OCI_ASSOC)){
 		$concept_code=$row['CONCEPT_CODE'];
 		$req=" update dwh_thesaurus_enrsem set PREF='Y' where thesaurus_enrsem_num in (
 			          select max(thesaurus_enrsem_num) from dwh_thesaurus_enrsem where concept_code= '$concept_code' and count_doc_concept_str in (          
 			          select max(count_doc_concept_str) from dwh_thesaurus_enrsem where concept_code= '$concept_code')) and concept_code= '$concept_code' ";
-		$stmtreq=oci_parse($dbh,$req);
+		$stmtreq=oci_parse($dbh_etl,$req);
 		oci_execute($stmtreq);
 		
 		$requeteupd="update dwh_thesaurus_enrsem set count_patient=( select count(distinct patient_num) from  dwh_enrsem where context='patient_text' and certainty=1 and dwh_enrsem.concept_code='$concept_code' ) where concept_code='$concept_code'";
-		$stmtupd = ociparse($dbh,$requeteupd);
+		$stmtupd = ociparse($dbh_etl,$requeteupd);
 		$execState = ociexecute($stmtupd) || die (get_translation('ERROR','erreur')." : ".get_translation('INSERT','insert')." : $requeteupd\n");
 		ocifreestatement($stmtupd);
 		
@@ -9442,7 +9342,7 @@ function update_preferred_term ($code_filtre) {
                                                union 
                                                select patient_num from  dwh_enrsem,dwh_thesaurus_enrsem_graph  where concept_code_father='$concept_code' and context='patient_text' and certainty=1 and concept_code=concept_code_son )
                                                t ) where concept_code='$concept_code'";
-		$stmtupd = ociparse($dbh,$requeteupd);
+		$stmtupd = ociparse($dbh_etl,$requeteupd);
 		$execState = ociexecute($stmtupd) || die (get_translation('ERROR','erreur')." : ".get_translation('INSERT','insert')." : $requeteupd\n");
 		ocifreestatement($stmtupd);
 	}
@@ -11130,8 +11030,10 @@ function display_sentence_with_term ($patient_num,$list_document_num,$concept_st
 	$document_origin_code=$document['document_origin_code'];
 	$author=$document['author'];
 	$text=$document['text'];
-	
-	$appercu=resumer_resultat($text,$concept_str,array(),'patient');
+
+	$requete_json=nettoyer_pour_inserer ($concept_str);
+	$requete_json=replace_accent($requete_json);
+	$appercu=resumer_resultat($text,"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'patient');
 	return  "$title le $document_date : $appercu";
 }
 

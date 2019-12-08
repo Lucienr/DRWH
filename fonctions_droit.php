@@ -331,69 +331,69 @@ function autorisation_voir_patient_nominative ($patient_num,$user_num) {
 }
 
 function autorisation_voir_patient ($patient_num,$user_num) {
-
 	global $dbh;
-	
-	if ($_SESSION['dwh_droit_all_departments0']=='') {
-		$sel=oci_parse($dbh,"select right from dwh_user_profile a, dwh_profile_right b where user_num=$user_num and a.user_profile=b.user_profile");
-		oci_execute($sel);
-		while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
-			$right=$r['RIGHT'];
-			$_SESSION['dwh_droit_'.$right.'0']='ok';
-		}
-	}
-	$sel_vardroit=oci_parse($dbh,"select count(*) as verif  from dwh_patient_opposition where patient_num=$patient_num");
-        oci_execute($sel_vardroit);
-	$r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
-        $nb_verif=$r_droit['VERIF'];
-	if ($nb_verif>0) {
-		$patient_num='';
-	}
-	
 	$verif='';
-	if ($user_num!='' && $patient_num!='') {
-		if ($_SESSION['dwh_droit_all_departments0']!='') {
-			$verif='ok';
-		} else {
-			// on  verifie si le patient est passe dans le service du user
-			$sel_vardroit=oci_parse($dbh,"select count(*) as verif  from dwh_patient_department , dwh_user_department where user_num=$user_num and dwh_user_department.department_num= dwh_patient_department.department_num and patient_num=$patient_num");
-			//$sel_vardroit=oci_parse($dbh,"select count(*) as verif  from dwh_document , dwh_user_department where user_num=$user_num and dwh_user_department.department_num= dwh_document.department_num and patient_num=$patient_num");
-		        oci_execute($sel_vardroit);
-			$r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
-		        $nb_verif=$r_droit['VERIF'];
-		        
-			if ($nb_verif>0) {
+	if ($patient_num!='') {
+		if ($_SESSION['dwh_droit_all_departments0']=='') {
+			$sel=oci_parse($dbh,"select right from dwh_user_profile a, dwh_profile_right b where user_num=$user_num and a.user_profile=b.user_profile");
+			oci_execute($sel);
+			while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+				$right=$r['RIGHT'];
+				$_SESSION['dwh_droit_'.$right.'0']='ok';
+			}
+		}
+		$sel_vardroit=oci_parse($dbh,"select count(*) as verif  from dwh_patient_opposition where patient_num=$patient_num");
+	        oci_execute($sel_vardroit);
+		$r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
+	        $nb_verif=$r_droit['VERIF'];
+		if ($nb_verif>0) {
+			$patient_num='';
+		}
+		
+		if ($user_num!='' && $patient_num!='') {
+			if ($_SESSION['dwh_droit_all_departments0']!='') {
 				$verif='ok';
 			} else {
-				
-				// si non, on verifie s il est dans une cohorte autorisée pour le user
-				$sel_vardroit=oci_parse($dbh,"select count(*) as verif from dwh_cohort, dwh_cohort_result, dwh_cohort_user_right where dwh_cohort.cohort_num= dwh_cohort_user_right.cohort_num and  dwh_cohort_result.cohort_num= dwh_cohort_user_right.cohort_num and dwh_cohort_user_right.user_num=$user_num and right='see_detailed' and patient_num=$patient_num");
+				// on  verifie si le patient est passe dans le service du user
+				$sel_vardroit=oci_parse($dbh,"select count(*) as verif  from dwh_patient_department , dwh_user_department where user_num=$user_num and dwh_user_department.department_num= dwh_patient_department.department_num and patient_num=$patient_num");
+				//$sel_vardroit=oci_parse($dbh,"select count(*) as verif  from dwh_document , dwh_user_department where user_num=$user_num and dwh_user_department.department_num= dwh_document.department_num and patient_num=$patient_num");
 			        oci_execute($sel_vardroit);
-			        $r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
-		       		 $nb_verif=$r_droit['VERIF'];
+				$r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
+			        $nb_verif=$r_droit['VERIF'];
+			        
 				if ($nb_verif>0) {
 					$verif='ok';
 				} else {
-					// si non, on verifie s il l'utilisateur a une autorisation speciale par le chef de service
-					$sel_vardroit=oci_parse($dbh,"select count(*) as verif from dwh_request_access , dwh_request_access_patient where user_num_request=$user_num and dwh_request_access.request_access_num= dwh_request_access_patient.request_access_num and patient_num=$patient_num and manager_agreement=1");
+					
+					// si non, on verifie s il est dans une cohorte autorisée pour le user
+					$sel_vardroit=oci_parse($dbh,"select count(*) as verif from dwh_cohort, dwh_cohort_result, dwh_cohort_user_right where dwh_cohort.cohort_num= dwh_cohort_user_right.cohort_num and  dwh_cohort_result.cohort_num= dwh_cohort_user_right.cohort_num and dwh_cohort_user_right.user_num=$user_num and right='see_detailed' and patient_num=$patient_num");
 				        oci_execute($sel_vardroit);
 				        $r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
 			       		 $nb_verif=$r_droit['VERIF'];
 					if ($nb_verif>0) {
 						$verif='ok';
 					} else {
-						// si non, on verifie s il est dans un datamart autorise pour le user
-						$sel_vardroit=oci_parse($dbh,"select count(*) as verif from dwh_datamart, dwh_datamart_result, dwh_datamart_user_right where dwh_datamart.datamart_num= dwh_datamart_user_right.datamart_num and  dwh_datamart_result.datamart_num= dwh_datamart_user_right.datamart_num and dwh_datamart_user_right.user_num=$user_num and right='see_detailed' and temporary_status is null and patient_num=$patient_num");
+						// si non, on verifie s il l'utilisateur a une autorisation speciale par le chef de service
+						$sel_vardroit=oci_parse($dbh,"select count(*) as verif from dwh_request_access , dwh_request_access_patient where user_num_request=$user_num and dwh_request_access.request_access_num= dwh_request_access_patient.request_access_num and patient_num=$patient_num and manager_agreement=1");
 					        oci_execute($sel_vardroit);
 					        $r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
 				       		 $nb_verif=$r_droit['VERIF'];
 						if ($nb_verif>0) {
 							$verif='ok';
-						} 
+						} else {
+							// si non, on verifie s il est dans un datamart autorise pour le user
+							$sel_vardroit=oci_parse($dbh,"select count(*) as verif from dwh_datamart, dwh_datamart_result, dwh_datamart_user_right where dwh_datamart.datamart_num= dwh_datamart_user_right.datamart_num and  dwh_datamart_result.datamart_num= dwh_datamart_user_right.datamart_num and dwh_datamart_user_right.user_num=$user_num and right='see_detailed' and temporary_status is null and patient_num=$patient_num");
+						        oci_execute($sel_vardroit);
+						        $r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC);
+					       		 $nb_verif=$r_droit['VERIF'];
+							if ($nb_verif>0) {
+								$verif='ok';
+							} 
+						}
 					}
 				}
-			}
-		} 
+			} 
+		}
 	}
 	return ($verif);
 }

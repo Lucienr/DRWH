@@ -374,6 +374,7 @@ if ($_POST['action']=='afficher_resultat') {
 	$tmpresult_num=$_POST['tmpresult_num'];
 	$datamart_num=$_POST['datamart_num'];
 	$full_text_query=urldecode($_POST['full_text_query']);
+	$json_full_text_queries=urldecode($_POST['json_full_text_queries']);
 	
 	$cohort_num_encours=$_POST['cohort_num_encours'];
 	$val_exclure_cohorte_resultat=$_POST['val_exclure_cohorte_resultat'];
@@ -384,11 +385,11 @@ if ($_POST['action']=='afficher_resultat') {
 	}
         
         if ($filtre_resultat_texte!='') {
-       		$full_text_query.=";requete_unitaire;$filtre_resultat_texte";
+       		//$full_text_query.=";requete_unitaire;$filtre_resultat_texte";
        		// filtre sur tmp_result deja fait dans recuperer_resultat //
                 $filtre_sql.=" and document_num in (select document_num from dwh_text where contains (text,'$filtre_resultat_texte')>0 and context='patient_text' and certainty=1) ";
         }
-	$tableau_resultat=recuperer_resultat ($tmpresult_num,"$full_text_query",$num_last_ligne,$filtre_sql);
+	$tableau_resultat=recuperer_resultat ($tmpresult_num,"$json_full_text_queries",$num_last_ligne,$filtre_sql);
 	$lignes=afficher_resultat ($tmpresult_num,$tableau_resultat,$num_last_ligne,$cohort_num_encours);
 	
 	print "$lignes";
@@ -399,9 +400,10 @@ if ($_POST['action']=='afficher_document') {
 	$document_num=$_POST['document_num'];
 	$datamart_num=$_POST['datamart_num'];
 	$full_text_query=urldecode($_POST['full_text_query']);
+	$json_full_text_queries=urldecode($_POST['json_full_text_queries']);
 
-	$tableau_liste_synonyme=recupere_liste_concept_full_texte ($full_text_query,500);
-	$afficher_document=afficher_document ($document_num,"$full_text_query",$tableau_liste_synonyme);
+	$tableau_liste_synonyme=recupere_liste_concept_full_texte ($json_full_text_queries,50);
+	$afficher_document=afficher_document ($document_num,"$json_full_text_queries",$tableau_liste_synonyme);
 
 	print "$afficher_document";
 }
@@ -419,9 +421,11 @@ if ($_POST['action']=='afficher_document_patient_popup') {
 	$full_text_query=urldecode($_POST['full_text_query']);
 	$id_cle=$_POST['id_cle'];
 
-	$tableau_liste_synonyme=recupere_liste_concept_full_texte ($full_text_query,500);
-	
-	$afficher_document=afficher_document_patient_popup ($document_num,"$full_text_query",$tableau_liste_synonyme,$id_cle);
+	$requete_json=nettoyer_pour_inserer ($full_text_query);
+	$requete_json=replace_accent($requete_json);
+	$tableau_liste_synonyme=recupere_liste_concept_full_texte ("{'query':'$requete_json','type':'fulltext','synonym':''}",50);
+
+	$afficher_document=afficher_document_patient_popup ($document_num,"{'query':'$requete_json','type':'fulltext','synonym':''}",$tableau_liste_synonyme,$id_cle);
 
 	print "$afficher_document";
 }
@@ -1291,7 +1295,9 @@ if ($_POST['action']=='afficher_document_patient') {
 	$document_num=$_POST['document_num'];
 	$datamart_num=$_POST['datamart_num'];
 	$requete=nettoyer_pour_requete(urldecode($_POST['requete']));
-	print afficher_document_patient($document_num,$requete,$user_num_session);
+	$requete_json=nettoyer_pour_inserer ($requete);
+	$requete_json=replace_accent($requete_json);
+	print afficher_document_patient($document_num,$requete_json,$user_num_session);
 }
 
 if ($_POST['action']=='ajouter_droit_cohorte') {
@@ -1698,8 +1704,9 @@ if ($_POST['action']=='ouvrir_plus_document') {
 	$liste_document=$_POST['liste_document'];
 	$tmpresult_num=$_POST['tmpresult_num'];
 	$full_text_query=urldecode($_POST['full_text_query']);
-	$tableau_liste_synonyme=recupere_liste_concept_full_texte ($full_text_query,50);
-	$res=ouvrir_plus_document ($tmpresult_num,$liste_document,$full_text_query,$tableau_liste_synonyme);
+	$json_full_text_queries=urldecode($_POST['json_full_text_queries']);
+	$tableau_liste_synonyme=recupere_liste_concept_full_texte ($json_full_text_queries,50);
+	$res=ouvrir_plus_document ($tmpresult_num,$liste_document,$json_full_text_queries,$tableau_liste_synonyme);
 	print $res;
 }
 

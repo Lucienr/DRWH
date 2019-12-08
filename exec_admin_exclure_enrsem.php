@@ -47,17 +47,17 @@ if ($argv[1]!='') {
 			$concept_str=supprimer_apost($concept_str);
 			
 			$reqdel="delete from dwh_etl_thesaurus_enrsem  where concept_code='$concept_code'  and  lower( concept_str)=lower('$concept_str')";
-			$del=oci_parse($dbh,$reqdel);
+			$del=oci_parse($dbh_etl,$reqdel);
 			oci_execute($del) || die("erreur $reqdel\n");
 			
 			$reqdel="delete from dwh_etl_thesaurus_gene  where concept_code='$concept_code'  and  lower( concept_str)=lower('$concept_str')";
-			$del=oci_parse($dbh,$reqdel);
+			$del=oci_parse($dbh_etl,$reqdel);
 			oci_execute($del) || die("erreur $reqdel\n");
 			
 			if ($concept_code!='') {
 				$nb_doc=0;
 				$req="update  dwh_thesaurus_tal set excluded=1,exclusion_date=sysdate where concept_code='$concept_code' and lower( concept_str)=lower('$concept_str')";
-				$sel=oci_parse($dbh,$req);
+				$sel=oci_parse($dbh_etl,$req);
 				oci_execute($sel) || die("erreur $req\n");
 				update_process ($process_num,0,get_translation('PROCESS_DELETE_CONCEPTS_UPD_ENRTEXTE','Suppression des concepts et mise à jour des textes enrichis'),'',$user_num_session,"");
 				
@@ -73,7 +73,7 @@ if ($argv[1]!='') {
 						update_process ($process_num,0,"$nb_doc ".get_translation('PROCESS_N_TEXT_UPDATED','textes mis à jour'),'',$user_num_session,"");
 					}
 					$req_doc="delete from dwh_enrsem  where document_num=$document_num and context='$context' and certainty=$certainty and concept_code='$concept_code' and   lower( concept_str_found)=lower('$concept_str')";
-					$selreq_doc=oci_parse($dbh,$req_doc);
+					$selreq_doc=oci_parse($dbh_etl,$req_doc);
 					oci_execute($selreq_doc) || die("erreur $req_doc\n");
 					
 					update_column_enrich_text($document_num,$context,$certainty);
@@ -86,8 +86,8 @@ if ($argv[1]!='') {
 		}
 	}
 	update_process ($process_num,0,get_translation('PROCESS_UPDATE_INDEX','mise à jour des index'),'',$user_num_session,"");
-	update_process ($process_num,1,'end','',$user_num_session);
+	update_process ($process_num,1,'end','',$user_num_session,"");
 	sauver_notification ($user_num_session,$user_num_session,'process',"",$process_num);
-	$cridx=oci_parse($dbh,"begin ctx_ddl.sync_index('DWH_TEXT_ENRICH_IDX', '200M'); end;");
+	$cridx=oci_parse($dbh_etl,"begin ctx_ddl.sync_index('DWH_TEXT_ENRICH_IDX', '200M'); end;");
 	oci_execute($cridx);
 }

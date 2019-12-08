@@ -639,6 +639,9 @@ if ($_POST['action']=='extract_information_ecrf') {
 	              	print "<table border=\"0\" width=\"100%\">";
 	              	foreach ($table_appercu as $doc_found) {
 	              		$k_for_css++;
+				if (!preg_match("/[[|?+]/",$doc_found['query_highlight'])) {
+		              		$doc_found['query_highlight']=preg_replace("/ /"," or ",trim($doc_found['query_highlight']));
+		              	}
 	              		print "<tr id=\"id_ancre_document_$k_for_css\">
 	              		<td onclick=\"afficher_document_patient_ecrf(".$doc_found['document_num'].",'id_afficher_document_ecrf','".$doc_found['query_highlight']."',$k_for_css);\" style=\"width:20px;cursor:pointer;border:0px black solid;border-bottom:1px black solid\" class=\"tr_document_patient id_document_patient_".$doc_found['document_num']."\" >".$doc_found['document_date']."</td>
 	              		<td onclick=\"afficher_document_patient_ecrf(".$doc_found['document_num'].",'id_afficher_document_ecrf','".$doc_found['query_highlight']."',$k_for_css);\" style=\"cursor:pointer;border:0px black solid;border-bottom:1px black solid\" class=\"tr_document_patient id_document_patient_".$doc_found['document_num']."\" >".$doc_found['appercu']."</td>

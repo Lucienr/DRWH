@@ -574,10 +574,12 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 						 			if ($i<$i_limite) {
 										$document=get_document($document_num) ;
 										$value='';
-										$appercu=resumer_resultat($document['text'],$item_str_for_query,array(),'ecrf');
+										$requete_json=nettoyer_pour_inserer ($item_str_for_query);
+										$requete_json=replace_accent($requete_json);
+										$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
 										$query_highlight=$item_str_for_query;
 										if ($appercu=='') {
-											$appercu=resumer_resultat($document['text'],$item_str_for_query,array(),'ecrf');
+											$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
 											$query_highlight=$item_str_for_query;
 										}
 										$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$appercu, 'document_num'=>$document_num, 'query_highlight'=>$query_highlight);
@@ -600,10 +602,12 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 						 			if ($i<$i_limite) {
 										$document=get_document($document_num) ;
 										$value='';
-										$appercu=resumer_resultat($document['text'],$item_str_for_query,array(),'ecrf');
+										$requete_json=nettoyer_pour_inserer ($item_str_for_query);
+										$requete_json=replace_accent($requete_json);
+										$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
 										$query_highlight=$item_str_for_query;
 										if ($appercu=='') {
-											$appercu=resumer_resultat($document['text'],$item_str_for_query,array(),'ecrf');
+											$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
 											$query_highlight=$item_str_for_query;
 										}
 										$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$appercu, 'document_num'=>$document_num, 'query_highlight'=>$query_highlight);
@@ -645,10 +649,12 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 					 			$i++;
 					 			if ($i<$i_limite) {
 									$document=get_document($document_num) ;
-									$appercu=resumer_resultat($document['text'],$item_str_for_query,array(),'ecrf');
+									$requete_json=nettoyer_pour_inserer ($item_str_for_query);
+									$requete_json=replace_accent($requete_json);
+									$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
 									$query_highlight=$item_str_for_query;
 									if ($appercu=='') {
-										$appercu=resumer_resultat($document['text'],$item_str_for_query,array(),'ecrf');
+										$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
 										$query_highlight=$item_str_for_query;
 									}
 									$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$appercu, 'document_num'=>$document_num, 'query_highlight'=>$query_highlight);
@@ -1226,7 +1232,7 @@ function affiche_liste_document_patient_ecrf($patient_num,$requete) {
 	if ($autorisation_voir_patient=='ok') {
 		$req="";
 		$req_option="";
-		if (preg_match("/[[|?+{]/",$requete)) {
+		if (preg_match("/[[|?+]/",$requete)) {
 			$affichage_tableau_expression_regulier='ok';
 			$cellspacing="cellspacing=0 cellpadding=2";
 			print "<a href=\"#\" onclick=\"fnSelect('id_tableau_liste_document');return false;\">".get_translation('SELECT_TABLE','Sélectionner le tableau')."</a><br>";
@@ -1235,16 +1241,17 @@ function affiche_liste_document_patient_ecrf($patient_num,$requete) {
 			$affichage_tableau_expression_regulier='';
 			$cellspacing="";
 		}
-		
 	        $tableau_liste_synonyme=array();
 		if ($requete!='') {
-			if (preg_match("/[[|?+{]/",$requete)) {
+			if (preg_match("/[[|?+]/",$requete)) {
 				//$req="and document_num in (select document_num from dwh_text where patient_num=$patient_num and (REGEXP_LIKE(text,'$requete','i') or REGEXP_LIKE(title,'$requete','i'))) ";
 				$req=""; // NG 2019 07 22 : car oracle ne gère pas bien les regexp like : pas de lookahead, notamment pour exclure des mots (?!mot) ; on met le test dans le php 
 			} else {
 				//$req="and document_num in (select document_num from dwh_text where patient_num=$patient_num and (contains(enrich_text,'$requete')>0 or contains(title,'$requete')>0) ) ";
 				$req="and document_num in (select document_num from dwh_text where patient_num=$patient_num and (contains(text,'$requete')>0 or contains(title,'$requete')>0) ) ";
-				$tableau_liste_synonyme=recupere_liste_concept_full_texte ($requete,400);
+				$requete_json=nettoyer_pour_inserer ($requete);
+				$requete_json=replace_accent($requete_json);
+				$tableau_liste_synonyme=recupere_liste_concept_full_texte ("{'query':'$requete_json','type':'fulltext','synonym':''}",50);
 			}
 		}
 		$liste_document_origin_code=list_authorized_document_origin_code_for_one_patient($patient_num,$user_num_session);
@@ -1289,7 +1296,9 @@ function affiche_liste_document_patient_ecrf($patient_num,$requete) {
 					<td>$document_date</td>";
 					$res.= "</tr>";
 					if ($requete!='') {
-						$appercu=resumer_resultat($text,$requete,$tableau_liste_synonyme,'patient');
+						$requete_json=nettoyer_pour_inserer ($requete);
+						$requete_json=replace_accent($requete_json);
+						$appercu=resumer_resultat($text,"{'query':'$requete_json','type':'fulltext','synonym':''}",$tableau_liste_synonyme,'patient');
 						$res.= "<tr><td colspan=\"4\" class=\"appercu\"><i>$appercu</i></td><tr>";
 					}
 					$res.= "<tr><td colspan=\"4\"><hr  style=\"height:1px;border-top:0px;padding:0px;margin:0px;\"></td>";
