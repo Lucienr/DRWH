@@ -183,12 +183,12 @@ if ($_POST['action']=='manage_regexp') {
 	$list_regexp_user=get_list_regexp_user($user_num_session);
 	print "<table  class=\"tableau_solid_black\">
 	<thead>
-		<tr><th>Title</th>
-		<th>Pattern</th>
-		<th>Description</th>
-		<th>Shared</th>
-		<th>M</th>
-		<th>Delete</th>
+		<tr><th>".get_translation('TITLE','Titre')."</th>
+		<th>".get_translation('PATTERN','Pattern')."</th>
+		<th>".get_translation('DESCRIPTION','Description')."</th>
+		<th>".get_translation('SHARED','Partagé')."</th>
+		<th>".get_translation('MODIFY','Modif')."</th>
+		<th>".get_translation('DELETE','Suppr')."</th>
 	</thead>
 	";
 	foreach ($list_regexp_user as $regexp)  {

@@ -94,7 +94,7 @@ session_write_close();
 					 </span>";
 					print "<span id=\"id_titre_requete_modifier\" style=\"display:none;\"><input type='text' size='50' id='id_input_titre_requete' value=\"$title_query\"> <input class=\"form_submit\" type=\"button\" value=\"Ok\" onclick=\"modifier_requete($query_num_voir);\"></span>";
 					print "</h2>";
-					print get_translation('EXECUTE_QUERY_AUTOMATICALLY',"Executer automatiquement cette requête");
+					print get_translation('EXECUTE_QUERY_AUTOMATICALLY',"Exécuter automatiquement cette requête");
 					print " : <input type=\"checkbox\" id=\"id_crontab_requete\" name=\"crontab_query\" value=\"1\" $check_crontab onclick=\"modifier_requete($query_num_voir);\"> <br>
 					".get_translation('PERIODICITY','Périodicité')."
 						<select id=\"id_crontab_periode\" name=\"crontab_periode\" onchange=\"modifier_requete($query_num_voir);\">

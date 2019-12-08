@@ -266,7 +266,7 @@ if ($cohort_num!='') {
 
 function calcul_similarite_tfidf_simplifie ($cohort_num,$process_num,$patient_num_principal,$distance,$limite_count_concept_par_patient_num,$limite_longueur_vecteur,$limite_min_nb_patient_par_code,$filtre_sql) {
 	global $dbh,$tableau_code_autorise,$user_num_session;
-	global $req_certitude,$req_contexte,$nbpatient_limite,$cohort_num_exclure,$nb_patient_principal;
+	global $req_certitude,$req_contexte,$nbpatient_limite,$cohort_num_exclure,$nb_patient_principal,$negation;
 	
 	$sel=oci_parse($dbh, "select count_patient from dwh_info_load where year is null and document_origin_code is null");
 	oci_execute($sel);

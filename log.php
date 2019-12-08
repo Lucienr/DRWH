@@ -123,7 +123,7 @@ print "
 	oci_execute($sel) || die ("erreur requete $requete\n");
 	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
 	$nb_requetes=$r['NB_REQUETES'];
-	print "<h3>$nb_requetes ".get_translation('EXECUTED_QUERIES','requêtes executés')."</h3>";
+	print "<h3>$nb_requetes ".get_translation('EXECUTED_QUERIES','requêtes exécutées')."</h3>";
 	
 	#/* REQUETES FAITES par MOIS*/
 	$liste_nb_requetes='';
@@ -214,7 +214,7 @@ print "<div class=\"div_log\">
 		data: [$liste_nb_patient],
 		color :'#0B3861'
 		}";
-	graph_temps ($series,get_translation('JS_COUNT_INCLUDED_PATIENTS_PER_MONTH','Nb patients inclus par mois'),"nb_patient_inclu","650px","300px",get_translation('JS_COUNT_PATIENTS','Nb patients'));
+	graph_temps ($series,get_translation('JS_COUNT_INCLUDED_PATIENTS_PER_MONTH','Nb de patients inclus par mois'),"nb_patient_inclu","650px","300px",get_translation('JS_COUNT_PATIENTS','Nb de patients'));
 
 
 
@@ -249,7 +249,7 @@ print "<div class=\"div_log\">
 		data: [$liste_nb_patients],
 		color :'#0B3861'
 		}";
-	graph_temps ($series,get_translation('JS_COUNT_PATIENT_FILES_VIEWS_PER_MONTH','Nb dossiers patients visualisés par mois'),"nb_patients_accedes","650px","300px",get_translation('JS_COUNT_PATIENTS_SEEN','Nb patients vus'));
+	graph_temps ($series,get_translation('JS_COUNT_PATIENT_FILES_VIEWS_PER_MONTH','Nb de dossiers patients visualisés par mois'),"nb_patients_accedes","650px","300px",get_translation('JS_COUNT_PATIENTS_SEEN','Nb de patients vus'));
 	
 	
 	

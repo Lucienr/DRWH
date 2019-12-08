@@ -420,7 +420,7 @@ function nb_patients_temps ($tmpresult_num,$id_div,$option_affichage) {
 		        yAxis: {
 		            min: 0,
 		            title: {
-		                text: '".get_translation('JS_COUNT_PATIENTS','Nb patients')."'
+		                text: '".get_translation('JS_COUNT_PATIENTS','Nb de patients')."'
 		            },
 				allowDecimals:false
 		        },
@@ -514,7 +514,7 @@ function nb_patients_service ($tmpresult_num,$id_div) {
 	        yAxis: {
 	            min: 0,
 	            title: {
-	                text: '".get_translation('JS_COUNT_PATIENTS','Nb patients')."'
+	                text: '".get_translation('JS_COUNT_PATIENTS','Nb de patients')."'
 	            },
 			allowDecimals:false
 	        },
@@ -580,7 +580,7 @@ function nb_document_document_origin_code ($tmpresult_num,$id_div) {
 	        yAxis: {
 	            min: 0,
 	            title: {
-	                text: '".get_translation('JS_COUNT_PATIENTS','Nb patients')."'
+	                text: '".get_translation('JS_COUNT_PATIENTS','Nb de patients')."'
 	            },
 			allowDecimals:false
 	        },
@@ -685,7 +685,7 @@ function nb_nouveau_patients_service ($tmpresult_num,$id_div) {
 	        yAxis: {
 	            min: 0,
 	            title: {
-	                text: '".get_translation('JS_COUNT_PATIENTS','Nb patients')."'
+	                text: '".get_translation('JS_COUNT_PATIENTS','Nb de patients')."'
 	            },
 			allowDecimals:false
 	        },
@@ -802,7 +802,7 @@ function nb_nouveau_patients_service_hors_mespatients ($tmpresult_num,$id_div) {
 		        yAxis: {
 		            min: 0,
 		            title: {
-		                text: '".get_translation('JS_COUNT_PATIENTS','Nb patients')."'
+		                text: '".get_translation('JS_COUNT_PATIENTS','Nb de patients')."'
 		            },
 				allowDecimals:false
 		        },

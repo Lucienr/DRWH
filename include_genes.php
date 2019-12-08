@@ -27,7 +27,7 @@ print "<table class=\"tablefin\" id=\"id_tableau_genes_data\">
 	<thead>
 		<tr>
 		<th>".get_translation('CONCEPTS','Concepts')."</th>
-		<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb patients')."</th>
+		<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb de patients')."</th>
 		<th>".get_translation('PERCENTAGE_RESULT','% résultat')."</th>
 		</tr>
 	</thead>
@@ -40,7 +40,7 @@ print "<thead>
 		<th>".get_translation('CATEGORIES','Catégories')."</th>
 		<th>".get_translation('CONCEPTS','Concepts')."</th>
 		<th>".get_translation('GENES','Gènes')."</th>
-		<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb patients')."</th>
+		<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb de patients')."</th>
 	</tr>
 	</thead>
 	</table>";
@@ -49,7 +49,7 @@ print "<table class=\"tablefin\" id=\"id_tableau_genes\">
 	<thead>
 		<tr>
 		<th>".get_translation('CONCEPTS','Concepts')."</th>
-		<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb patients')."</th>
+		<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb de patients')."</th>
 		<th>".get_translation('PERCENTAGE_RESULT','% résultat')."</th>
 		<th>".get_translation('PERCENTAGE_DATAWAREHOUSE','% entrepôt')."</th>
 		<th>".get_translation('PERCENTAGE_RESULT_VS_DATAWAREHOUSE','% resultat / entrepôt')."</th>
@@ -64,7 +64,7 @@ print "<thead>
 		<th>".get_translation('CATEGORIES','Catégories')."</th>
 		<th>".get_translation('CONCEPTS','Concepts')."</th>
 		<th>".get_translation('GENES','Gènes')."</th>
-		<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb patients')."</th>
+		<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb de patients')."</th>
 	</tr>
 	</thead>
 	</table>";

@@ -1081,7 +1081,7 @@ function repartition_go ($tmpresult_num,$id,$filtre_category) {
 			<th>".get_translation('CATEGORIES','Catégories')."</th>
 			<th>".get_translation('CONCEPTS','Concepts')."</th>
 			<th>".get_translation('GENES','Gènes')."</th>
-			<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb patients')."</th>
+			<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb de patients')."</th>
 		</tr>
 		</thead>
 		<tbody>";
@@ -1553,7 +1553,7 @@ function repartition_concepts_tableau_cohorte ($cohort_num,$id,$filtre_phenotype
 	print "<thead>
 		<tr>
 			<th>".get_translation('CONCEPTS','Concepts')."</th>
-			<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb patients')."</th>
+			<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb de patients')."</th>
 			<th>".get_translation('COUNT_OCCURENCES','Nb occurences')."</th>
 		</tr>
 		</thead>

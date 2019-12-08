@@ -633,10 +633,10 @@ if ($_GET['action']=='analyse_requete') {
 					<? print get_translation('USERS','Utilisateurs'); ?>
 				</th>
 				<th>
-					<? print get_translation('EXECUTE_QUERY','Executer la requête'); ?>
+					<? print get_translation('EXECUTE_QUERY','Exécuter la requête'); ?>
 				</th>
 				<th>
-					<? print get_translation('SUMMARY_SEARCH_QUERY','Requete en clair'); ?>
+					<? print get_translation('SUMMARY_SEARCH_QUERY','Requête en clair'); ?>
 				</th>
 			</thead>
 			<tbody>
@@ -816,7 +816,7 @@ if ($_GET['action']=='admin_datamart') {
 					<th><? print get_translation('DOCUMENT_ORIGINS','Origines des documents'); ?></th>
 					<th><? print get_translation('USERS','Utilisateurs'); ?></th>
 					<th><? print get_translation('DESCRIPTION','Description'); ?></th>
-					<th><? print get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb patients'); ?></th>
+					<th><? print get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb de patients'); ?></th>
 					<th><? print get_translation('MODIFY_SHORT','M'); ?></th>
 					<th><? print get_translation('DELETE_SHORT','S'); ?></th>
 				</tr>

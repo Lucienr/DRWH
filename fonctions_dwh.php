@@ -2082,7 +2082,7 @@ function lister_requete_detail ($query_num,$periodicity) {
 	       print "</tbody></table>";
        }
         if ($periodicity=='week') {
-	        print "<strong>".get_translation('FOR_THE_LAST_6WEEKS','Sur les 6 dernieres semaines')." :</strong> <br><br>";
+	        print "<strong>".get_translation('FOR_THE_LAST_6WEEKS','Sur les 6 dernières semaines')." :</strong> <br><br>";
 	        print "<table border=\"0\" class=\"tablefin\">
 	        	<thead>
 	        		<tr>";
@@ -5830,7 +5830,7 @@ function afficher_datamart_accueil () {
 					<th>".get_translation('DATE_START','Date de début')."</th>
 					<th>".get_translation('DATE_END','Date fin')."</th>
 					<th>".get_translation('DESCRIPTION','Description')."</th>
-					<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb patients')."</th>
+					<th>".get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb de patients')."</th>
 				</tr>
 			</thead>
 			<tbody>$res_datamart</tbody></table>";
@@ -6825,7 +6825,12 @@ function display_user_cohorts_list ($user_num) {
 
 function display_user_cohorts_table ($user_num) {
 	global $dbh;
-	print "<table border=\"0\" class=\"dataTable\" id=\"id_tableau_liste_cohortes\"><thead><tr><td></td><td>Title</td><td>Date</td><td>Inclus</td></tr></thead><tbody>";
+	print "<table border=\"0\" class=\"dataTable\" id=\"id_tableau_liste_cohortes\"><thead><tr>
+	<td></td>
+	<td>".get_translation('TITLE','Titre')."</td>
+	<td>".get_translation('DATE','Date')."</td>
+	<td>".get_translation('INCLUDES','Inclus')."</td>
+	</tr></thead><tbody>";
 	$tab_user_cohorts=get_user_cohorts ($user_num,"");
 	foreach ($tab_user_cohorts as $cohort_num) {
 		$cohort=get_cohort($cohort_num,'nb_patients');
@@ -9359,7 +9364,7 @@ function lister_services_nbpatient_manager_department ($tmpresult_num,$query_num
 	<table cellspacing=2 cellpadding=0 border=0 class=tablefin>";
 	print "<thead>
 	<th>Service</th>
-	<th>".get_translation('COUNT_PATIENTS_IN_HOSPITAL_DEPARTMENT','Nb patients avec comptes rendus')."</th>
+	<th>".get_translation('COUNT_PATIENTS_IN_HOSPITAL_DEPARTMENT','Nb de patients avec comptes rendus')."</th>
 	<th>".get_translation('CONTACT','Contact')."</th>
 	</thead>
 	<tbody>";
@@ -9429,8 +9434,8 @@ function lister_services_nbpatient_manager_department ($tmpresult_num,$query_num
 	<table cellspacing=2 cellpadding=0 border=0 class=tablefin>";
 	print "<thead>
 	<th>Service</th>
-	<th>".get_translation('COUNT_NEW_PATIENTS_IN_HOSPITAL_DEPARTMENT','Nb patients nouveaux dans le service')."</th>
-	<th>".get_translation('COUNT_PATIENT_ALREADY_INCLUDED_IN_ABOVE_HOSPITAL_DEPARTMENT','Nb patients déjà inclus dans un service au dessus')."</th>
+	<th>".get_translation('COUNT_NEW_PATIENTS_IN_HOSPITAL_DEPARTMENT','Nb de patients nouveaux dans le service')."</th>
+	<th>".get_translation('COUNT_PATIENT_ALREADY_INCLUDED_IN_ABOVE_HOSPITAL_DEPARTMENT','Nb de patients déjà inclus dans un service au dessus')."</th>
 	<th>".get_translation('CONTACT','Contact')."</th>
 	</thead>
 	<tbody>";

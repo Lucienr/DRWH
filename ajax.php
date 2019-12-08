@@ -2061,9 +2061,9 @@ if ($_POST['action']=='afficher_repartition_par_pays') {
 	print "<thead>
 		<tr>
 			<th>Country</th>
-			<th>Nb patients résidents</th>
+			<th>Nb de patients résidents</th>
 			<th>% patients résidents / entrepôt</th>
-			<th>Nb patients nés</th>
+			<th>Nb de patients nés</th>
 			<th>% patients nés / entrepôt</th>
 		</tr>
 		</thead>

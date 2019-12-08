@@ -473,7 +473,7 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 							<input type="radio" name="reduire_entrepot_sous_population" value="1" id="id_radio_reduire_entrepot_sous_population_oui"> <? print get_translation('SIMILARITY_COHORT_REDUCE_POPULATION',"Réduire la population totale à une quantité raisonnable (<10 000 patients)"); ?> :<br> 
 							 <? print get_translation('SIMILARITY_COHORT_MODIFY_QUERY_TO_REDUCE_NB_PATIENT',"Modifier la requête pour réduire le nombre de patients"); ?> <br>
 							<textarea id="id_textarea_similarite_cohorte_requete" cols="70" rows="3"></textarea><br>
-							<? print get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb patients'); ?> : <span id="id_span_precalcul_nb_patient_similarite_cohorte"></span><br>
+							<? print get_translation('COUNT_PATIENT_NUMBER_SHORT','Nb de patients'); ?> : <span id="id_span_precalcul_nb_patient_similarite_cohorte"></span><br>
 							<input type="button" onclick="precalcul_nb_patient_similarite_cohorte('<? print $cohort_num_voir; ?>');" value="<? print get_translation('PRECOMPUTE','Pré-calculer'); ?>">
 							<br><br>
 						</div>

@@ -99,7 +99,7 @@ function affiche_tableau_pmsi (tmpresult_num,type,thesaurus_code) {
 								{ title: "Diag","orderSequence": [ "desc","asc" ]  },
 								{ width:"200px",title: "Option","orderSequence": [ "desc","asc" ]  },
 								{ width:"100px",title: "Nb documents" ,"orderSequence": [ "desc","asc" ] },
-								{ width:"100px",title: "Nb patients","orderSequence": [ "desc","asc" ]  }
+								{ width:"100px",title: "Nb de patients","orderSequence": [ "desc","asc" ]  }
 						        ] ,
 						         "columnDefs": [ {
 							            "searchable": true,

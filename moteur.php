@@ -578,7 +578,7 @@ if ($_POST['action']=='rechercher') {
 				<div id="id_div_sauver_requete" style="width:550px;display:none;font-size:13px">
 					<h3><? print get_translation('SAVE_SEARCH_QUERY','Sauver la requête'); ?></h3>
 					<? print get_translation('TITLE','Titre'); ?> : <input type="text" size="40" id="id_titre_requete_sauver" class="input_texte"><br>
-					<? print get_translation('EXECUTE_QUERY_AUTOMATICALLY','Executer automatiquement cette requête'); ?>: <input type="checkbox" id="id_crontab_requete" name="crontab_query" value="1"> <br>
+					<? print get_translation('EXECUTE_QUERY_AUTOMATICALLY','Exécuter automatiquement cette requête'); ?>: <input type="checkbox" id="id_crontab_requete" name="crontab_query" value="1"> <br>
 					<? print get_translation('PERIODICITY','Périodicité'); ?>: 
 						<select id="id_crontab_periode" name="crontab_periode">
 							<option value=''></option>
