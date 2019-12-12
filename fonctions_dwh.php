@@ -4695,11 +4695,8 @@ function afficher_document($document_num,$json_full_text_queries,$tableau_liste_
                     </table>
             </div>
             <div id=\"id_document_$document_num\" class=\"afficher_document\">";
-	if (preg_match("/(<style[^>]*>|<br[^>]?>)/i",$displayed_text)) {
-		$res.="$displayed_text";
-	} else {
-		$res.="<pre>$displayed_text</pre>";
-	}
+    $res.=display_text_pre_or_not($displayed_text);
+
 #	if (preg_match("/(<style[^>]*>|<i>)/i",$displayed_text)) {
 #		$res.="$displayed_text";
 #	} else {
@@ -4712,6 +4709,14 @@ function afficher_document($document_num,$json_full_text_queries,$tableau_liste_
     return $res;
 }
 
+function display_text_pre_or_not($displayed_text) {
+	if (preg_match("/(<style[^>]*>|<br[^>]?>|<\/p>)/i",$displayed_text)) {
+		$text="$displayed_text";
+	} else {
+		$text="<pre>$displayed_text</pre>";
+	}
+	return $text;
+}
 
 function afficher_mvt($mvt_num) {
 	global $dbh,$datamart_num,$user_num_session;
@@ -4832,11 +4837,8 @@ function afficher_document_patient_popup($document_num,$json_full_text_queries,$
                     </table>
             </div>
             <div id=\"id_document_$id_cle\" class=\"afficher_document\">";
-    if (preg_match("/(<style[^>]*>|<br[^>]?>)/i",$displayed_text)) {
-    	$res.="$displayed_text";
-    } else {
-       	$res.="<pre>$displayed_text</pre>";
-    }
+    $res.=display_text_pre_or_not($displayed_text);
+	
     $res.="</div>
     </div>
     ";
@@ -6453,11 +6455,8 @@ function afficher_document_patient($document_num,$full_text_query,$user_num) {
         	$document.=" ".get_translation('BY_FOLLOWED_BY_NAME','par')." $author,";
         }
 	$document.=" ".get_translation('THE_DATE','le')." $document_date <img align=\"absmiddle\" src=\"images/printer.png\" onclick=\"ouvrir_document_print('$document_num');return false;\" style=\"cursor:pointer;width:18px;\" border=\"0\"></h2>";
-	if (preg_match("/(<style[^>]*>|<br[^>]?>)/i",$displayed_text)) {
-		$document.="$displayed_text";
-	} else {
-		$document.="<pre>$displayed_text</pre>";
-	}   
+
+    $document.=display_text_pre_or_not($displayed_text);
         $document.="<br><br>".display_list_file ($patient_num,$document_num,$user_num);
         
         save_log_document($document_num,$user_num,'oui');
@@ -6534,11 +6533,8 @@ function affiche_contenu_liste_document_patient($patient_num,$requete,$user_num)
 			        	$texte_final.=" par $author,";
 			        }
 			        $texte_final.=" ".get_translation('THE_DATE','le')." $document_date </h2>";
-   				 	if (preg_match("/(<style[^>]*>|<br[^>]?>)/i",$displayed_text)) {
-				    	$texte_final.="$displayed_text";
-				    } else {
-				       	$texte_final.="<pre>$displayed_text</pre>";
-				    }   
+
+    				$texte_final.=display_text_pre_or_not($displayed_text);
   					$texte_final.="<br><p style=\"page-break-after: always;\" class=\"noprint\">----------------------------------------------------------</p>";
 
 		        }
