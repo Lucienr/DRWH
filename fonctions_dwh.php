@@ -3818,6 +3818,9 @@ function ouvrir_plus_document ($tmpresult_num,$liste_object,$json_full_text_quer
 	                
 				$appercu=resumer_resultat($text,$json_full_text_queries,$tableau_liste_synonyme,'moteur');
 	                
+	                        if ($_SESSION['dwh_droit_anonymized']=='ok') {
+		                	$author='[AUTHOR]';
+	                        }
 		                if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
 		                	$document_date='[DATE]';
 		                	$author='[AUTHOR]';
@@ -3904,6 +3907,9 @@ function appercu_liste_document ($liste_document,$concept_str) {
 				$department_str=get_department_str ($department_num);
 		                $appercu=resumer_resultat($text,"{'query':'$requete_json','type':'fulltext','synonym':''}",$tableau_liste_synonyme,'moteur');
 		                
+	                        if ($_SESSION['dwh_droit_anonymized']=='ok') {
+		                	$author='[AUTHOR]';
+	                        }
 		                if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
 		                	$document_date='[DATE]';
 		                	$author='[AUTHOR]';
@@ -4467,6 +4473,10 @@ function afficher_resultat ($tmpresult_num,$tableau_resultat,$i_deb,$cohort_num_
                         $n++;
                         if ($tableau_resultat[$patient_num][$document_num]['affiche_direct']=="ok") {
                         
+	                        if ($_SESSION['dwh_droit_anonymized']=='ok') {
+	                        	$tableau_resultat[$patient_num][$document_num]['author']='[AUTHOR]';
+	                        }
+	                        
 	                        if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
 	                        	$tableau_resultat[$patient_num][$document_num]['document_date']='[DATE]';
 	                        	$tableau_resultat[$patient_num][$document_num]['author']='[AUTHOR]';
@@ -6169,6 +6179,9 @@ function affiche_liste_document_patient($patient_num,$requete) {
 			$author=$document['author'];
 			$text=$document['text'];    
 			if ($document['displayed_text']!='') {
+	                        if ($_SESSION['dwh_droit_anonymized']=='ok') {
+		                	$author='[AUTHOR]';
+	                        }
 				if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
 					$author='[AUTHOR]';
 					$document_date='[DATE]';
@@ -6399,6 +6412,9 @@ function afficher_document_patient($document_num,$full_text_query,$user_num) {
 #	        $document_date=$row_texte['DOCUMENT_DATE'];     
 #	        $patient_num=$row_texte['PATIENT_NUM']; 
 	        
+                if ($_SESSION['dwh_droit_anonymized']=='ok') {
+                	$author='[AUTHOR]';
+                }
 	        if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
 	        	$author='[AUTHOR]';
 	                $document_date='[DATE]';
@@ -10911,6 +10927,10 @@ function get_document ($document_num) {
 		$tableau_document['text']=$row_doc['TEXT']->load();
         }
         
+	if ($_SESSION['dwh_droit_anonymized']=='ok') {
+		$tableau_document['author']='[AUTHOR]';
+	}
+        
 	if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
 		$tableau_document['author']='[AUTHOR]';
 		$tableau_document['document_date']='[DATE]';
@@ -11101,6 +11121,9 @@ where  context='text' and certainty=0 and document_num in (SELECT  document_num 
 			$tableau_document[$document_num]['text']=$row_doc['TEXT']->load();
 	        }
 	        
+                if ($_SESSION['dwh_droit_anonymized']=='ok') {
+			$tableau_document[$document_num]['author']='[AUTHOR]';
+                }
 		if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
 			$tableau_document[$document_num]['author']='[AUTHOR]';
 			$tableau_document[$document_num]['document_date']='[DATE]';

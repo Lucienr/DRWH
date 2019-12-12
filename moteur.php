@@ -541,7 +541,6 @@ if ($_POST['action']=='rechercher') {
 		
 		
 		 print $phrase_nb_patient_detail; 
-		
 		?>
 		<? if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_resultat_detail" class="div_result">
