@@ -11002,6 +11002,7 @@ function get_data ($patient_num,$thesaurus_code,$filter='') {
 					lower_bound, 
 					upper_bound,
 					department_num,
+					document_date,
 					to_char(document_date,'DD/MM/YYYY') as document_date_ddmmyyyy,
 					to_char(document_date,'DD/MM/YYYY HH24:MI') as document_date_ddmmyyyyhh24mi
 				from 

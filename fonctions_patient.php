@@ -360,7 +360,7 @@ function display_pmsi_patient ($patient_num) {
 		$data_upper=get_data_out_of_range ($patient_num,'upper'," and encounter_num='$encounter_num' ");
 		$data_lower=get_data_out_of_range ($patient_num,'lower'," and encounter_num='$encounter_num' ");
 		
-		$data_cim10=get_data ($patient_num,$thesaurus_code_pmsi," and encounter_num='$encounter_num' ");
+		$data_cim10=get_data ($patient_num,$thesaurus_code_pmsi," and encounter_num='$encounter_num' order by document_date desc");
 		
 		$table_concept=get_concept_patient ($patient_num," and document_num in (select document_num from dwh_document where patient_num=$patient_num and encounter_num='$encounter_num') ") ;
 		$table_mvt=get_mvt_info_by_encounter ($encounter_num,'desc');
@@ -408,14 +408,28 @@ function display_pmsi_patient ($patient_num) {
 			print "<br><strong>Cim10</strong><br>";
 			print "<table>
 			<thead>
-			<tr><th>Code</th><th>Libellé</th><th>type</th></tr>
+			<tr><th>Code</th>
+			<th>Libellé</th>
+			<th>type</th>
+			<th>Departement</th>
+			<th>Date</th>
+			</tr>
 			</thead>
 			<tbody>";
 			foreach ($data_cim10 as $i => $data) {
 				$concept_code=$data['CONCEPT_CODE'];
 				$concept_str=$data['CONCEPT_STR'];
 				$val_text=$data['VAL_TEXT'];
-				print "<tr><td>$concept_code</td><td>$concept_str</td><td>$val_text</td></td>";
+				$document_date_ddmmyyyy=$data['DOCUMENT_DATE_DDMMYYYY'];
+				$department_num=$data['DEPARTMENT_NUM'];
+				$department_str=get_department_str($department_num);
+				print "<tr>
+					<td>$concept_code</td>
+					<td>$concept_str</td>
+					<td>$val_text</td>
+					<td>$department_str</td>
+					<td>$document_date_ddmmyyyy</td>
+					</tr>";
 			}
 			print "</tbody></table>";
 		}
