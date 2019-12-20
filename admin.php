@@ -83,6 +83,10 @@ if ($_GET['action']=='admin_cgu') {
 if ($_GET['action']=='admin_actu') {
 	$class_admin_actu='admin_menu_activated';
 }
+if ($_GET['action']=='admin_contact') {
+	$class_admin_contact='admin_menu_activated';
+}
+
 
 ?>
 <script src="javascript_admin.js?<? print "v=$date_today_unique"; ?>" type="text/javascript"></script>
