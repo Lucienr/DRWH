@@ -187,7 +187,7 @@ if ( $tmpresult_num!='' && $option=='patient_document') {
                 $patient_num=$r['PATIENT_NUM'];
                 $document_num=$r['DOCUMENT_NUM'];
 		$patient=get_patient($patient_num);
-		$document=get_document($document_num);
+		$document=get_document($document_num,'');
 		print "<tr>";
 		print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
 		print "<td>".$patient['LASTNAME']."</td>";

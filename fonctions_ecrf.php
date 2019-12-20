@@ -520,7 +520,7 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 					foreach ($tableau_result as $tableau_result_document) {
 					 	$document_num=$tableau_result_document['document_num'];
 					 	if ($document_num!='') {
-							$document=get_document($document_num);
+							$document=get_document($document_num,'text');
 							$text=$document['text'];
 							if ($text!='') {		
 								$text=preg_replace("/\n/"," ",$text);
@@ -553,7 +553,7 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 						 		$info=$tableau_result_document['info'];
 						 		$concept_str=$tableau_result_document['concept_str'];
 						 		$concept_code=$tableau_result_document['concept_code'];
-								$document=get_document($document_num) ;
+								$document=get_document($document_num,'') ;
 								$table_value[]=array('sous_item_value'=>$val,'concept_str'=>$concept_str,'concept_code'=>$concept_code,'info'=>$info,'document_date'=>$document['document_date']);
 								$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>"$concept_str $info:$val", 'document_num'=>$document_num, 'query_highlight'=>$val);
 							}
@@ -572,7 +572,7 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 						 		if ($document_num!='') {
 						 			$i++;
 						 			if ($i<$i_limite) {
-										$document=get_document($document_num) ;
+										$document=get_document($document_num,'text') ;
 										$value='';
 										$requete_json=nettoyer_pour_inserer ($item_str_for_query);
 										$requete_json=replace_accent($requete_json);
@@ -600,7 +600,7 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 						 		if ($document_num!='') {
 						 			$i++;
 						 			if ($i<$i_limite) {
-										$document=get_document($document_num) ;
+										$document=get_document($document_num,'text') ;
 										$value='';
 										$requete_json=nettoyer_pour_inserer ($item_str_for_query);
 										$requete_json=replace_accent($requete_json);
@@ -648,7 +648,7 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 					 		if ($document_num!='') {
 					 			$i++;
 					 			if ($i<$i_limite) {
-									$document=get_document($document_num) ;
+									$document=get_document($document_num,'text') ;
 									$requete_json=nettoyer_pour_inserer ($item_str_for_query);
 									$requete_json=replace_accent($requete_json);
 									$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
@@ -689,7 +689,7 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 					 		$info=$tableau_result_document['info'];
 					 		$concept_str=$tableau_result_document['concept_str'];
 					 		$concept_code=$tableau_result_document['concept_code'];
-							$document=get_document($document_num) ;
+							$document=get_document($document_num,'') ;
 							$table_value[]=array('sous_item_value'=>$val,'concept_str'=>$concept_str,'concept_code'=>$concept_code,'info'=>$info,'document_date'=>$document['document_date']);
 							$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>"$concept_str $info:$val", 'document_num'=>$document_num, 'query_highlight'=>$concept_str);
 						}
@@ -701,7 +701,7 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 				foreach ($tableau_result as $tableau_result_document) {
 				 	$document_num=$tableau_result_document['document_num'];
 				 	if ($document_num!='') {
-						$document=get_document($document_num);
+						$document=get_document($document_num,'text');
 						$text=$document['text'];
 						if ($text!='') {		
 							$text=preg_replace("/\n/"," ",$text);
@@ -738,7 +738,7 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 				 	if ($document_num!='') {
 			 			$i++;
 			 			if ($i<$i_limite) {
-							$document=get_document($document_num) ;
+							$document=get_document($document_num,'') ;
 					 		$value=$tableau_result_document['value'];
 					 		$concept_str=$tableau_result_document['concept_str'];
 					 		$concept_code=$tableau_result_document['concept_code'];
@@ -1264,9 +1264,14 @@ function affiche_liste_document_patient_ecrf($patient_num,$requete) {
 	        }
 	        $nb_document=0;
 		$res= "<table class=\"tableau_document\" $cellspacing id=\"id_tableau_liste_document\">";
-		$table_document=get_document_for_a_patient($patient_num,"$req  $req_option");
-		foreach ($table_document as $document_num) {
-			$document=get_document ($document_num);
+		
+		
+		//$table_document=get_document_for_a_patient($patient_num,"$req  $req_option");
+		//foreach ($table_document as $document_num) {
+		//	$document=get_document ($document_num);
+			
+		$table_document=get_dwh_text('',$patient_num,'','',$user_num_session,'text',0,$req,'');
+		foreach ($table_document as $document_num => $document) {
 			$encounter_num=$document['encounter_num'];
 			$title=$document['title'];
 			$document_date=$document['document_date'];

@@ -58,12 +58,9 @@ $res.= "</tr></thead>";
 update_process ($process_num,'0',"entete calculee",$res,$user_num_session,"xls");
 $res='';
 
+$liste_document=get_dwh_text('','',$tmpresult_num,"$filter_query_user_right",$user_num_session,'text',0,'','');
 
-$liste_document=get_list_objects_in_result ($tmpresult_num,$user_num_session,$filter_query_user_right);
-
-foreach ($liste_document as $document_num) {
-	$document=get_document ($document_num);
-
+foreach ($liste_document as $document_num => $document) {
 	$patient_num=$document['patient_num'];
 	$document_num=$document['document_num'];
 	$encounter_num=$document['encounter_num'];
@@ -74,10 +71,7 @@ foreach ($liste_document as $document_num) {
 	$age_patient=$document['age_patient'];
 	$age_patient_month=$document['age_patient_month'];
 	$text=$document['text'];
-	if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
-		$author='[AUTHOR]';
-		$document_date='[DATE]';
-	}
+	
 	$nb_document++;	
 	if ($text!='') {		
 		$text=preg_replace("/\n/"," ",$text);

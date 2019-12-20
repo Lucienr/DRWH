@@ -355,7 +355,7 @@ function display_pmsi_patient ($patient_num) {
 			$backgroundColor=$color_even_encounter_num;
 		}
 		
-		$tableau_document=get_document_for_a_patient($patient_num," and encounter_num='$encounter_num' ");
+		//$tableau_document=get_document_for_a_patient($patient_num," and encounter_num='$encounter_num' ");
 		
 		$data_upper=get_data_out_of_range ($patient_num,'upper'," and encounter_num='$encounter_num' ");
 		$data_lower=get_data_out_of_range ($patient_num,'lower'," and encounter_num='$encounter_num' ");

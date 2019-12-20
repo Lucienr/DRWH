@@ -68,7 +68,7 @@ function get_list_regexp_shared_not_mine ($user_num_creation) {
 
 function afficher_document_regexp($document_num,$full_text_query) {
         global $dbh,$datamart_num,$user_num_session;
-        $document=get_document ($document_num);
+        $document=get_document ($document_num,'');
 	$displayed_text=$document['displayed_text'];     
         $title=$document['title'];     
         $patient_num=$document['patient_num']; 
