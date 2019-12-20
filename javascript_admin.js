@@ -1263,6 +1263,7 @@ function supprimer_datamart(datamart_num) {
 
 function save_cgu() {
 	cgu_text=jQuery('.ql-editor').html();
+	cgu_text=cgu_text.replace(/\+/g,';plus;');
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_admin.php",

@@ -1042,6 +1042,7 @@ if ($_POST['action']=='display_thesaurus_tree' && $_SESSION['dwh_droit_admin']==
 
 if ($_POST['action']=='save_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
 	$cgu_text=trim(urldecode($_POST['cgu_text']));
+        $cgu_text=preg_replace("/;plus;/","+",$cgu_text);
 	if ($cgu_text!='') {
 		insert_cgu ($cgu_text);
 	}
