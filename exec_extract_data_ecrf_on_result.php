@@ -59,7 +59,7 @@ $tableau_list_ecrf_items=get_list_ecrf_items ($ecrf_num);
 
 
 $entete= "<a href=\"export_process.php?process_num=$process_num\">Telecharger sur excel</a><br><br>";
-$entete.= "<table class=\"tableau_solid_black\" id=\"id_tableau_liste_document\">";
+$entete.= "<table class=\"tableau_solid_black\" id=\"id_tableau_liste_result_ecrf\">";
 $entete.= "<thead><tr>";
 $entete.= "<th>".get_translation('HOSPITAL_PATIENT_ID',"IPP")."</th>";
 $entete.= "<th>".get_translation('PATIENT_IDENTITY',"Nom Prénom")."</th>";
@@ -93,7 +93,7 @@ if ($option_une_ligne=='patient') {
 	foreach ($tableau_patient as $patient_num ) {
 		$nb_patient++;
 	  	$tab_patient=get_patient ($patient_num);
-		$res= "<tr onmouseout=\"this.style.backgroundColor='#ffffff';\" onmouseover=\"this.style.backgroundColor='#B9C2C8';\" onclick=\"afficher_document($document_num);\" style=\"cursor: pointer; background-color:#ffffff;\" id=\"id_document_patient_$document_num\" class=\"tr_document_patient\" sousgroupe=\"text\">";
+		$res= "<tr onmouseout=\"this.style.backgroundColor='#ffffff';\" onmouseover=\"this.style.backgroundColor='#B9C2C8';\" style=\"cursor: pointer; background-color:#ffffff;\" id=\"id_document_patient_$patient_num\" class=\"tr_document_patient\" sousgroupe=\"text\">";
 		$res.= "<td>".$tab_patient['HOSPITAL_PATIENT_ID']."</td>";
 		$res.= "<td>".$tab_patient['LASTNAME']." ".$tab_patient['FIRSTNAME']."</td>";
 		foreach ($tableau_list_ecrf_items as $item) {
@@ -175,7 +175,7 @@ if ($option_une_ligne=='document') {
 	foreach ($tableau_document as $document_num ) {
 		$nb_document++;
 	
-		$document=get_document ($document_num);
+		$document=get_document ($document_num,'');
 		$patient_num=$document['patient_num'];
 	  	$tab_patient=get_patient ($patient_num);
 	  	
