@@ -1947,7 +1947,10 @@ function reecrire_requete (num_filtre) {
 
 var popupdoc=new Array();
 function ouvrir_document_print (document_num) {
-	
+	tmpresult_num='';
+	filtre_resultat_texte='';
+	full_text_query='';
+	datamart_num='';
 	if (document.getElementById('id_num_temp')) {
 		tmpresult_num=jQuery('#id_num_temp').val();
 	}
@@ -1958,8 +1961,6 @@ function ouvrir_document_print (document_num) {
 	if (document.getElementById('id_num_datamart')) {
 		datamart_num=jQuery('#id_num_datamart').val();
 	}
-	filtre_resultat_texte='';
-	full_text_query='';
 	if (document.getElementById('id_filtre_resultat_texte')) {
 		filtre_resultat_texte=jQuery('#id_filtre_resultat_texte').val();
 	}
@@ -1968,8 +1969,8 @@ function ouvrir_document_print (document_num) {
 	}
 	
 	
-	if (document.getElementById('id_input_filtre_patient_texte')) {
-		full_text_query=jQuery('#id_input_filtre_patient_texte').val();
+	if (document.getElementById('id_input_filtre_patient_text')) {
+		full_text_query=jQuery('#id_input_filtre_patient_text').val();
 		full_text_query=full_text_query.replace(/\+/g,';plus;');
 		//full_text_query=full_text_query.replace(/\\/g,';antislash;');
 	}
@@ -1981,21 +1982,23 @@ function ouvrir_document_print (document_num) {
 
 var popupdoc=new Array();
 function ouvrir_liste_document_print (patient_num) {
-	
+	full_text_query='';
 	if (document.getElementById('id_full_text_query')) {
 		full_text_query=jQuery('#id_full_text_query').val();
 		json_full_text_queries=jQuery('#id_json_full_text_queries').val();
-		filtre_resultat_texte='';
-		full_text_query='';
-		if (document.getElementById('id_filtre_resultat_texte')) {
-			filtre_resultat_texte=jQuery('#id_filtre_resultat_texte').val();
-		}
+	}
+	filtre_resultat_texte='';
+	if (document.getElementById('id_filtre_resultat_texte')) {
+		filtre_resultat_texte=jQuery('#id_filtre_resultat_texte').val();
 		if (filtre_resultat_texte!='') {
 			full_text_query=full_text_query+';requete_unitaire;'+filtre_resultat_texte;
 		}
 	}
-	if (document.getElementById('id_input_filtre_patient_texte')) {
-		full_text_query=jQuery('#id_input_filtre_patient_texte').val();
+
+	if (document.getElementById('id_input_filtre_patient_text')) {
+		full_text_query=jQuery('#id_input_filtre_patient_text').val();
+	}
+	if (full_text_query!='') {
 		full_text_query=full_text_query.replace(/\+/g,';plus;');
 	}
 

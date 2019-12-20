@@ -33,7 +33,7 @@ function afficher_document_patient (document_num,id_voir,id_query) {
 	jQuery(".id_document_patient_"+document_num).css("color","#CB1B3E");
 //	jQuery(".id_document_patient_"+document_num).css("backgroundColor","#dcdff5");
 	id_tr_selectionne="id_document_patient_"+document_num;
-	requete=jQuery('#'+id_query).val(); //id_input_filtre_patient_texte
+	requete=jQuery('#'+id_query).val(); //id_input_filtre_patient_text
 	requete=requete.replace(/\+/g,';plus;');
 	jQuery.ajax({
 		type:"POST",
