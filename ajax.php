@@ -1012,6 +1012,7 @@ if ($_POST['action']=='ajouter_cohorte') {
 						oci_execute($ins) || die ("<strong style=\"color:red\">erreur : user et right non sauvé</strong><br>");
 					}
 				}
+				sauver_notification ($user_num_session,$user_num_cohort,'cohorte',$title_cohort,$cohort_num_admin);	
 			}
 		}
 		print "$cohort_num_admin";

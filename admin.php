@@ -35,7 +35,7 @@ if ($_SESSION['dwh_droit_admin']!='ok') {
 session_write_close();
 
 if (count($tableau_admin_features)==0) {
-	$tableau_admin_features=array('admin_department','admin_profil','admin_user','opposition','admin_concepts','admin_thesaurus','admin_etl','analyse_requete','admin_outils','admin_cgu','admin_actu','admin_datamart');
+	$tableau_admin_features=array('admin_department','admin_profil','admin_user','opposition','admin_concepts','admin_thesaurus','admin_etl','analyse_requete','admin_outils','admin_cgu','admin_actu','admin_datamart','admin_contact');
 } 
 
 
