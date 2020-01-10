@@ -103,7 +103,9 @@ while ( $r = oci_fetch_array($sel, OCI_ASSOC+OCI_RETURN_NULLS)) {
 	if ($nb_doc==1000) {
 		$nb_doc=0;
 		$nb_patient=count($tableau_patient_num_json);
-		$upd = oci_parse($dbh,"update  dwh_tmp_query set count_patient=$nb_patient  where query_key='$query_key_arg' and user_num=$user_num and datamart_num=$datamart_num ");   
+		$req_upd="update  dwh_tmp_query set count_patient=$nb_patient  where query_key='$query_key_arg' and user_num=$user_num and datamart_num=$datamart_num ";
+		print "$req_upd\n";
+		$upd = oci_parse($dbh,$req_upd);   
 		oci_execute($upd);
 	}
 }

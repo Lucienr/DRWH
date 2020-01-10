@@ -180,17 +180,20 @@ if ($_POST['action']=='filtre_patient_texte_timeline') {
 if ($_POST['action']=='display_biological_document_list') {
 	$patient_num=$_POST['patient_num'];
 	affiche_liste_document_biologie($patient_num,"");
+	save_log_query($user_num_session,'display_biological_document_list',"",$patient_num);
 }
 
 if ($_POST['action']=='display_biological_table') {
 	$patient_num=$_POST['patient_num'];
 	affiche_tableau_biologie($patient_num);
+	save_log_query($user_num_session,'display_biological_table',"",$patient_num);
 }
 
 
 if ($_POST['action']=='process_pmsi_patient') {
 	$patient_num=$_POST['patient_num'];
 	display_pmsi_patient ($patient_num);
+	save_log_query($user_num_session,'display_pmsi_patient',"",$patient_num);
 }
 
 if ($_POST['action']=='display_sentence_with_term') {

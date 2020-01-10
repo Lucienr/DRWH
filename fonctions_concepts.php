@@ -1378,7 +1378,23 @@ function repartition_concepts_tableau_patient ($patient_num,$id,$filtre_phenotyp
 		$tableau_nb_concept_dans_ce_document[$document_num]=$nb_concept_dans_ce_document;
 	}
 	
+
+	$tableau_tfidf_document_total=array();
+	$sel_nb=oci_parse($dbh, "select document_num,concept_code,sum(count_concept_str_found) as nb from dwh_enrsem where patient_num=$patient_num  and  certainty=1 and context='patient_text' group by document_num,concept_code");
+	oci_execute($sel_nb);
+	while ($r_nb=oci_fetch_array($sel_nb,OCI_ASSOC+OCI_RETURN_NULLS)) {
+		$document_num=$r_nb['DOCUMENT_NUM'];
+		$nb_fois_ce_code_dans_ce_document=$r_nb['NB'];
+		$concept_code=$r_nb['CONCEPT_CODE'];
 	
+		$nb_concept_dans_ce_document=$tableau_nb_concept_dans_ce_document[$document_num];
+		$nb_document_patient_avec_ce_code=$tableau_nb_document_patient_avec_ce_code[$concept_code];
+		
+		$idf=log($nb_document_total_patient/$nb_document_patient_avec_ce_code);
+		$tf=$nb_fois_ce_code_dans_ce_document/$nb_concept_dans_ce_document;
+		$tfidf_document=$idf*$tf;
+		$tableau_tfidf_document_total[$concept_code]+=$tfidf_document;
+	}
 	
 	
 	////////////////////////////////////////////
@@ -1429,20 +1445,20 @@ function repartition_concepts_tableau_patient ($patient_num,$id,$filtre_phenotyp
 		
 		$nb_document_patient_avec_ce_code=$tableau_nb_document_patient_avec_ce_code[$concept_code];
 		
-		$tfidf_document_total=0;
-		$sel_nb=oci_parse($dbh, "select document_num,sum(count_concept_str_found) as nb from dwh_enrsem where patient_num=$patient_num and concept_code='$concept_code' and  certainty=1 and context='patient_text' group by document_num");
-		oci_execute($sel_nb);
-		while ($r_nb=oci_fetch_array($sel_nb,OCI_ASSOC+OCI_RETURN_NULLS)) {
-			$document_num=$r_nb['DOCUMENT_NUM'];
-			$nb_fois_ce_code_dans_ce_document=$r_nb['NB'];
-		
-			$nb_concept_dans_ce_document=$tableau_nb_concept_dans_ce_document[$document_num];
-			
-			$idf=log($nb_document_total_patient/$nb_document_patient_avec_ce_code);
-			$tf=$nb_fois_ce_code_dans_ce_document/$nb_concept_dans_ce_document;
-			$tfidf_document=$idf*$tf;
-			$tfidf_document_total+=$tfidf_document;
-		}
+		$tfidf_document_total=$tableau_tfidf_document_total[$concept_code];
+#		$sel_nb=oci_parse($dbh, "select document_num,sum(count_concept_str_found) as nb from dwh_enrsem where patient_num=$patient_num and concept_code='$concept_code' and  certainty=1 and context='patient_text' group by document_num");
+#		oci_execute($sel_nb);
+#		while ($r_nb=oci_fetch_array($sel_nb,OCI_ASSOC+OCI_RETURN_NULLS)) {
+#			$document_num=$r_nb['DOCUMENT_NUM'];
+#			$nb_fois_ce_code_dans_ce_document=$r_nb['NB'];
+#		
+#			$nb_concept_dans_ce_document=$tableau_nb_concept_dans_ce_document[$document_num];
+#			
+#			$idf=log($nb_document_total_patient/$nb_document_patient_avec_ce_code);
+#			$tf=$nb_fois_ce_code_dans_ce_document/$nb_concept_dans_ce_document;
+#			$tfidf_document=$idf*$tf;
+#			$tfidf_document_total+=$tfidf_document;
+#		}
 		
 		$nb_fois_ce_code_dans_ce_patient=$tableau_nb_fois_ce_code_dans_ce_patient[$concept_code];
 		

@@ -166,8 +166,6 @@ if ($option_une_ligne=='document') {
 		$tableau_document=array();
 		foreach ($tableau_patient as $patient_num) {
 			$table_document=get_document_for_a_patient($patient_num,"");
-			print "get_document_for_a_patient($patient_num,);\n";
-			print count($table_document)."\n";
 			$tableau_document=array_merge($table_document,$tableau_document);
 		}
 	}

@@ -108,21 +108,21 @@ if ($_GET['action']=='admin_contact') {
 	<table id="id_tableau_sous_menu_flottant" width="100%" height="25" border="0" cellspacing="0" cellpadding="0" bgcolor="#5F6589" style="border-top:0px white solid;border-bottom:1px white solid;">
 		<tr>
 		<? if (in_array('admin_department',$tableau_admin_features)) {?>
-			<td nowrap="nowrap" class="<? print $class_admin_department; ?>"><a class="connexion" href="admin.php?action=admin_department" nowrap=nowrap><? print get_translation('THE_HOSPITAL_DEPARTMENTS','Les services'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_department; ?>"><a class="connexion" href="admin.php?action=admin_department" nowrap=nowrap><? print get_translation('THE_HOSPITAL_DEPARTMENTS','Services'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 		<? } ?>
 		<? if (in_array('admin_profil',$tableau_admin_features)) {?>
-			<td nowrap="nowrap" class="<? print $class_admin_profil; ?>"><a class="connexion" href="admin.php?action=admin_profil" nowrap=nowrap><? print get_translation('THE_PROFILES','Les profils'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_profil; ?>"><a class="connexion" href="admin.php?action=admin_profil" nowrap=nowrap><? print get_translation('THE_PROFILES','Profils'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 		<? } ?>
 			
 		<? if (in_array('admin_user',$tableau_admin_features)) {?>
-			<td nowrap="nowrap" class="<? print $class_admin_user; ?>"><a class="connexion" href="admin.php?action=admin_user" nowrap=nowrap><? print get_translation('THE_USERS','Les utilisateurs'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_user; ?>"><a class="connexion" href="admin.php?action=admin_user" nowrap=nowrap><? print get_translation('THE_USERS','Utilisateurs'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 		<? } ?>
 		<? if (in_array('admin_datamart',$tableau_admin_features)) {?>
 <!--
-			<td nowrap="nowrap"><a class="connexion" href="admin.php?action=admin_datamart" nowrap=nowrap><? print get_translation('THE_DATAMART','Les datamart'); ?></a></td>
+			<td nowrap="nowrap"><a class="connexion" href="admin.php?action=admin_datamart" nowrap=nowrap><? print get_translation('THE_DATAMART','Datamart'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 -->
 		<? } ?>
@@ -132,12 +132,12 @@ if ($_GET['action']=='admin_contact') {
 
 		<? } ?>
 		<? if (in_array('admin_concepts',$tableau_admin_features)) {?>
-			<td nowrap="nowrap" class="<? print $class_admin_concepts; ?>"><a class="connexion" href="admin.php?action=admin_concepts" nowrap=nowrap><? print get_translation('THE_CONCEPTS','Les concepts'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_concepts; ?>"><a class="connexion" href="admin.php?action=admin_concepts" nowrap=nowrap><? print get_translation('THE_CONCEPTS','Concepts'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 
 		<? } ?>
 		<? if (in_array('admin_thesaurus',$tableau_admin_features)) {?>
-			<td nowrap="nowrap" class="<? print $class_admin_thesaurus; ?>"><a class="connexion" href="admin.php?action=admin_thesaurus" nowrap=nowrap><? print get_translation('THE_THESAURUS','Les thesaurus'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_thesaurus; ?>"><a class="connexion" href="admin.php?action=admin_thesaurus" nowrap=nowrap><? print get_translation('THE_THESAURUS','Thesaurus'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 			
 		<? } ?>
@@ -152,19 +152,19 @@ if ($_GET['action']=='admin_contact') {
 			
 		<? } ?>
 		<? if (in_array('admin_outils',$tableau_admin_features)) {?>
-			<td nowrap="nowrap" class="<? print $class_admin_outils; ?>"><a class="connexion" href="admin.php?action=admin_outils" nowrap=nowrap><? print get_translation('THE_TOOLS','Les outils'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_outils; ?>"><a class="connexion" href="admin.php?action=admin_outils" nowrap=nowrap><? print get_translation('THE_TOOLS','Outils'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 			
 		<? } ?>
 		<? if (in_array('admin_cgu',$tableau_admin_features)) {?>
-			<td nowrap="nowrap" class="<? print $class_admin_cgu; ?>"><a class="connexion" href="admin.php?action=admin_cgu" nowrap=nowrap><? print get_translation('CGU','Les CGU'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_cgu; ?>"><a class="connexion" href="admin.php?action=admin_cgu" nowrap=nowrap><? print get_translation('CGU','CGU'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 		<? } ?>
 		<? if (in_array('admin_actu',$tableau_admin_features)) {?>
-			<td nowrap="nowrap" class="<? print $class_admin_actu; ?>"><a class="connexion" href="admin.php?action=admin_actu" nowrap=nowrap><? print get_translation('NEWS','Les actus'); ?></a></td>
+			<td nowrap="nowrap" class="<? print $class_admin_actu; ?>"><a class="connexion" href="admin.php?action=admin_actu" nowrap=nowrap><? print get_translation('NEWS','Actus'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 		<? } ?>
-		<td nowrap="nowrap" class="<? print $class_admin_contact; ?>"><a class="connexion" href="admin.php?action=admin_contact" nowrap=nowrap><? print get_translation('CONTACT','Les contacts'); ?></a></td>
+		<td nowrap="nowrap" class="<? print $class_admin_contact; ?>"><a class="connexion" href="admin.php?action=admin_contact" nowrap=nowrap><? print get_translation('CONTACT','Contacts'); ?></a></td>
 		<td class="connexion" width="1"> | </td>
 			<td width="100%">&nbsp;</td>
 		</tr>

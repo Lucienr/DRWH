@@ -1,6 +1,18 @@
 <?
 
 
+$req="select index_name from all_indexes where index_name ='DWH_ENRSEM_PCC' ";
+$sel = oci_parse($dbh_etl,$req);
+oci_execute($sel);
+$ligne = oci_fetch_array($sel);
+$verif_index_name = $ligne['INDEX_NAME'];
+if ($verif_index_name=='') {
+	$req="create index dwh_enrsem_pcc on dwh_enrsem ( patient_num,certainty,context) tablespace ts_idx";
+	$sel = oci_parse($dbh_etl,$req);
+	oci_execute($sel);
+}
+
+
 $req="select table_name from all_tables where table_name ='DWH_ADMIN_PARAMETERS' ";
 $sel = oci_parse($dbh_etl,$req);
 oci_execute($sel);

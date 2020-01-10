@@ -78,7 +78,7 @@ if ($_POST['action']=='ajouter_ecrf' ) {
 	}
 }
 ?>
-<h1><? print get_translation('MY_ECRF','Mes Formulaires'); ?></h1>
+<h1><? print get_translation('MY_ECRF','Mes Questionnaires'); ?></h1>
 
 <script type="text/javascript" src="javascript_ecrf.js?v=<? print $date_today_unique; ?>"></script>
 
@@ -87,7 +87,7 @@ if ($_POST['action']=='ajouter_ecrf' ) {
 <tr>
 	<td style="vertical-align:top;width:400px;">
 		<h2 onclick="plier_deplier('id_div_creer_ecrf');plier_deplier('id_div_mon_ecrf');" style="cursor:pointer;"><span id="plus_id_div_creer_ecrf">+</span> <? print get_translation('CREATE_ECRF','Créer un Formulaire'); ?></h2>
-		<h2><? print get_translation('MY_ECRF','Mes Formulaires'); ?> :</h2>
+		<h2><? print get_translation('MY_ECRF','Mes Questionnaires'); ?> :</h2>
 		<div id="id_div_liste_ecrf">
 		<?
 		
@@ -336,7 +336,7 @@ if ($_POST['action']=='ajouter_ecrf' ) {
 						
 						".get_translation('PERIOD_OF_EXTRACTION_FROM',"Période d'extraction des données du")." <input type=\"text\" id=\"id_ecrf_start_date\" size=\"12\" value=\"$ecrf_start_date\" placeholder=\"dd/mm/yyyy\" onblur=\" modifier_ecrf_period($ecrf_num_voir)\"> ".get_translation('TO_DATE',"à")." <input  type=\"text\" id=\"id_ecrf_end_date\" size=\"12\" value=\"$ecrf_end_date\" placeholder=\"dd/mm/yyyy\" onblur=\" modifier_ecrf_period($ecrf_num_voir)\">
 						<br>
-						".get_translation('AGE_INTERVAL_OF_EXTRACTION_FROM',"Interval d'âge (en années) pour l'extraction des données de")." <input  type=\"text\" id=\"id_ecrf_start_age\" size=\"3\" value=\"$ecrf_start_age\" onblur=\" modifier_ecrf_period($ecrf_num_voir)\"> ".get_translation('TO_AGE',"à")." <input  type=\"text\" id=\"id_ecrf_end_age\" size=\"3\" value=\"$ecrf_end_age\"  onblur=\" modifier_ecrf_period($ecrf_num_voir)\">
+						".get_translation('AGE_INTERVAL_OF_EXTRACTION_FROM',"Intervalle d'âge (en années) pour l'extraction des données de")." <input  type=\"text\" id=\"id_ecrf_start_age\" size=\"3\" value=\"$ecrf_start_age\" onblur=\" modifier_ecrf_period($ecrf_num_voir)\"> ".get_translation('TO_AGE',"à")." <input  type=\"text\" id=\"id_ecrf_end_age\" size=\"3\" value=\"$ecrf_end_age\"  onblur=\" modifier_ecrf_period($ecrf_num_voir)\">
 						
 						<br/>
 						<br/>
