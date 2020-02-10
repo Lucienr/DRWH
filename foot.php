@@ -32,7 +32,13 @@
 	<a href="log.php"><? print get_translation('LOGS','Logs');?></a> | 
 	<a href="etat_etl.php"><? print get_translation('ETL','ETL');?></a> | 
 	<a href="credit.php"><? print get_translation('CREDITS','Credits');?></a> | 
-	<a href="#" onclick="return false;"><? print get_translation('Lang','Langue');?> : </a><a href="#" onclick="choose_lang('fr');return false;">FR</a> <a href="#" onclick="choose_lang('en');return false;">EN</a> 
+	<a href="#" onclick="return false;"><? print get_translation('Lang','Langue');?> : </a><a href="#" onclick="choose_lang('fr');return false;">FR</a> <a href="#" onclick="choose_lang('en');return false;">EN</a> | 
+	<? 
+	// pour afficher la version de l'application : il somme le nb de caractères pour tous les scripts php, css et js sauf pour parametrage.php et style_local.css 
+	$last_line = exec("wc -c `find $CHEMIN_GLOBAL -maxdepth 1 -type f \\( -iname \"*.php\" ! -iname \"parametrage.php\" -or -iname \"*.css\" ! -iname \"style_local.css\" -or -iname \"*.js\" \\) ` | tail -1"); 
+	$last_line=str_replace(" total","",$last_line);
+	print "v2.5-$last_line";
+	?>
 </div>
 	<div style="display:none;position:fixed;background-color:white;border:1px black solid;  padding:30px;top:300px;left:400px;" id="id_div_connexion">
 		<h1><? print get_translation('PLEASE_RECONNECT','Veuillez vous reconnecter :');?> </h1>
@@ -48,6 +54,8 @@
 		<input type="hidden" id="id_commande_a_rejouer">
 		<input type="button" onclick="connecter();" value="<? print get_translation('CONNEXION','Connexion');?>">
 	</div>
+	<? if (count($_POST)==0) {list($html_features, $javascript_features)=display_info_new_feature();} ?>
+	<? print $html_features; ?>
 	
 	<div style="display:none;position:fixed;background-color:white;border:1px black solid;  padding:30px;top:300px;left:400px;" id="id_div_alerte_info2">
 		<h1><? print get_translation('ALERT','Alerte:');?> </h1>
@@ -79,6 +87,7 @@
 				}
 			});
 		}
+		
 		jQuery(document).ready(function() { 
 			<? 
 			if ($cohort_num_encours!='') { 
@@ -89,6 +98,7 @@
 		//	crontab_alerte_demande_acces () ;
 			crontab_alerte_notification () ;
 			
+		<? print $javascript_features; ?>
 		});
 		$(document).click(function(event) { 
 			if(!$(event.target).closest('#id_div_menu_notification').length) {
@@ -99,9 +109,14 @@
 				}
 			}        
 		})
+		
 	</script>
    	<script type="text/javascript" src="javascript_aide.js"></script>
    	<script type="text/javascript" src="introjs/intro.js"></script>
 </body>
 
 </html> 
+<?
+oci_close ($dbh);
+oci_close ($dbh_etl);
+?>

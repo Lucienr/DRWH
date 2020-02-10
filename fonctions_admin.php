@@ -445,6 +445,7 @@ function get_list_cgu () {
 	oci_execute($sel);
 	while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$cgu_num=$r['CGU_NUM'];
+		$cgu_text='';
 		if ($r['CGU_TEXT']!='') {
 			$cgu_text=$r['CGU_TEXT']->load();
 		}
@@ -468,6 +469,7 @@ function get_last_cgu () {
 	oci_execute($sel);
 	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
 	$cgu_num=$r['CGU_NUM'];
+	$cgu_text='';
 	if ($r['CGU_TEXT']!='') {
 		$cgu_text=$r['CGU_TEXT']->load();
 	}

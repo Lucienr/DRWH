@@ -609,4 +609,6 @@ if ($death_dateclair=='') {
 header('Content-type: application/xml');
 print "$xml";
 
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

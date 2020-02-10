@@ -142,7 +142,7 @@
 							<div style="display:block;position:absolute;background-image:url('images/triangle_blanc.png');background-repeat:no-repeat;background-size:auto;height:11px;width:20px;top: -12px;left: 240px;" ></div>
 							<div onclick="plier_deplier('id_div_envoyer_message_prive');" style="padding:10px;cursor:pointer;"><? print get_translation('SEND_PRIVATE_MESSAGE','Envoyer un message privé'); ?></div>
 							<div id="id_div_envoyer_message_prive" style="display:none;">
-								<select class="chosen-select"  id="id_select_num_user_message_prive">
+								<select class="chosen-select"  id="id_select_num_user_message_prive"  data-placeholder="<? print get_translation('SELECT_A_USER','Sélectionnez un utilisateur'); ?>">
 								<option value=''></option>
 								<optgroup label="Connectés">
 								<?

@@ -105,5 +105,8 @@ if ($tmpresult_num!='') {
 if ($_GET['option']=='print') {
 	print "<script type=\"text/javascript\"> window.print();</script>";
 }
+
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>
 </html>

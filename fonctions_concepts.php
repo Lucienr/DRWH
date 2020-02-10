@@ -1020,6 +1020,7 @@ function repartition_concepts_resumer_texte ($tmpresult_num,$phenotype_genotype,
 	oci_execute($sel);
 	while ($r=oci_fetch_array($sel,OCI_ASSOC+OCI_RETURN_NULLS)) {
 		$concept_str=$r['CONCEPT_STR'];
+		$text='';
   		if ($r['TEXT']) {
 			$text=$r['TEXT']->load();
 		}

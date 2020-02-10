@@ -101,15 +101,15 @@ function create_table_temp_query ($user_num) {
 					  OBJECT_TYPE  VARCHAR(50)
 					)
 					nologging
-					NOPARALLEL ");   
+					 ");   
 		oci_execute($sel);
-		$sel = oci_parse($dbh, "CREATE INDEX DWH_TMP_RESX1_$user_num ON DWH_TMP_RESULT_$user_num  (TMPRESULT_NUM, DOCUMENT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
+		$sel = oci_parse($dbh, "CREATE INDEX DWH_TRES1_$user_num ON DWH_TMP_RESULT_$user_num  (TMPRESULT_NUM, DOCUMENT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
 		oci_execute($sel);
-		$sel = oci_parse($dbh, "CREATE INDEX DWH_TMP_RESX2_$user_num ON DWH_TMP_RESULT_$user_num  (PATIENT_NUM, TMPRESULT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
+		$sel = oci_parse($dbh, "CREATE INDEX DWH_TRES2_$user_num ON DWH_TMP_RESULT_$user_num  (PATIENT_NUM, TMPRESULT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
 		oci_execute($sel);
-		$sel = oci_parse($dbh, "CREATE INDEX DWH_TMP_RESX3_$user_num ON DWH_TMP_RESULT_$user_num  (TMPRESULT_NUM, PATIENT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
+		$sel = oci_parse($dbh, "CREATE INDEX DWH_TRES3_$user_num ON DWH_TMP_RESULT_$user_num  (TMPRESULT_NUM, PATIENT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
 		oci_execute($sel);
-		$sel = oci_parse($dbh, "CREATE INDEX DWH_TMP_RESX4_$user_num ON DWH_TMP_RESULT_$user_num  (TMPRESULT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
+		$sel = oci_parse($dbh, "CREATE INDEX DWH_TRES4_$user_num ON DWH_TMP_RESULT_$user_num  (TMPRESULT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
 		oci_execute($sel);
 	}
 	
@@ -133,15 +133,15 @@ function create_table_temp_query ($user_num) {
 					  OBJECT_TYPE  VARCHAR(50)
 					)
 					nologging
-					NOPARALLEL ");   
+					 ");   
 		oci_execute($sel);
-		$sel = oci_parse($dbh, "CREATE INDEX DWH_TMP_RESAX1_$user_num ON DWH_TMP_RESULTALL_$user_num  (TMPRESULT_NUM, DOCUMENT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
+		$sel = oci_parse($dbh, "CREATE INDEX DWH_TRESA1_$user_num ON DWH_TMP_RESULTALL_$user_num  (TMPRESULT_NUM, DOCUMENT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
 		oci_execute($sel);
-		$sel = oci_parse($dbh, "CREATE INDEX DWH_TMP_RESAX2_$user_num ON DWH_TMP_RESULTALL_$user_num  (PATIENT_NUM, TMPRESULT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
+		$sel = oci_parse($dbh, "CREATE INDEX DWH_TRESA2_$user_num ON DWH_TMP_RESULTALL_$user_num  (PATIENT_NUM, TMPRESULT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
 		oci_execute($sel);
-		$sel = oci_parse($dbh, "CREATE INDEX DWH_TMP_RESAX3_$user_num ON DWH_TMP_RESULTALL_$user_num  (TMPRESULT_NUM, PATIENT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
+		$sel = oci_parse($dbh, "CREATE INDEX DWH_TRESA3_$user_num ON DWH_TMP_RESULTALL_$user_num  (TMPRESULT_NUM, PATIENT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
 		oci_execute($sel);
-		$sel = oci_parse($dbh, "CREATE INDEX DWH_TMP_RESAX4_$user_num ON DWH_TMP_RESULTALL_$user_num  (TMPRESULT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
+		$sel = oci_parse($dbh, "CREATE INDEX DWH_TRESA4_$user_num ON DWH_TMP_RESULTALL_$user_num  (TMPRESULT_NUM) NOLOGGING TABLESPACE TS_IDX NOPARALLEL");
 		oci_execute($sel);
 	}
 }
@@ -154,8 +154,6 @@ function add_atomic_query ($num_filtre,$query_type) {
         //if ($num_filtre>1) {
 	        print "<div style=\"position:absolute;left:400px;z-index:22;top:-6;color:grey;cursor:pointer;\" onclick=\"supprimer_formulaire_texte_vierge($num_filtre);\">x</div>";
 	//}
-
-
         if ($query_type=='text' || $query_type=='texte' || $query_type=='') {
         	$style_display_texte='inline';
         } else {
@@ -210,6 +208,13 @@ function add_atomic_query ($num_filtre,$query_type) {
 		<span id=\"id_span_filtre_texte_reecrire_$num_filtre\" class=\"filtre_texte_ouvrir_avance\" style=\"display:$style_display_texte;\">
 		      - <a onclick=\"reecrire_requete('$num_filtre');\"> ".get_translation('REWRITE_SEARCH_QUERY','Réécrire la requête')."</a>
 		</span>
+		<span id=\"id_span_link_quick_test_fulltext_query_$num_filtre\" class=\"filtre_texte_ouvrir_avance\" style=\"display:$style_display_texte;\">
+		      - <a id=\"id_link_quick_test_fulltext_query\" onclick=\"quick_test_fulltext_query('$num_filtre');\"> ".get_translation('TEST_QUERY','Tester la requête')."</a>
+		</span>
+		<span id=\"id_span_outils_structured_data_$num_filtre\" class=\"filtre_texte_ouvrir_avance\" style=\"display:$style_display_code;\">
+		      - <a id=\"id_link_outils_structured_data\" href=\"outils.php?action=outil_thesaurus\" target=\"_blank\"> ".get_translation('EXPLORE_STRUCTURED_DATA','Explorer les thesaurus')."</a>
+		</span>
+		
                  <div id=\"id_div_filtre_texte_avance_$num_filtre\" class=\"filtre_texte_avance\">
                			 <table border=\"0\">
                			 <tr><td>".get_translation('EXCLUDE','Exclure')." : </td><td><input type=\"checkbox\" id=\"id_input_filtre_exclure_$num_filtre\" name=\"exclure_$num_filtre\" value=\"1\"> </td></tr>
@@ -256,8 +261,10 @@ function add_atomic_query ($num_filtre,$query_type) {
                         <input type=\"hidden\" id=\"id_input_nbresult_atomique_$num_filtre\" name=\"texte_nbresult_$num_filtre\" value=\"\">
                         <input type=\"hidden\" id=\"id_query_key_$num_filtre\" name=\"query_key_$num_filtre\" value=\"\">
                         <input type=\"hidden\" id=\"id_input_filtre_num_filtre_$num_filtre\" name=\"num_filtre_$num_filtre\" value=\"$num_filtre\">
-                        <input type=\"hidden\" id=\"id_query_type_$num_filtre\" name=\"query_type_$num_filtre\" value=\"$query_type\">
-        </div>";
+                        <input type=\"hidden\" id=\"id_query_type_$num_filtre\" name=\"query_type_$num_filtre\" value=\"$query_type\">";
+                
+                
+         print "</div>";
 }
 
 function get_list_departments ($filter_master, $user_num) {
@@ -1381,7 +1388,9 @@ function creer_requete_sql_mvt ($xml) {
 			}
        			$select_sql="$query_select_base from dwh_patient_mvt where 1=1 $filtre_sql  ";
 		//	$select_sql.="and patient_num not in (select patient_num from DWH_PATIENT_OPPOSITION)";
-        	} 
+        	} else {
+        		$query_key='';
+        	}
         }
         return array($query_key,$datamart_num,$select_sql);
 }
@@ -1758,7 +1767,8 @@ function list_query_history ($datamart_num,$user_num) {
                 $query_date=$r['DATE_REQUETE_CHAR'];
                 $query_num=$r['QUERY_NUM'];
                 $pin=$r['PIN'];
-                if ($r['XML_QUERY']) {
+                $xml_query='';
+                if ($r['XML_QUERY']!='') {
                         $xml_query=$r['XML_QUERY']->load();
                 }
 		$readable_query=readable_query ($xml_query) ;
@@ -1822,7 +1832,8 @@ function get_json_query_history ($datamart_num,$user_num,$start,$length,$draw,$s
                 $query_date=$r['DATE_REQUETE_CHAR'];
                 $query_num=$r['QUERY_NUM'];
                 $pin=$r['PIN'];
-                if ($r['XML_QUERY']) {
+                $xml_query='';
+                if ($r['XML_QUERY']!='') {
                         $xml_query=$r['XML_QUERY']->load();
                 }
 		$readable_query=readable_query ($xml_query) ;
@@ -1857,6 +1868,7 @@ function lister_requete_cohort ($cohort_num) {
                 $query_date=$r['DATE_REQUETE_CHAR'];
                 $query_num=$r['QUERY_NUM'];
                 $pin=$r['PIN'];
+                $xml_query='';
                 if ($r['XML_QUERY']) {
                         $xml_query=$r['XML_QUERY']->load();
                 }
@@ -3576,7 +3588,8 @@ function generer_resultat_requete_sauve($query_num) {
 	$sel = oci_parse($dbh, "select xml_query , to_char(QUERY_DATE,'DD/MM/YYYY HH24:MI') as DATE_REQUETE_CHAR, QUERY_DATE,user_num from dwh_query where query_num=$query_num");   
 	oci_execute($sel);
 	$r = oci_fetch_array($sel, OCI_ASSOC);
-	if ($r['XML_QUERY']) {
+	$xml='';
+	if ($r['XML_QUERY']!='') {
 		$xml=$r['XML_QUERY']->load();
 	}
 	$user_num_session=$r['USER_NUM'];
@@ -3686,14 +3699,26 @@ function recuperer_resultat ($tmpresult_num,$json_full_text_queries,$i_deb,$filt
 	$tableau_liste_synonyme=recupere_liste_concept_full_texte ($json_full_text_queries,50);
         $tableau_resultat=array();
         $i_fin=$i_deb+$modulo_ligne_ajoute;
-        $sel = oci_parse($dbh,"select patient_num from (select rownum i, patient_num from dwh_patient where patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num $filtre_sql $filter_query_user_right) and rownum<=$i_fin  order by patient_num desc ) t where i>$i_deb and i<=$i_fin  order by i asc" );   
+        
+        $tab_patient_num=array();
+        $req_ancien="select patient_num from (select rownum i, patient_num from dwh_patient where patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num $filtre_sql $filter_query_user_right) and rownum<=$i_fin  order by patient_num desc ) t where i>$i_deb and i<=$i_fin  order by i asc" ;   
+        
+        $req="select i, patient_num from (select  rownum i, patient_num,lastname from (select patient_num,lastname from dwh_patient where patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num $filtre_sql  $filter_query_user_right)  order by lastname, patient_num desc ) t)  where i>$i_deb and i<=$i_fin ";
+        
+        $sel = oci_parse($dbh,$req);   
         oci_execute($sel);
         while ($row = oci_fetch_array($sel, OCI_ASSOC)) {
-                $patient_num=$row['PATIENT_NUM'];
+        	$tab_patient_num[]=$row['PATIENT_NUM'];
+        }
+        $list_patient_num=implode(",",$tab_patient_num);
+        $tableau_patient=get_table_objects_in_result ($tmpresult_num,$user_num_session, " and patient_num in ($list_patient_num)  $filtre_sql $filter_query_user_right","patient");
+       
+        foreach ($tab_patient_num as $patient_num) {
                 $nb_doc_par_patient=0;
                 $tableau_document_origin_code_deja_fait=array();
                  $objects=array();
-                $list_documents_in_result=get_table_objects_in_result ($tmpresult_num,$user_num_session, "and patient_num=$patient_num $filtre_sql $filter_query_user_right");
+                //$list_documents_in_result=get_table_objects_in_result ($tmpresult_num,$user_num_session, "and patient_num=$patient_num $filtre_sql $filter_query_user_right");
+                $list_documents_in_result=$tableau_patient[$patient_num];
 		foreach ($list_documents_in_result as $object_num  => $objects) {
 		        $nb_doc_par_patient++;
 			if ($objects['object_type']=='document') {
@@ -3724,7 +3749,6 @@ function recuperer_resultat ($tmpresult_num,$json_full_text_queries,$i_deb,$filt
 		                        $document_date=$objects['document_date'];
 		                        $document_origin_code=$objects['document_origin_code'];
 		                        $author=$objects['author'];
-		                        
 		                        $tableau_resultat[$patient_num][$document_num]['object_type']="document";
 		                        $tableau_resultat[$patient_num][$document_num]['title']=$title;
 		                        $tableau_resultat[$patient_num][$document_num]['document_date']=$document_date;
@@ -3791,7 +3815,7 @@ function ouvrir_plus_document ($tmpresult_num,$liste_object,$json_full_text_quer
         $res="";
         if ($liste_object!='') {
         	$req_filtre_doc="and document_num in ($liste_object)";
-                $list_documents_in_result=get_table_objects_in_result ($tmpresult_num,$user_num_session,$req_filtre_doc);
+                $list_documents_in_result=get_table_objects_in_result ($tmpresult_num,$user_num_session,$req_filtre_doc,'document');
 		foreach ($list_documents_in_result as $object_num  => $objects) {
 			if ($objects['object_type']=='document') {
 	                        $document_num=$object_num;
@@ -3850,8 +3874,8 @@ function ouvrir_plus_document ($tmpresult_num,$liste_object,$json_full_text_quer
 		                        $appercu.=" ".get_translation('ENCOUNTER','Séjour')." N° $encounter_num<br>";
 		                }
 			        $appercu.="Mouvement de type $type_mvt dans l'unité $unit_code-$unit_str ";
-		                $res.= "<div id=\"id_tr_document_$document_num\" class=\"document_resultat\">";
-			                $res.= "<div id=\"id_button_$document_num\" class=\"div_voir_document\"><a class=\"voir_document\" href=\"#\" onclick=\"afficher_mvt('$document_num','$datamart_num');return false;\">";
+		                $res.= "<div id=\"id_tr_document_$mvt_num\" class=\"document_resultat\">";
+			                $res.= "<div id=\"id_button_$mvt_num\" class=\"div_voir_document\"><a class=\"voir_document\" href=\"#\" onclick=\"afficher_mvt('$mvt_num','$datamart_num');return false;\">";
 			                
 				                $res.= "Mouvement du $entry_date au $out_date - $unit_str";
 				                $res.=" :</a>";
@@ -3890,6 +3914,7 @@ function appercu_liste_document ($liste_document,$concept_str) {
 	                $department_num=$row_doc['DEPARTMENT_NUM'];
 	                $id_cle=$document_num.$id_concept_str;
 	                if ($i<=5) {
+	                	$text='';
 		                if ($row_doc['TEXT']!='') {
 		                        $text=$row_doc['TEXT']->load();             
 		                }
@@ -3930,8 +3955,25 @@ $cohort_num_encours='';
 function get_patient ($patient_num,$option='') {
 	global $dbh,$user_num_session;
 	$tab_patient=array();
+	if ($patient_num=='VIRTUAL') {
+	        $tab_patient['LASTNAME']='VIRTUAL';
+	        $tab_patient['FIRSTNAME']='';
+	        $tab_patient['BIRTH_DATE']='';
+	        $tab_patient['RESIDENCE_ADDRESS']='';
+	        $tab_patient['RESIDENCE_CITY']='';
+	        $tab_patient['PHONE_NUMBER']='';
+	        $tab_patient['ZIP_CODE']='';
+	        $tab_patient['MAIDEN_NAME']='';
+	        $tab_patient['DEATH_DATE']='';
+	        $tab_patient['BIRTH_ZIP_CODE']='';
+	        $patient_num='';
+	}
 	if ($patient_num!='') {
-     		$autorisation_voir_patient=autorisation_voir_patient ($patient_num,$user_num_session) ;
+		if ($option=='authorized') { // to optimize the treatment, some access are automatically authorized : the filter has been done before
+	     		$autorisation_voir_patient='ok';
+	     	} else {
+	     		$autorisation_voir_patient=autorisation_voir_patient ($patient_num,$user_num_session) ;
+	     	}
      		if ($autorisation_voir_patient=='ok') {
 			$sel_patient= oci_parse($dbh,"select 
 				patient_num,
@@ -3967,6 +4009,7 @@ function get_patient ($patient_num,$option='') {
 	                $autorisation_voir_patient_nominative=autorisation_voir_patient_nominative ($patient_num,$user_num_session);
 	                if ($autorisation_voir_patient_nominative!='ok' && $option!='for_document_anonymization') {
                                 $tab_patient['LASTNAME']=get_translation('PATIENT','Patient');
+                                $tab_patient['HOSPITAL_PATIENT_ID']="DRWH-$patient_num";
                                 $tab_patient['FIRSTNAME']='';
                                 $tab_patient['BIRTH_DATE']='';
                                 $tab_patient['RESIDENCE_ADDRESS']='';
@@ -3987,9 +4030,33 @@ function afficher_patient ($patient_num,$option,$document_num,$cohort_num,$log_c
         global $dbh,$datamart_num,$user_num_session;
         $nominative=0;
         $acces=0;
-        $autorisation_voir_patient=autorisation_voir_patient ($patient_num,$user_num_session) ;
-        if ($patient_num!='' && $autorisation_voir_patient=='ok') {
-       		$tab_patient=get_patient ($patient_num);
+        if ($patient_num=='VIRTUAL') {
+                $hospital_patient_id='ipp';         
+                $lastname='virtual'; 
+                $firstname='';               
+                $birth_date='';             
+                $sex='';
+                $age_an=''; 
+                $age_mois='';
+                $age_an_deces=''; 
+                $age_mois_deces='';            
+                $death_date='';                  
+                $zip_code='';               
+                $phone_number='';         
+        }
+        if ($option=='resultat' || $option=='cohort' || $option=='result_excel') {
+        	$option_get_patient='authorized';
+        } else {
+        	$option_get_patient='';
+        }
+        
+        $tab_patient=array();
+        //$autorisation_voir_patient=autorisation_voir_patient ($patient_num,$user_num_session) ;
+        if ($patient_num!='') { // && $autorisation_voir_patient=='ok'
+        	// autorisation done in get_patient
+       		$tab_patient=get_patient ($patient_num,$option_get_patient);
+       	}
+	if (count($tab_patient)>0) {
                 $hospital_patient_id=$tab_patient['HOSPITAL_PATIENT_ID'];         
                 $lastname=$tab_patient['LASTNAME']; 
                 if ($option=='patient' && $tab_patient['MAIDEN_NAME']!='' && $tab_patient['MAIDEN_NAME']!=$lastname) {
@@ -5337,6 +5404,35 @@ function nettoyer_pour_inserer ($text) {
         return $text;
 }
 
+function verif_need_to_modify_password ($user_num) {
+	global $dbh,$FORCE_MODIFY_PASSWORD,$MODIFY_PASSWORD_AFTER_NB_DAYS;
+	
+	if ($MODIFY_PASSWORD_AFTER_NB_DAYS=='' || $MODIFY_PASSWORD_AFTER_NB_DAYS==0) {
+		$MODIFY_PASSWORD_AFTER_NB_DAYS=180;
+	}
+	if ($FORCE_MODIFY_PASSWORD=='ok' || $FORCE_MODIFY_PASSWORD=='1') {
+		if ($user_num!='') {
+			$sel=oci_parse($dbh,"select DEFAULT_PASSWORD,sysdate-LAST_MODIF_PASSWORD_DATE as nb_days from dwh_user where user_num='$user_num' ");
+			oci_execute($sel);
+			$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+			$default_password=$r['DEFAULT_PASSWORD'];
+			$nb_days=$r['NB_DAYS'];
+			$res='';
+			if ($nb_days>$MODIFY_PASSWORD_AFTER_NB_DAYS) {
+				$res='modify';
+			}
+			if ($default_password==1) {
+				$res='modify';
+			}
+			return $res;
+		} else {
+			return "erreur";
+		}
+	} else {
+		return '';
+	}
+}
+
 function verif_connexion($login,$passwd,$option) {
     global $dbh,$dbannuaire;
     if ($login!='' && $passwd!='') {
@@ -5346,13 +5442,16 @@ function verif_connexion($login,$passwd,$option) {
             if ($result=='nothing') {
                 $sel=oci_parse($dbh,"select count(*) as verif_passwd from dwh_user where login='$login' and passwd='".md5($passwd)."' ");
                 oci_execute($sel);
-				$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+		$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
                 $verif_passwd=$r['VERIF_PASSWD'];
                 if ($verif_passwd==0) {
                 	$result='nothing';
                 } else {
                 	$result='ok';
+            		$_SESSION['dwh_connexion_mode']='bdd';
                 }
+            } else {
+            		$_SESSION['dwh_connexion_mode']='ldap';
             }
             if ($result!='nothing') {
                 $sel=oci_parse($dbh,"select user_profile,user_num from dwh_user_profile where user_num in (select user_num from dwh_user where login='$login')");
@@ -5370,7 +5469,7 @@ function verif_connexion($login,$passwd,$option) {
                         $erreur='right';
                 }
             } else {
-				$erreur='passwd';
+		$erreur='passwd';
             }
             
             if ($option=='page_connexion') {
@@ -5382,17 +5481,17 @@ function verif_connexion($login,$passwd,$option) {
                 } else if ($erreur=='passwd') {
                         $erreur="<strong style=\"color:#990000;\">".get_translation('LOGIN_OR_PASSWORD_INCORRECT','Identifiant ou mot de passe incorrect')."</strong>";
                         update_user_attempt($login,'','increment');
-    					$time_left=get_timelimit_connexion ($login);
-						if ($time_left<-1) {
-							$erreur.= "<br><font style='color:#990000'>You have to wait ".abs($time_left)." seconds before retrying</font>";
-						}
+			$time_left=get_timelimit_connexion ($login);
+			if ($time_left<-1) {
+				$erreur.= "<br><font style='color:#990000'>You have to wait ".abs($time_left)." seconds before retrying</font>";
+			}
                 }
             }
         } else {
-			$time_left=get_timelimit_connexion ($login);
-			if ($time_left<-1) {
-				$erreur= "<br><font style='color:#990000'>You have to wait ".abs($time_left)." seconds before retrying</font>";
-			}
+		$time_left=get_timelimit_connexion ($login);
+		if ($time_left<-1) {
+			$erreur= "<br><font style='color:#990000'>You have to wait ".abs($time_left)." seconds before retrying</font>";
+		}
         }
     } else {
             $erreur='passwd';
@@ -5593,7 +5692,7 @@ function ajouter_user ($login,$lastname,$firstname,$mail,$expiration_date,$liste
                 $res=$user_num;
         } else {
                 if ($lastname!='') {
-                        $user_num=get_uniqid();
+                        $user_num=get_uniqid('DWH_USER_SEQ');
                         
                         $req="insert into dwh_user  (user_num , lastname ,firstname ,mail ,login,passwd,creation_date,expiration_date) values ($user_num,'$lastname','$firstname','$mail','$login','',sysdate,to_date('$expiration_date','DD/MM/YYYY'))";
                         $ins=oci_parse($dbh,$req);
@@ -5618,8 +5717,8 @@ function ajouter_user ($login,$lastname,$firstname,$mail,$expiration_date,$liste
                         }
                         if ($log=='ok') {
                                 print "<strong style=\"color:green\">".get_translation('USER_SUCESSFULY_REGISTERED','utilisateur enregistré avec succès')."</strong>";
+                       		$res=$user_num;
                         }
-                        $res=$user_num;
                 }
         }
         return $res;
@@ -6540,6 +6639,7 @@ function afficher_dans_document_tal($document_num,$user_num) {
 	        $sel_texte = oci_parse($dbh,"select displayed_text from dwh_document where document_num=$document_num" );   
 	        oci_execute($sel_texte);
 	        $row_texte = oci_fetch_array($sel_texte, OCI_ASSOC);
+	        $texte_affichage_origine='';
 	        if ($row_texte['DISPLAYED_TEXT']!='') {
 	                $texte_affichage_origine=$row_texte['DISPLAYED_TEXT']->load();         
 	        }
@@ -6548,6 +6648,7 @@ function afficher_dans_document_tal($document_num,$user_num) {
 	        $sel_texte = oci_parse($dbh,"select text,context,certainty from dwh_text where document_num=$document_num and context not in ('text') and certainty!=0" );   
 	        oci_execute($sel_texte);
 	        while ($row_texte = oci_fetch_array($sel_texte, OCI_ASSOC)) {
+	        	$text='';
 		        if ($row_texte['TEXT']!='') {
 		                $text=$row_texte['TEXT']->load();         
 		        }
@@ -9259,6 +9360,7 @@ function update_column_enrich_text($document_num,$context,$certainty) {
 	$stmt=oci_parse($dbh,$requete_cui);
 	oci_execute($stmt);
 	$row=oci_fetch_array($stmt,OCI_RETURN_NULLS+OCI_ASSOC);
+	$text='';
 	if ($row['TEXT']!='') {
 		$text=$row['TEXT']->load();
 	}
@@ -9537,7 +9639,10 @@ function lister_mes_demandes ($user_num,$option,$action) {
                 $user_num_request=$r['USER_NUM_REQUEST'];
                 $department_num=$r['DEPARTMENT_NUM'];
                 $nuser_num_department_manager=$r['NUSER_NUM_DEPARTMENT_MANAGER'];
-                $readable_query=$r['READABLE_QUERY']->load();
+                 $readable_query='';
+                if ($r['READABLE_QUERY']!='') {
+	                $readable_query=$r['READABLE_QUERY']->load();
+	        }
                 $request_access_date_char=$r['REQUEST_ACCESS_DATE_CHAR'];
                 $viewed_by_manager_notok_date=$r['VIEWED_BY_MANAGER_NOTOK_DATE'];
                 $viewed_by_manager_ok_date=$r['VIEWED_BY_MANAGER_OK_DATE'];
@@ -9608,7 +9713,10 @@ function display_a_request ($request_access_num) {
 		$user_num_request=$r['USER_NUM_REQUEST'];
 		$department_num=$r['DEPARTMENT_NUM'];
 		$nuser_num_department_manager=$r['NUSER_NUM_DEPARTMENT_MANAGER'];
-		$readable_query=$r['READABLE_QUERY']->load();
+                $readable_query='';
+                if ($r['READABLE_QUERY']!='') {
+			$readable_query=$r['READABLE_QUERY']->load();
+	        }
 		$request_access_date_char=$r['REQUEST_ACCESS_DATE_CHAR'];
 		$manager_agreement=$r['MANAGER_AGREEMENT'];
 		$manager_agreement_date_char=$r['MANAGER_AGREEMENT_DATE_CHAR'];
@@ -10521,7 +10629,10 @@ function partager_requete_en_cours ($user_num_sent,$liste_num_user_partage,$noti
 	$sel=oci_parse($dbh,"select xml_query,datamart_num from dwh_query where query_num=$query_num and user_num=$user_num_sent");
 	oci_execute($sel);
 	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
-	$xml_query=$r['XML_QUERY']->load();
+	$xml_query='';
+	if ($r['XML_QUERY']!='') {
+		$xml_query=$r['XML_QUERY']->load();
+	}
 	$datamart_num=$r['DATAMART_NUM'];
 	
 	$tab_num_user_partage=explode(",",$liste_num_user_partage);
@@ -10825,6 +10936,8 @@ function get_query ($query_num) {
 	$query=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
 	if ($query['XML_QUERY']) {
 		$query['XML_QUERY']=$query['XML_QUERY']->load();
+	} else {
+		$query['XML_QUERY']='';
 	}
 	return $query;
 }
@@ -10837,6 +10950,8 @@ function get_user_queries ($user_num) {
 	$query=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
 	if ($query['XML_QUERY']!='') {
 		$query['XML_QUERY']=$query['XML_QUERY']->load();
+	} else {
+		$query['XML_QUERY']='';
 	}
 	return $query;
 }
@@ -10898,7 +11013,7 @@ function get_document ($document_num,$option_text) {
         $tableau_document['unit_num']=$row_doc['UNI_NUM'];
         $tableau_document['unit_code']=$row_doc['UNIT_CODE'];
         $tableau_document['encounter_num']=$row_doc['ENCOUNTER_NUM'];
-        
+        $tableau_document['displayed_text']='';
         if ($row_doc['DISPLAYED_TEXT']!='') {
 		$tableau_document['displayed_text']=$row_doc['DISPLAYED_TEXT']->load();
         }
@@ -10906,6 +11021,7 @@ function get_document ($document_num,$option_text) {
 		$sel=oci_parse($dbh,"select text ,trunc(age_patient) as age_patient, trunc(age_patient*12) as age_patient_month from dwh_text where  document_num=$document_num and context='text' and certainty=0" );   
 	        oci_execute($sel);
 	        $row_doc = oci_fetch_array($sel, OCI_ASSOC);
+       		$tableau_document['text']='';
 	        if ($row_doc['TEXT']!='') {
 			$tableau_document['text']=$row_doc['TEXT']->load();
 	        }
@@ -11085,7 +11201,7 @@ function get_table_objects_in_result_ancien ($tmpresult_num,$user_num,$filter=''
 	return  $tableau_document;
 }
 
-function get_table_objects_in_result ($tmpresult_num,$user_num,$filter='') {
+function get_table_objects_in_result ($tmpresult_num,$user_num,$filter='',$patient_or_document) {
 	global $dbh;
 	$tableau_document=array();
 
@@ -11097,39 +11213,73 @@ where  context='text' and certainty=0 and document_num in (SELECT  document_num 
         oci_execute($sel);
         while ($row_doc = oci_fetch_array($sel, OCI_ASSOC)) {
         	$document_num=$row_doc['DOCUMENT_NUM'];
-		$tableau_document[$document_num]['object_type']='document';
-	        $tableau_document[$document_num]['patient_num']=$row_doc['PATIENT_NUM'];
-	        $tableau_document[$document_num]['document_num']=$row_doc['DOCUMENT_NUM'];
-	        $tableau_document[$document_num]['title']=$row_doc['TITLE'];
-	        $tableau_document[$document_num]['document_date']=$row_doc['DOCUMENT_DATE_CHAR'];
-	        $tableau_document[$document_num]['author']=$row_doc['AUTHOR'];
-	        $tableau_document[$document_num]['document_origin_code']=$row_doc['DOCUMENT_ORIGIN_CODE'];
-	        
-	        if ($row_doc['TEXT']!='') {
-			$tableau_document[$document_num]['text']=$row_doc['TEXT']->load();
-	        }
-	        
-                if ($_SESSION['dwh_droit_anonymized']=='ok') {
-			$tableau_document[$document_num]['author']='[AUTHOR]';
-                }
-		if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
-			$tableau_document[$document_num]['author']='[AUTHOR]';
-			$tableau_document[$document_num]['document_date']='[DATE]';
+        	$patient_num=$row_doc['PATIENT_NUM'];
+        	if ($patient_or_document=='patient') { 
+        		$tableau_document[$patient_num][$document_num]['object_type']='document';
+		        $tableau_document[$patient_num][$document_num]['patient_num']=$row_doc['PATIENT_NUM'];
+		        $tableau_document[$patient_num][$document_num]['document_num']=$row_doc['DOCUMENT_NUM'];
+		        $tableau_document[$patient_num][$document_num]['title']=$row_doc['TITLE'];
+		        $tableau_document[$patient_num][$document_num]['document_date']=$row_doc['DOCUMENT_DATE_CHAR'];
+		        $tableau_document[$patient_num][$document_num]['author']=$row_doc['AUTHOR'];
+		        $tableau_document[$patient_num][$document_num]['document_origin_code']=$row_doc['DOCUMENT_ORIGIN_CODE'];
+		        
+			$tableau_document[$patient_num][$document_num]['text']='';
+		        if ($row_doc['TEXT']!='') {
+				$tableau_document[$patient_num][$document_num]['text']=$row_doc['TEXT']->load();
+		        }
+		        
+	                if ($_SESSION['dwh_droit_anonymized']=='ok') {
+				$tableau_document[$patient_num][$document_num]['author']='[AUTHOR]';
+	                }
+			if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
+				$tableau_document[$patient_num][$document_num]['author']='[AUTHOR]';
+				$tableau_document[$patient_num][$document_num]['document_date']='[DATE]';
+			}
+		        $tableau_document[$patient_num][$document_num]['age_patient']=$row_doc['AGE_PATIENT'];
+		        $tableau_document[$patient_num][$document_num]['age_patient_year']=$row_doc['AGE_PATIENT'];
+		        $tableau_document[$patient_num][$document_num]['age_patient_month']=$row_doc['AGE_PATIENT_MONTH'];
+        	} else {
+			$tableau_document[$document_num]['object_type']='document';
+		        $tableau_document[$document_num]['patient_num']=$row_doc['PATIENT_NUM'];
+		        $tableau_document[$document_num]['document_num']=$row_doc['DOCUMENT_NUM'];
+		        $tableau_document[$document_num]['title']=$row_doc['TITLE'];
+		        $tableau_document[$document_num]['document_date']=$row_doc['DOCUMENT_DATE_CHAR'];
+		        $tableau_document[$document_num]['author']=$row_doc['AUTHOR'];
+		        $tableau_document[$document_num]['document_origin_code']=$row_doc['DOCUMENT_ORIGIN_CODE'];
+		        
+			$tableau_document[$document_num]['text']='';
+		        if ($row_doc['TEXT']!='') {
+				$tableau_document[$document_num]['text']=$row_doc['TEXT']->load();
+		        }
+		        
+	                if ($_SESSION['dwh_droit_anonymized']=='ok') {
+				$tableau_document[$document_num]['author']='[AUTHOR]';
+	                }
+			if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
+				$tableau_document[$document_num]['author']='[AUTHOR]';
+				$tableau_document[$document_num]['document_date']='[DATE]';
+			}
+		        $tableau_document[$document_num]['age_patient']=$row_doc['AGE_PATIENT'];
+		        $tableau_document[$document_num]['age_patient_year']=$row_doc['AGE_PATIENT'];
+		        $tableau_document[$document_num]['age_patient_month']=$row_doc['AGE_PATIENT_MONTH'];
 		}
-	        $tableau_document[$document_num]['age_patient']=$row_doc['AGE_PATIENT'];
-	        $tableau_document[$document_num]['age_patient_year']=$row_doc['AGE_PATIENT'];
-	        $tableau_document[$document_num]['age_patient_month']=$row_doc['AGE_PATIENT_MONTH'];
         }
 
         $req="select  
         		mvt_num,
+        		patient_num,
         		encounter_num, 
 			unit_code, 
 			to_char(entry_date,'DD/MM/YYYY HH24:MI') as  entry_date_char,
 			to_char(out_date,'DD/MM/YYYY HH24:MI') out_date , 
-			department_num, unit_num, patient_num, mvt_num, 
-			mvt_entry_mode, mvt_exit_mode, type_mvt, 
-			entry, out, mvt_order,
+			department_num, 
+			unit_num, 
+			mvt_entry_mode, 
+			mvt_exit_mode, 
+			type_mvt, 
+			entry, 
+			out, 
+			mvt_order,
 			round(out_date-entry_date) as mvt_length,
 			entry_date
 			from dwh_patient_mvt 
@@ -11139,24 +11289,43 @@ where  context='text' and certainty=0 and document_num in (SELECT  document_num 
         oci_execute($sel);
         while ($row_doc = oci_fetch_array($sel, OCI_ASSOC)) {
         	$mvt_num=$row_doc['MVT_NUM'];
-		$tableau_document[$mvt_num]['object_type']='mvt';
-		$tableau_document[$mvt_num]['entry_date']=$row_doc['ENTRY_DATE_CHAR'];
-		$tableau_document[$mvt_num]['out_date']=$row_doc['OUT_DATE'];
-		if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
-			$tableau_document[$mvt_num]['entry_date']='[entry_date]';
-			$tableau_document[$mvt_num]['out_date']='[out_date]';
+        	$patient_num=$row_doc['PATIENT_NUM'];
+        	if ($patient_or_document=='patient') { 
+		        $tableau_document[$patient_num][$mvt_num]['patient_num']=$row_doc['PATIENT_NUM'];
+			$tableau_document[$patient_num][$mvt_num]['object_type']='mvt';
+			$tableau_document[$patient_num][$mvt_num]['entry_date']=$row_doc['ENTRY_DATE_CHAR'];
+			$tableau_document[$patient_num][$mvt_num]['out_date']=$row_doc['OUT_DATE'];
+			if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
+				$tableau_document[$patient_num][$mvt_num]['entry_date']='[entry_date]';
+				$tableau_document[$patient_num][$mvt_num]['out_date']='[out_date]';
+			}
+			$tableau_document[$patient_num][$mvt_num]['document_origin_code']='MVT';
+		
+			$tableau_document[$patient_num][$mvt_num]['department_num']=$row_doc['DEPARTMENT_NUM'];
+			$tableau_document[$patient_num][$mvt_num]['encounter_num']=$row_doc['ENCOUNTER_NUM'];
+			$tableau_document[$patient_num][$mvt_num]['type_mvt']=$row_doc['TYPE_MVT'];
+			$tableau_document[$patient_num][$mvt_num]['unit_num']=$row_doc['UNIT_NUM'];
+			$tableau_document[$patient_num][$mvt_num]['unit_code']=$row_doc['UNIT_CODE'];
+        	} else {
+			$tableau_document[$mvt_num]['object_type']='mvt';
+			$tableau_document[$mvt_num]['patient_num']=$row_doc['PATIENT_NUM'];
+			$tableau_document[$mvt_num]['entry_date']=$row_doc['ENTRY_DATE_CHAR'];
+			$tableau_document[$mvt_num]['out_date']=$row_doc['OUT_DATE'];
+			if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
+				$tableau_document[$mvt_num]['entry_date']='[entry_date]';
+				$tableau_document[$mvt_num]['out_date']='[out_date]';
+			}
+			$tableau_document[$mvt_num]['document_origin_code']='MVT';
+		
+			$tableau_document[$mvt_num]['department_num']=$row_doc['DEPARTMENT_NUM'];
+			$tableau_document[$mvt_num]['encounter_num']=$row_doc['ENCOUNTER_NUM'];
+			$tableau_document[$mvt_num]['type_mvt']=$row_doc['TYPE_MVT'];
+			$tableau_document[$mvt_num]['unit_num']=$row_doc['UNIT_NUM'];
+			$tableau_document[$mvt_num]['unit_code']=$row_doc['UNIT_CODE'];
 		}
-		$tableau_document[$mvt_num]['document_origin_code']='MVT';
-	
-		$tableau_document[$mvt_num]['department_num']=$row_doc['DEPARTMENT_NUM'];
-		$tableau_document[$mvt_num]['encounter_num']=$row_doc['ENCOUNTER_NUM'];
-		$tableau_document[$mvt_num]['type_mvt']=$row_doc['TYPE_MVT'];
-		$tableau_document[$mvt_num]['unit_num']=$row_doc['UNIT_NUM'];
-		$tableau_document[$mvt_num]['unit_code']=$row_doc['UNIT_CODE'];
-        
         }
-        
 	return  $tableau_document;
+
 }
 
 
@@ -11212,6 +11381,7 @@ where 1=1 $filter_patient_num $filter_document_num $filter_context $filter_certa
 	        $tableau_document[$document_num]['document_origin_code']=$row_doc['DOCUMENT_ORIGIN_CODE'];
 	        $tableau_document[$document_num]['encounter_num']=$row_doc['ENCOUNTER_NUM'];
 	        
+		$tableau_document[$document_num]['text']='';
 	        if ($row_doc['TEXT']!='') {
 			$tableau_document[$document_num]['text']=$row_doc['TEXT']->load();
 	        }
@@ -11232,6 +11402,7 @@ where 1=1 $filter_patient_num $filter_document_num $filter_context $filter_certa
 			$seldoc=oci_parse($dbh,$req_doc );   
 			oci_execute($seldoc);
 			$r = oci_fetch_array($seldoc, OCI_ASSOC);
+			$tableau_document[$document_num]['displayed_text']='';
 			if ($r['DISPLAYED_TEXT']!='') {
 				$tableau_document[$document_num]['displayed_text']=$r['DISPLAYED_TEXT']->load();
 			}
@@ -11283,6 +11454,7 @@ where 1=1  $filter_patient_num $filter_document_num  $filter_tmpresult_num  $fil
 	        $tableau_document[$document_num]['document_origin_code']=$row_doc['DOCUMENT_ORIGIN_CODE'];
 	        $tableau_document[$document_num]['encounter_num']=$row_doc['ENCOUNTER_NUM'];
 	        
+		$tableau_document[$document_num]['displayed_text']='';
 	        if ($row_doc['DISPLAYED_TEXT']!='') {
 			$tableau_document[$document_num]['displayed_text']=$row_doc['DISPLAYED_TEXT']->load();
 	        }
@@ -11340,13 +11512,8 @@ function search_patient_document ($patient_num,$type_search,$str,$certainty,$con
 			if ($str_query!='') {
 				$req_text="and context='$context' and certainty=$certainty and contains($contains,'$str_query')>0";
 			} 
-		     //   $sel=oci_parse($dbh,"select document_num, document_date from dwh_text where patient_num=$patient_num $req_text   $filter order by document_date desc");
-		     //   oci_execute($sel);
-		     //   while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
-		        
 			$table_document=get_dwh_text('',$patient_num,'',"$filter_query_user_right",$user_num_session,$context,$certainty," $req_text  $filter",'');
 			foreach ($table_document as $document_num => $document) {
-				$document_num=$r['DOCUMENT_NUM'];
 				$tableau_result[]=array('document_num'=>$document_num);
 			}
 			if (count($tableau_result)==0 && $contains=='text') {
@@ -11652,10 +11819,14 @@ function display_my_process ($user_num) {
 
 }
 
-function get_uniqid() {
+function get_uniqid($seq='') {
 	global $dbh;
 	
-	$sel=oci_parse($dbh,"select dwh_seq.nextval as UNIQID from dual ");
+	if ($seq=='') {
+		$seq='dwh_seq';
+	}
+	
+	$sel=oci_parse($dbh,"select $seq.nextval as UNIQID from dual ");
 	oci_execute($sel);
 	$res=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
 	$uniqid=$res['UNIQID'];
@@ -11829,6 +12000,7 @@ function get_list_actu ($filtre_sql) {
 	oci_execute($sel);
 	while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$actu_num=$r['ACTU_NUM'];
+		$actu_text='';
 		if ($r['ACTU_TEXT']!='') {
 			$actu_text=$r['ACTU_TEXT']->load();
 		}
@@ -11847,6 +12019,7 @@ function get_parameters() {
 	$sel=oci_parse($dbh," select contact from DWH_ADMIN_PARAMETERS");
 	oci_execute($sel);
 	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+	$contact='';
 	if ($r['CONTACT']!='') {
 		$contact=$r['CONTACT']->load();
 	}
@@ -11855,4 +12028,81 @@ function get_parameters() {
 
 }
 
+
+function quick_test_fulltext_query($query,$datamart_num,$user_num,$nb_doc) {
+	global $dbh,$liste_service_session,$liste_document_origin_code_session;
+	 $table_result=array();
+	 $tableau_liste_synonyme=array();
+	 if ($query!='') {
+		$filter_query_user_right=filter_query_user_right("dwh_text",$user_num,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+		$query_json=nettoyer_pour_inserer ($query);
+		$query_json=replace_accent($query_json);
+		#	$sel=oci_parse($dbh,"select count(*) as NB from (
+		#                                    select * from dwh_text where context='patient_text' and certainty=1 and  contains(text,'$query', 1)>0 
+		#                                    ) where 
+		#                                  1=1 $filter_query_user_right ");
+		#	oci_execute($sel);
+		#	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+		#	$nb_total_doc=$r['NB'];
+		$quey_datamart='';
+		if ($datamart_num>0) {
+			$quey_datamart="and patient_num in (select patient_num from dwh_datamart_result where datamart_num=$datamart_num)";
+		}
+		
+		$sel=oci_parse($dbh,"select document_num, text,patient_num,to_char(document_date,'DD/MM/YYYY') as document_date_char, document_origin_code 
+		  from dwh_text where context='patient_text' and certainty=1 and  contains(text,'$query', 1)>0 and   rownum<=$nb_doc $filter_query_user_right $quey_datamart order by score (1) desc
+		                            ");
+		oci_execute($sel);
+		while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+			$document_num=$r['DOCUMENT_NUM'];
+			$patient_num=$r['PATIENT_NUM'];
+			$document_date=$r['DOCUMENT_DATE_CHAR'];
+			$document_origin_code=$r['DOCUMENT_ORIGIN_CODE'];
+			$text='';
+			if ($r['TEXT']!='') {
+				$text=$r['TEXT']->load();
+			}
+			$summary=resumer_resultat($text,"{'query':'$query_json','type':'fulltext','synonym':''}",$tableau_liste_synonyme,'text');
+			$table_result[]=array('nb_total_doc'=>$nb_total_doc,'document_num'=> $document_num,'patient_num'=> $patient_num,'document_date'=> $document_date, 'document_origin_code'=> $document_origin_code,  'text'=> $text, 'summary'=>$summary);
+		}
+	}
+	return $table_result;
+}
+
+
+function display_info_new_feature() {
+	$javascript='';
+	$html='';
+	$file=file_get_contents("new_features.json");
+	$table_features=json_decode($file,true);
+	if (json_last_error()!=0) { // si erreur sur fichier json on essaie de le parser 
+	} else {
+		$i=0;
+		foreach ($table_features['list_new_features'] as $feature) {
+			$i++;
+			$id=$feature['id'];
+			$text=utf8_decode($feature['text']);
+			$text=preg_replace("/\"/"," ",$text);
+			$text=preg_replace("/\n/","<br>",$text);
+			$javascript.= "if(jQuery('#$id').length){ position_info_new_feature('$id',\"<table><tr><td align='right'>x</td></tr><tr><td></strong>$text</td></tr></table>\",$i);}";
+			
+			$html.="<div class=\"info_new_feature\" id=\"id_div_info_new_feature_$i\" onclick=\"plier('id_div_info_new_feature_$i');\">
+				<div style=\"display:block;position:absolute;background-color:transparent;height:11px;width:20px;top: -12px;left: 40px;color:red;padding:0px;\">&#9650;</div>
+				<span id=\"id_span_info_new_feature_$i\"></span>
+			</div>";
+
+		}
+	}
+	return array($html,$javascript);
+}
+
+	
+function get_age_patient ($patient_num, $document_date,$unit) {
+	global $dbh;
+	$sel=oci_parse($dbh,"select round((to_date('$document_date','DD/MM/YYYY')-birth_date)/365,1) as age from dwh_patient where patient_num=$patient_num ");
+	oci_execute($sel);
+	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
+	$age=$r['AGE'];
+	return $age;
+}
 ?>

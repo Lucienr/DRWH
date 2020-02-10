@@ -148,7 +148,7 @@ $nb_patient_inclus_par_moi=$r['NB_PATIENT_INCLUS_PAR_MOI'];
 		<br>
 		<? print get_translation('MODIFY_MY_LOCAL_PASSWORD','Modifier mon mot de passe local'); ?> : 
 		<span id=id_span_passwd_1 style="display:inline"><input type="password" id="id_mon_password1"> <input type=button value=valider class="input_texte" onclick="plier('id_span_passwd_1');deplier('id_span_passwd_2','inline');"></span>
-		<span id=id_span_passwd_2 style="display:none"><? print get_translation('SECOND_INPUT_CONFIRMATION','2ieme saisie'); ?> <input type="password" id="id_mon_password2"> <input type=button class="input_texte" value="<? print get_translation('CONFIRM_MODIFICATION_PASSWORD','Confirmer'); ?>"  onclick="modifier_passwd();"></span>
+		<span id=id_span_passwd_2 style="display:none"><? print get_translation('SECOND_INPUT_CONFIRMATION','2ieme saisie'); ?> <input type="password" id="id_mon_password2"> <input type=button class="input_texte" value="<? print get_translation('CONFIRM_MODIFICATION_PASSWORD','Confirmer'); ?>"  onclick="modifier_passwd('');"></span>
 		<br>
 		<span id="id_modifmdp_result"></span>
 		<br>

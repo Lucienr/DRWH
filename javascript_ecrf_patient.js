@@ -169,8 +169,20 @@ function filtre_patient_text_ecrf (patient_num) {
 	}
 }
 
+window.onscroll = function() {
+	if ($("#id_afficher_document_ecrf").css('display')=='none' && jQuery('#id_afficher_list_document_ecrf').html()=='') {
+		if (document.getElementById('id_div_ecrf_search_engine')) {
+		    var scroll = (document.documentElement.scrollTop || document.body.scrollTop);
+		    if(scroll>304)
+			document.getElementById('id_div_ecrf_search_engine').style.top = eval(scroll-304)+'px';
+		    else if(scroll<304 || scroll == 304)
+			document.getElementById('id_div_ecrf_search_engine').style.top = '0px';
+		}
+	} 
+}
 
-function afficher_document_patient_ecrf(document_num,id_voir,requete,k) {
+function afficher_document_patient_ecrf(ecrf_item_num,document_num,id_voir,requete,k) {
+	jQuery('#id_afficher_document_ecrf').css('display','block');
 	jQuery(".tr_document_patient").css("backgroundColor","#ffffff");
 	jQuery(".tr_document_patient").css("fontWeight","normal");
 	jQuery(".tr_document_patient").css("color","black");
@@ -196,33 +208,27 @@ function afficher_document_patient_ecrf(document_num,id_voir,requete,k) {
 		success: function(requester){
 			var contenu=requester;
 			if (contenu=='deconnexion') {
-				afficher_connexion("afficher_document_patient_ecrf ('"+document_num+"','"+id_voir+"','"+requete+"')");
+				afficher_connexion("afficher_document_patient_ecrf ('"+ecrf_item_num+"','"+document_num+"','"+id_voir+"','"+requete+"','"+k+"')");
 				jQuery("#"+id_voir).html(""); 
 			} else {
-				jQuery("#"+id_voir).html("<img src='images/arrow_right_bottom.png'><br>"+contenu); 
-				if (jQuery('#id_afficher_list_document_ecrf').css('display')=='block') {
-					val_height_list_doc=jQuery('#id_afficher_list_document_ecrf').height();
-				} else {
-					val_height_list_doc=0;
-				}
-				val_top_list_doc=getTop(document.getElementById("id_afficher_list_document_ecrf"));
-				val_bottom_list_doc=eval(val_top_list_doc+val_height_list_doc);
-				val_top=getTop(document.getElementById("id_ancre_document_"+k));
+				jQuery("#"+id_voir).html("<img src='images/arrow_right_bottom.png'><br><div class='view_document_in_ecrf'><div width='100%' style='text-align:right'><img src='images/close.gif' width='15px' onclick=\"plier('"+id_voir+"')\"></div>"+contenu+"</div>"); 
+				val_scrollTop=jQuery('#id_ecrf_list_doc_found_'+ecrf_item_num).scrollTop();
 				
-				if (val_top<val_bottom_list_doc) {
-					val_top_final=15;
-				} else {
-					val_top_final=val_top-val_bottom_list_doc;
+				val_top_capsule_search_engine=getTop(document.getElementById("id_div_capsule_search_engine"))  ;
+				
+				val_top=eval(getTop(document.getElementById("id_ancre_document_"+k))-val_scrollTop-val_top_capsule_search_engine);
+				if (val_top<43) { 
+					jQuery('#id_div_ecrf_search_engine').css('top',val_top);
+				}else {
+					jQuery('#id_div_ecrf_search_engine').css('top',val_top-43);
 				}
 				
-				jQuery('#id_afficher_document_ecrf').css('top',val_top_final);
-				
-				//window.location='#ancre_entete';
 			}
 			
 		}
 	});
 }
+
 
 function getFormData($form){
     //console.log($form);

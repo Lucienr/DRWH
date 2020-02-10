@@ -616,13 +616,21 @@ if ($_POST['action']=='ajouter_user') {
 }
 
 if ($_POST['action']=='modifier_passwd') {
-	$mon_password1=$_POST['mon_password1'];
-	$mon_password2=$_POST['mon_password2'];
+	$mon_password1=urldecode($_POST['mon_password1']);
+	$mon_password2=urldecode($_POST['mon_password2']);
+        $mon_password1=preg_replace("/;plus;/","+",$mon_password1);
+        $mon_password2=preg_replace("/;plus;/","+",$mon_password2);
 	if ($mon_password1!='' && $mon_password2!='' && $mon_password1==$mon_password2) {
-		$req="update  dwh_user set passwd='".md5($mon_password1)."'  where user_num =$user_num_session";
-		$sel=oci_parse($dbh,$req);
-		oci_execute($sel) || die("erreur");
-	}	
+		if (($OPTION_PASSWORD_COMPLEX=='ok' || $OPTION_PASSWORD_COMPLEX=='1') && (strlen($mon_password1)<8 || !preg_match("/[A-Z]/",$mon_password1) || !preg_match("/[0-9]/",$mon_password1) || !preg_match("/[^0-9A-Za-z]/",$mon_password1))) {
+			print "erreur;".get_translation('PASSWORD_CONDITION',"Le mot de passe doit faire plus de 8 caractères, avec une majuscule, un chiffre et un caractère particulier.");
+		} else {
+			$req="update  dwh_user set passwd='".md5($mon_password1)."', DEFAULT_PASSWORD=0, LAST_MODIF_PASSWORD_DATE=sysdate  where user_num =$user_num_session";
+			$sel=oci_parse($dbh,$req);
+			oci_execute($sel) || die("erreur");
+		}
+	} else {
+		print "erreur";
+	}
 }
 
 if ($_POST['action']=='modifier_user_phone_number') {
@@ -2156,7 +2164,8 @@ if ($_POST['action']=='demande_acces_patient') {
 	$sel = oci_parse($dbh, "select xml_query  from dwh_query where query_num=$query_num ");   
 	oci_execute($sel);
 	$r = oci_fetch_array($sel, OCI_ASSOC);
-	if ($r['XML_QUERY']) {
+	$xml_query='';
+	if ($r['XML_QUERY']!='') {
 		$xml_query=$r['XML_QUERY']->load();
 	}
 	$readable_query=readable_query ($xml_query);
@@ -2511,7 +2520,8 @@ if ($_POST['action']=='generer_resultat' ) {
 	$sel = oci_parse($dbh, "select xml_query , to_char(QUERY_DATE,'DD/MM/YYYY HH24:MI') as DATE_REQUETE_CHAR, QUERY_DATE,user_num from dwh_query where query_num=$query_num");   
 	oci_execute($sel);
 	$r = oci_fetch_array($sel, OCI_ASSOC);
-	if ($r['XML_QUERY']) {
+	$xml='';
+	if ($r['XML_QUERY']!='') {
 		$xml=$r['XML_QUERY']->load();
 	}
 	generer_resultat($xml,$tmpresult_num);
@@ -2576,5 +2586,37 @@ if ($_GET['action']=='get_json_query_history' ) {
 
 
 
+if ($_POST['action']=='quick_test_fulltext_query' ) {
+	$datamart_num=$_POST['datamart_num'];
+	$nb_doc=$_POST['nb_doc'];
+	
+	$query=trim(nettoyer_pour_requete(urldecode($_POST['query'])));
+	$list_document=quick_test_fulltext_query($query,$datamart_num,$user_num_session,$nb_doc);
+	$nb_total_doc=$list_document[0]['nb_total_doc'];
+	print "<strong>$nb_total_doc ".get_translation('DOCUMENTS_FOUND',' documents trouvés')."</strong>";
+	print "<table>";
+	$i=0;
+	foreach ($list_document as $document) {
+		$document_date=$document['document_date'];
+		$patient_num=$document['patient_num'];
+		$document_num=$document['document_num'];
+		$summary=$document['summary'];
+		$i++;
+		if ($i % 2 ==0) {
+			$backgroundcolor="#ffffff";
+		} else {
+			$backgroundcolor="#d6e3e7";
+		}
+		print "<tr style=\"background-color:$backgroundcolor\">
+			<td><a href=\"patient.php?patient_num=$patient_num&datamart_num=$datamart_num\" target=\"_blank\"><img src=\"images/dossier_patient.png\" alt=\"".get_translation('PATIENT_RECORD','Dossier du patient')."\" title=\"".get_translation('PATIENT_RECORD','Dossier du patient')."\" height=\"15px\" border=\"0\"></a></td>
+			<td>$document_date</td>
+			<td>$summary</td>
+			</tr>";
+	}
+	print "</table>";
+}
 
+
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

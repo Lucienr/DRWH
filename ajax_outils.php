@@ -508,4 +508,259 @@ if ($_POST['action']=='display_mapper_patient' ) {
 	}
 }
 
+
+
+
+
+
+if ($_POST['action']=='display_thesaurus_table' && $_SESSION['dwh_droit_admin']=='ok') {
+	$data_search=supprimer_apost(trim(urldecode($_POST['data_search'])));
+	$thesaurus_code=$_POST['thesaurus_code'];
+	if ($data_search!='' || $thesaurus_code!='') {
+		$thesaurus_data_concept=get_thesaurus_data_concept ($data_search,$thesaurus_code,'');
+		print "<table class=tablefin id=\"id_table_list_thesaurus_data\">
+			<thead>
+				<tr>
+					<td>Data Thesaurus num</td>
+					<td>Thesaurus</td>
+					<td>Concept code</td>
+					<td>Label</td>
+					<td>Info complementaire</td>
+					<td>Unit</td>
+					<td>Value type</td>
+					<td>List values</td>
+					<td>Description</td>
+					<td>Code Parent</td>
+					<td>Count data used</td>
+					<td>Min date used</td>
+					<td>Max date used</td>
+				</tr>
+			</thead>
+			<tbody>";
+		foreach ($thesaurus_data_concept as $r) {
+			$thesaurus_data_num=$r['THESAURUS_DATA_NUM'];
+			$thesaurus_code=$r['THESAURUS_CODE'];
+			$concept_code=$r['CONCEPT_CODE'];
+			$concept_str=$r['CONCEPT_STR'];
+			$info_complement=$r['INFO_COMPLEMENT'];
+			$measuring_unit=$r['MEASURING_UNIT'];
+			$value_type=$r['VALUE_TYPE'];
+			$list_values=$r['LIST_VALUES'];
+			$thesaurus_parent_num=$r['THESAURUS_PARENT_NUM'];
+			$description=$r['DESCRIPTION'];
+			$count_data_used=$r['COUNT_DATA_USED'];
+			//list($min_date,$max_date)=get_min_max_date_used_data($thesaurus_data_num);
+			print "<tr onmouseout=\"this.style.backgroundColor='#ffffff';\" onmouseover=\"this.style.backgroundColor='#dcdff5';\">
+				<td>$thesaurus_data_num</td>
+				<td>$thesaurus_code</td>
+				<td>$concept_code</td>
+				<td>$concept_str</td>
+				<td>$info_complement</td>
+				<td>$measuring_unit</td>
+				<td>$value_type</td>
+				<td>$list_values</td>
+				<td>$description</td>
+				<td>$thesaurus_parent_num</td>
+				<td>$count_data_used</td>
+				<td>$min_date</td>
+				<td>$max_date</td>
+				</tr>";
+		}
+		
+		print "</tbody></table>";
+	}
+}
+
+
+
+
+if ($_POST['action']=='display_thesaurus_tree' && $_SESSION['dwh_droit_admin']=='ok') {
+	$data_search=supprimer_apost(trim(urldecode($_POST['data_search'])));
+	$thesaurus_code=$_POST['thesaurus_code'];
+	$thesaurus_data_num=$_POST['thesaurus_data_num'];
+	if ($data_search!='' || $thesaurus_code!='') {
+		$thesaurus_data_concept=get_thesaurus_data_concept ($data_search,$thesaurus_code,$thesaurus_data_num);
+		foreach ($thesaurus_data_concept as $r) {
+			$thesaurus_data_num=$r['THESAURUS_DATA_NUM'];
+			$thesaurus_code=$r['THESAURUS_CODE'];
+			$concept_code=$r['CONCEPT_CODE'];
+			$concept_str=$r['CONCEPT_STR'];
+			$info_complement=$r['INFO_COMPLEMENT'];
+			$measuring_unit=$r['MEASURING_UNIT'];
+			$value_type=$r['VALUE_TYPE'];
+			$list_values=$r['LIST_VALUES'];
+			$thesaurus_parent_num=$r['THESAURUS_PARENT_NUM'];
+			$description=$r['DESCRIPTION'];
+			$count_data_used=$r['COUNT_DATA_USED'];
+			$test_son=get_thesaurus_data_concept ($data_search,$thesaurus_code,$thesaurus_data_num);
+			if (count($test_son)==0) {
+				print "<div id=\"id_span_thesaurus_$thesaurus_data_num\">- [$concept_code] $concept_str - $info_complement $measuring_unit - $value_type - $list_values ($count_data_used values)</div>";
+			} else {
+				print "<div id=\"id_span_thesaurus_$thesaurus_data_num\" style=\"cursor:pointer;\" onclick=\"display_thesaurus_tree($thesaurus_data_num);\"><span id=\"plus_id_span_thesaurus_$thesaurus_data_num\">+</span> [$concept_code] $concept_str</div>";
+				print "<div id=\"id_span_thesaurus_son_$thesaurus_data_num\" style=\"padding-left:20px;display:none;\"></div>";
+			}
+		}
+		print "<br>";
+	}
+}
+
+
+if ($_POST['action']=='get_concept') {
+	$concepts=array();
+	$concepts['items']=array();
+
+	$text=trim(replace_accent(utf8_decode($_POST['q'])));
+	$text=preg_replace("/\s+/"," ",$text);
+	$text=nettoyer_pour_requete(trim($text));
+	$text=trim(preg_replace("/([a-z])\s/i","$1% ","$text "));
+	$text=preg_replace("/([^\s])\s+([^\s])/","$1 and $2",$text);
+
+	$query="select  concept_code,concept_str ,THESAURUS_ENRSEM_NUM,length(concept_str) from dwh_thesaurus_enrsem where THESAURUS_ENRSEM_NUM in (select THESAURUS_ENRSEM_NUM from dwh_thesaurus_enrsem where contains(concept_str,'$text')>0) 
+	 order by length(concept_str) asc ";	
+	$sel=oci_parse($dbh,$query);
+	oci_execute($sel);
+	while($r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC)){
+		$concept_str=utf8_encode($r['CONCEPT_STR']);
+		$concept_code=$r['CONCEPT_CODE'];
+		$thesaurus_enrsem_num=$r['THESAURUS_ENRSEM_NUM'];
+		$string="$concept_str ($concept_code)";
+		array_push($concepts['items'],array('id'=>$concept_code, 'text'=>$string));
+	}
+	print json_encode($concepts);	
+}
+
+if ($_POST['action']=='get_concept_info') {
+	$concept_code=trim($_POST['concept_code']);
+	$concept_str=get_concept_str($concept_code,'');
+	print "<span id='id_span_concept_$concept_code'><span class=\"list_concept_code_used\" style=\"display:none\">$concept_code</span>$concept_str <input type=\"text\" id=\"id_weight_$concept_code\" size=\"3\" value=\"1\"> <a href='#' onclick=\"delete_concept_similarity('$concept_code');return false;\">x</a><br></span>";
+}
+
+
+if ($_POST['action']=='get_list_concept_virtual_patient') {
+	$virtual_patient_num=trim($_POST['virtual_patient_num']);
+	$tab_concept=get_virtual_patient_concept ($virtual_patient_num);
+	foreach ($tab_concept as $concept) {
+		$concept_code=$concept['concept_code'];
+		$concept_weight=$concept['concept_weight'];
+		$concept_str=get_concept_str($concept_code,'');
+		print "<span id='id_span_concept_$concept_code'><span class=\"list_concept_code_used\" style=\"display:none\">$concept_code</span>$concept_str <input type=\"text\" id=\"id_weight_$concept_code\" size=\"3\" value=\"$concept_weight\"> <a href='#' onclick=\"delete_concept_similarity('$concept_code');return false;\">x</a><br></span>";
+	}
+}
+
+
+if ($_POST['action']=='save_name_virtual_patient') {
+	$list_code_concept=trim($_POST['list_code_concept']);
+	$tab_concept=explode(";",$list_code_concept);
+	$list_code_concept_weight=trim($_POST['list_code_concept_weight']);
+	$tab_concept_weight=explode(";",$list_code_concept_weight);
+	$name_virtual_patient=supprimer_apost(trim(urldecode($_POST['name_virtual_patient'])));
+	$description=supprimer_apost(trim(urldecode($_POST['description'])));
+	$virtual_patient_num=get_uniqid();
+	$query="insert into DWH_VIRTUAL_PATIENT (user_num, virtual_patient_num,  patient_name, date_creation, description) values ($user_num_session, $virtual_patient_num,  '$name_virtual_patient', sysdate, '$description') ";	
+	$ins=oci_parse($dbh,$query);
+	oci_execute($ins);
+	
+	$j=0;
+	$json_concepts="";
+	foreach ($tab_concept as $concept_code) {
+		if ($concept_code!='') {
+			$concept_weight=$tab_concept_weight[$j];
+			$j++;
+			$json_concepts.="{\"concept_code\":\"$concept_code\",\"concept_weight\":\"$concept_weight\"},";
+			#$query="insert into DWH_VIRTUAL_PATIENT_CONCEPT ( virtual_patient_num,  concept_code, weight ) values ($virtual_patient_num, '$concept_code',  '$weight') ";	
+			#$ins=oci_parse($dbh,$query);
+			#oci_execute($ins);
+		}
+		
+	}
+	$json_concepts=substr($json_concepts,0,-1);
+	$patient_record="{\"phenotypes\":[$json_concepts]}";
+        $requeteupd="update DWH_VIRTUAL_PATIENT set  patient_record=:patient_record where virtual_patient_num=$virtual_patient_num  ";
+        $upd = ociparse($dbh,$requeteupd);
+        $rowid = ocinewdescriptor($dbh, OCI_D_LOB);
+        ocibindbyname($upd, ":patient_record",$patient_record);
+        $execState = ociexecute($upd);
+        ocifreestatement($upd);
+	
+	
+}
+
+if ($_POST['action']=='manage_virtual_patient') {
+	$tab_virtual_patient=get_virtual_patient ($user_num_session,'','','');
+	print "<table class=tablefin><thead>
+	<th>".get_translation('NAME','Nom')."</th>
+	<th>".get_translation('DESCRIPTION','Description')."</th>
+	<th>".get_translation('DATE_CREATION','Date')."</th>
+	<th>".get_translation('CONCEPTS','Concepts')."</th>
+	<th>".get_translation('DEL','Suppr')."</th>
+	<th>".get_translation('SHARED','Partager')."</th>
+	</thead>
+	<tbody>";
+	foreach ($tab_virtual_patient as $virtual_patient) {
+		$virtual_patient_num=$virtual_patient['VIRTUAL_PATIENT_NUM'];
+		$patient_name=$virtual_patient['PATIENT_NAME'];
+		$description=$virtual_patient['DESCRIPTION'];
+		$date_creation_char=$virtual_patient['DATE_CREATION_CHAR'];
+		$shared=$virtual_patient['SHARED'];
+		
+		$tab_concept=get_virtual_patient_concept ($virtual_patient_num);
+		print "<tr id=\"id_tr_virtual_patient_$virtual_patient_num\">
+			<td>$patient_name</td>
+			<td>$description</td>
+			<td>$date_creation_char</td>
+			<td>";
+		foreach ($tab_concept as $concept) {
+			$concept_code=$concept['concept_code'];
+			$concept_weight=$concept['concept_weight'];
+			$concept_str=get_concept_str($concept_code,'');
+			print "$concept_str ($concept_weight)<br>";
+		}
+		print "</td><td><img src=\"images/poubelle_moyenne.png\" onclick=\"delete_virtual_patient('$virtual_patient_num');\" style=\"cursor:pointer\"></td>";
+		if ($shared==1) {
+			 $checked='checked';
+		} else {
+			 $checked='';
+		}
+		print "<td><input type=\"checkbox\" id=\"id_checkbox_shared_vp_$virtual_patient_num\" onclick=\"share_virtual_patient('$virtual_patient_num');\" $checked></td>";
+		print "</tr>";
+	}
+	print "</tbody></table>";
+}
+
+if ($_POST['action']=='delete_virtual_patient') {
+	$virtual_patient_num=trim($_POST['virtual_patient_num']);
+	delete_virtual_patient ($virtual_patient_num,$user_num_session);
+}
+
+
+if ($_POST['action']=='get_list_patient_in_select') {
+	$tab_virtual_patient=get_virtual_patient ($user_num_session,'','','');
+	print "<option value=\"\"></option>";
+	print "<optgroup label=\"".get_translation("MY_VIRTUAL_PATIENTS","Mes patients virtuels")."\">";
+	foreach ($tab_virtual_patient as $virtual_patient) {
+		$virtual_patient_num=$virtual_patient['VIRTUAL_PATIENT_NUM'];
+		$patient_name=$virtual_patient['PATIENT_NAME'];
+		print "<option value=\"$virtual_patient_num\">$patient_name</option>";
+	}
+	print "</optgroup>";
+	print "<optgroup label=\"".get_translation("SHARED_VIRTUAL_PATIENTS","Les patients virtuels partagés")."\">";
+	$tab_virtual_patient_shared=get_virtual_patient ($user_num_session,'','',1);
+	print "<subgroup ></subroup>";
+	foreach ($tab_virtual_patient_shared as $virtual_patient) {
+		$virtual_patient_num=$virtual_patient['VIRTUAL_PATIENT_NUM'];
+		$patient_name=$virtual_patient['PATIENT_NAME'];
+		print "<option value=\"$virtual_patient_num\">$patient_name</option>";
+	}
+}
+
+if ($_POST['action']=='share_virtual_patient') {
+	$virtual_patient_num=trim($_POST['virtual_patient_num']);
+	$shared=trim($_POST['shared']);
+	share_virtual_patient ($virtual_patient_num,$user_num_session,$shared);
+}
+
+
+
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

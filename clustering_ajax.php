@@ -103,4 +103,6 @@ if ($_POST['action']=='afficher_resultat_clustering') {
 	}
 }
 
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

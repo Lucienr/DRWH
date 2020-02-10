@@ -271,4 +271,6 @@ if ($_POST['action']=='importer_patient_cohorte') {
 	  	}
   	}
 }
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

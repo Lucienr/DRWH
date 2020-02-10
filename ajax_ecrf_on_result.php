@@ -82,4 +82,6 @@ if ($_POST['action']=='get_data_ecrf_on_result') {
 	print $process['RESULT'];
 }
 
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

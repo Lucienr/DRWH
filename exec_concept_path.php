@@ -97,8 +97,10 @@ while($r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC)){
 
 
 
-?>
 
+oci_close ($dbh);
+oci_close ($dbh_etl);
+?>
 
 
 

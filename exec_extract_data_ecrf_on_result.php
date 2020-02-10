@@ -257,4 +257,7 @@ if ($option_une_ligne=='document') {
 update_process ($process_num,'1',"extraction.xls","</table>",$user_num_session,"xls");
 sauver_notification ($user_num_session,$user_num_session,'process',"",$process_num);
 
+
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

@@ -318,7 +318,7 @@ if ($_GET['action']=='admin_department') {
 				<tr><td class="question_user"><? print get_translation('FIRSTNAME','Prénom'); ?> : </td><td><input type="text" size="30" id="id_ajouter_firstname_user" class="form"></td></tr>
   				<tr><td class="question_user"><? print get_translation('EMAIL','Mail'); ?> : </td><td><input type="text" size="50" id="id_ajouter_mail_user" class="form"></td></tr>
 				<tr><td class="question_user"><? print get_translation('EXPIRATION_DATE','Date expiration'); ?> : </td><td><input type="text" size="11" id="id_ajouter_expiration_date_user" class="form"> (dd/mm/yyyy)</td></tr>
-				<tr><td class="question_user"><? print get_translation('PASSWORD','Mot de passe'); ?><br><? print get_translation('UNIQUEMENT_SI_VOUS_VOULEZ_LE_MODIFIER','(uniquement si vous voulez le modifier)'); ?> : </td><td><input type="text" size="50" id="id_ajouter_passwd_user" class="form"></td></tr>
+				<tr><td class="question_user"><? print get_translation('PASSWORD','Mot de passe'); ?><br><? print get_translation('UNIQUEMENT_SI_VOUS_VOULEZ_LE_MODIFIER','(uniquement si vous voulez le modifier)'); ?> : </td><td><input type="password" size="50" id="id_ajouter_passwd_user" class="form"></td></tr>
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('PROFILES','Profils'); ?> : </td><td>
 				<?
 				foreach ($table_user_profil as $user_profile) { 
@@ -326,7 +326,7 @@ if ($_GET['action']=='admin_department') {
 				}
 				?>
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('HOSPITAL_DEPARTMENT','Service'); ?> : </td><td>
-					<select id="id_ajouter_select_service_multiple" multiple size="5" class="form chosen-select"><option value=''></option>
+					<select id="id_ajouter_select_service_multiple" multiple size="5" class="form chosen-select"  data-placeholder="<? print get_translation('SELECT_A_DEPARTMENT','Sélectionnez un service'); ?>"><option value=''></option>
 					<?
 						foreach ($table_list_department as $department) {
 							$department_num=$department['department_num'];
@@ -346,7 +346,7 @@ if ($_GET['action']=='admin_department') {
 			<h3><? print get_translation('ADD_USER_LIST',"Ajouter une liste d'utilisateurs"); ?></h3>
 			
 			<table>
-				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('LOGIN','Identifiant'); ?>;<? print get_translation('LASTNAME','Nom'); ?>;<? print get_translation('FIRSTNAME','Prénom'); ?>;<? print get_translation('EMAIL','Email'); ?>  :<br><i><? print get_translation('ONLY_LOGIN_IF_HOSPITAL_ACCOUNT',"Uniquement le login si c'est un compte hospitalier"); ?></i> </td><td>
+				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('LOGIN','Identifiant'); ?>;<? print get_translation('LASTNAME','Nom'); ?>;<? print get_translation('FIRSTNAME','Prénom'); ?>;<? print get_translation('EMAIL','Email'); ?>;<? print get_translation('PASSWORD','Mot de passe'); ?>  <br><i><? print get_translation('ONLY_LOGIN_IF_HOSPITAL_ACCOUNT',"Uniquement le login si c'est un compte hospitalier"); ?></i> </td><td>
 					<textarea id="id_textarea_list_user" rows="6" cols="60" class="form"></textarea>
 				</td></tr>
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('PROFILES','Profils'); ?> : </td><td>
@@ -357,7 +357,7 @@ if ($_GET['action']=='admin_department') {
 				?>
 				</td></tr>
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('HOSPITAL_DEPARTMENT','Service'); ?> : </td><td>
-					<select id="id_select_service" class="form chosen-select"><option value=''></option>
+					<select id="id_select_service" class="form chosen-select"  data-placeholder="<? print get_translation('SELECT_A_DEPARTMENT','Sélectionnez un service'); ?>"><option value=''></option>
 					<?
 						foreach ($table_list_department as $department) {
 							$department_num=$department['department_num'];
@@ -389,7 +389,7 @@ if ($_GET['action']=='admin_department') {
 				<tr><td class="question_user"><? print get_translation('FIRSTNAME','Prénom'); ?> : </td><td><input type="text" size="30" id="id_modifier_firstname_user" class="form"></td></tr>
 				<tr><td class="question_user"><? print get_translation('EMAIL','Mail'); ?> : </td><td><input type="text" size="50" id="id_modifier_mail_user" class="form"></td></tr>
 				<tr><td class="question_user"><? print get_translation('EXPIRATION_DATE','Date expiration'); ?> : </td><td><input type="text" size="11" id="id_modifier_expiration_date_user" class="form"> (dd/mm/yyyy)</td></tr>
-				<tr><td class="question_user"><? print get_translation('PASSWORD','Mot de passe'); ?><br><? print get_translation('UNIQUEMENT_SI_VOUS_VOULEZ_LE_MODIFIER','(uniquement si vous voulez le modifier)'); ?> : </td><td><input type="text" size="50" id="id_modifier_passwd_user" class="form"></td></tr>
+				<tr><td class="question_user"><? print get_translation('PASSWORD','Mot de passe'); ?><br><? print get_translation('UNIQUEMENT_SI_VOUS_VOULEZ_LE_MODIFIER','(uniquement si vous voulez le modifier)'); ?> : </td><td><input type="password" size="50" id="id_modifier_passwd_user" class="form"></td></tr>
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('PROFILES','Profils'); ?> : </td><td>
 				<?
 					foreach ($table_user_profil as $user_profile) { 
@@ -397,7 +397,7 @@ if ($_GET['action']=='admin_department') {
 					}
 				?>
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('HOSPITAL_DEPARTMENT','Service'); ?> : </td><td>
-					<select id="id_modifier_select_service_multiple" multiple size="5" class="form chosen-select"><option value=''></option>
+					<select id="id_modifier_select_service_multiple" multiple size="5" class="form chosen-select" data-placeholder="<? print get_translation('SELECT_A_DEPARTMENT','Sélectionnez un service'); ?>"><option value=''></option>
 					<?
 						foreach ($table_list_department as $department) {
 							$department_num=$department['department_num'];
@@ -653,7 +653,10 @@ if ($_GET['action']=='analyse_requete') {
 					$user_num = $ligne['USER_NUM'];
 					$title_query = $ligne['TITLE_QUERY'];
 					$query_type = $ligne['QUERY_TYPE'];
-					$xml_query = $ligne['XML_QUERY']->load();
+					$xml_query='';
+					if ($ligne['XML_QUERY']!='') {
+						$xml_query = $ligne['XML_QUERY']->load();
+					}
 					$char_date_requete = $ligne['CHAR_DATE_REQUETE'];
 					
 					$readable_query=readable_query ($xml_query) ;
@@ -783,7 +786,7 @@ if ($_GET['action']=='admin_datamart') {
 			</td></tr>
 			
 			<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('USERS','Utilisateurs'); ?> : </td><td>
-				<select id="id_ajouter_select_user_multiple" multiple size="5" class="form chosen-select"><option value=''></option>
+				<select id="id_ajouter_select_user_multiple" multiple size="5" class="form chosen-select"  data-placeholder="<? print get_translation('SELECT_USERS','Sélectionnez des utilisateurs'); ?>"><option value=''></option>
 				<?
 					$sel_var1=oci_parse($dbh,"select  user_num,lastname,firstname from dwh_user order by lastname,firstname ");
 					oci_execute($sel_var1);
@@ -887,25 +890,27 @@ if ($_GET['action']=='admin_thesaurus') {
 ?>
 	<div id="id_admin_thesaurus"  class="div_admin">
 		<h1><? print get_translation('THESAURUS_MANAGE','Administrer Thesaurus'); ?></h1>
-		<? print get_translation('DISPLAY_CONCEPT_LIST','Afficher liste concepts'); ?> : 
-		<select id="id_thesaurus_code">
-			<option value=""></option>	
-		<?
-	      		$thesaurus=get_list_thesaurus_data();
-	      		foreach ($thesaurus as $thesaurus_code) {
-	      				print"<option value=\"$thesaurus_code\">$thesaurus_code</option>";	
-	      		}	
-      		?>
-		</select>
-		
-		Display : <select id="display_type">
-			<option value="table">table</option>	
-			<option value="tree">arbre</option>	
-		</select> 
-		<input type=text id=id_thesaurus_data_search value=''> 
-		<input type=button onclick="display_thesaurus();" value="<? print get_translation('DISPLAY','Afficher'); ?>"><br>
-		
-		<div id="id_div_result_thesaurus_data" style="display:none;"></div>
+			<table border=0>
+			<tr><td><? print get_translation('THESAURUS_CHOICE','Choix du thesaurus'); ?> : </td>
+			<td><select id="id_thesaurus_code">
+				<option value="">Thesaurus</option>	
+			<?
+		      		$thesaurus=get_list_thesaurus_data();
+		      		foreach ($thesaurus as $thesaurus_code) {
+		      				print"<option value=\"$thesaurus_code\">$thesaurus_code</option>";	
+		      		}	
+			?>
+			</select></td></tr>
+			<tr><td><? print get_translation('DISPLAY_TYPE',"Type d'affichage"); ?> : </td>
+			<td><select id="display_type">
+				<option value="table">Tableau</option>	
+				<option value="tree">Arbre</option>	
+			</select></td></tr>
+			<tr><td><? print get_translation('FILTER',"Filtrer"); ?> : </td>
+			<td><input type=text id=id_thesaurus_data_search value=''  onkeypress="if(event.keyCode==13) {display_thesaurus();}"> </tr>
+			</table><br>
+			<input type=button onclick="display_thesaurus();" value="<? print get_translation('DISPLAY','Afficher'); ?>"><br>
+			<div id="id_div_result_thesaurus_data" style="display:none;"></div>
 
 	</div>
 	

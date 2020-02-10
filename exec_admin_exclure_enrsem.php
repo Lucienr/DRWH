@@ -91,3 +91,7 @@ if ($argv[1]!='') {
 	$cridx=oci_parse($dbh_etl,"begin ctx_ddl.sync_index('DWH_TEXT_ENRICH_IDX', '200M'); end;");
 	oci_execute($cridx);
 }
+
+oci_close ($dbh);
+oci_close ($dbh_etl);
+?>

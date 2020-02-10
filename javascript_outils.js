@@ -237,3 +237,317 @@ function display_mapper_patient (process_num) {
 }
 
 	
+
+function display_thesaurus() {
+	display_type=jQuery('#display_type').val();
+	
+	if (display_type=='table') {
+		display_thesaurus_table();
+	} else {
+		display_thesaurus_tree('0');
+	}
+}
+
+
+function display_thesaurus_table() {
+	data_search=jQuery('#id_thesaurus_data_search').val();
+	thesaurus_code=jQuery('#id_thesaurus_code').val();
+	
+	if (data_search!='' || thesaurus_code!='') {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_admin.php",
+			async:true,
+			data: { action:'display_thesaurus_table',data_search:escape(data_search),thesaurus_code:thesaurus_code},
+			beforeSend: function(requester){
+					$("#id_div_result_thesaurus_data").empty();
+					$("#id_div_result_thesaurus_data").css('display','block');
+					$("#id_div_result_thesaurus_data").append("<img src='images/chargement_mac.gif'>");
+			},
+			success: function(requester){
+				if (requester=='deconnexion') {
+					afficher_connexion("display_thesaurus_table()");
+				} else {
+					$("#id_div_result_thesaurus_data").empty();
+					$("#id_div_result_thesaurus_data").append(requester);
+					$("#id_table_list_thesaurus_data").dataTable( { "order": [[ 1, "asc" ]],"pageLength": 25});
+				}
+			},
+			complete: function(requester){
+			},
+			error: function(){
+			}
+		});
+	}
+}
+
+function display_thesaurus_tree (thesaurus_data_num) {
+	data_search=jQuery('#id_thesaurus_data_search').val();
+	thesaurus_code=jQuery('#id_thesaurus_code').val();
+	if( thesaurus_code=='') {
+		alert(get_translation('SELECT_A_THESAURUS','Selectionnez un thesaurus'));
+		return false;
+	}
+	if (thesaurus_data_num=='0') {
+		div_result='id_div_result_thesaurus_data';
+		$("#"+div_result).css('display','none');
+	} else {
+		div_result='id_span_thesaurus_son_'+thesaurus_data_num;
+	}
+	if ($("#"+div_result).css('display')=='none') {
+		if (data_search!='' || thesaurus_code!='') {
+			jQuery.ajax({
+				type:"POST",
+				url:"ajax_admin.php",
+				async:true,
+				data: { action:'display_thesaurus_tree',data_search:escape(data_search),thesaurus_code:thesaurus_code,thesaurus_data_num:thesaurus_data_num},
+				beforeSend: function(requester){
+						$("#"+div_result).empty();
+						$("#"+div_result).css('display','block');
+						$("#"+div_result).append("<img src='images/chargement_mac.gif'>");
+				},
+				success: function(requester){
+					if (requester=='deconnexion') {
+						afficher_connexion("display_thesaurus_tree('"+thesaurus_data_num+"')");
+					} else {
+						$("#"+div_result).empty();
+						$("#"+div_result).append(requester);
+					}
+				},
+				complete: function(requester){
+				},
+				error: function(){
+				}
+			});
+		}
+	} else {
+		$("#"+div_result).css('display','none');
+	}
+}
+
+
+function open_option_virtual_patient (id) {
+	jQuery(".option_button_similarity").css("background-color","grey");
+	if (jQuery("#"+id).css("display")=='block') {
+		plier(id);
+		plier('id_div_save_virtual_patient_done');
+	} else {
+		plier('id_div_patient_similarite_patient_options');
+		plier('id_div_save_virtual_patient');
+		plier('id_div_virtual_patient_list');
+		plier('id_div_save_virtual_patient_done');
+		deplier(id,'block');
+		jQuery("#button_"+id).css("background-color","#00b2d7");
+		if (id=='id_div_virtual_patient_list') {
+			manage_virtual_patient();
+		}
+	}
+	
+
+}
+function get_concept_info (concept_code) {
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_outils.php",
+		async:true,
+		data: {action:'get_concept_info',concept_code:concept_code},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion();
+			} else {
+				jQuery('#id_list_concepts').append(requester);
+				$('.js-concept-select').select2('open');
+			}
+		},
+		complete: function(requester){
+			jQuery(".js-concept-select").empty().trigger('change');	
+		},
+		error: function(){
+		}
+	});
+}
+
+function get_list_concept_virtual_patient (virtual_patient_num) {
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_outils.php",
+		async:true,
+		data: {action:'get_list_concept_virtual_patient',virtual_patient_num:virtual_patient_num},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion();
+			} else {
+				jQuery('#id_list_concepts').html(requester);
+			}
+		},
+		complete: function(requester){	
+		},
+		error: function(){
+		}
+	});
+}
+	
+function delete_concept_similarity (concept_code) {
+	jQuery('#id_span_concept_'+concept_code).remove();
+}
+
+function calculate_similarity () {
+	list_code_concept='';
+	list_code_concept_weight='';
+	jQuery(".list_concept_code_used").each( function() {
+		val=$(this).html();
+		list_code_concept+=val+';';
+		list_code_concept_weight+= jQuery("#id_weight_"+val).val()+";";
+		
+	});
+	
+	jQuery("#id_list_concept_selected").val(list_code_concept);
+	jQuery("#id_list_concept_selected_weight").val(list_code_concept_weight);
+	calculer_similarite_patient('');
+}
+
+function save_name_virtual_patient () {
+	list_code_concept='';
+	list_code_concept_weight='';
+	jQuery(".list_concept_code_used").each( function() {
+		val=$(this).html();
+		list_code_concept+=val+';';
+		list_code_concept_weight+= jQuery("#id_weight_"+val).val()+";";
+		
+	});
+	name_virtual_patient = jQuery("#id_input_name_virtual_patient").val();	
+	description = jQuery("#id_input_description_virtual_patient").val();	
+	
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_outils.php",
+		async:true,
+		data: {action:'save_name_virtual_patient',list_code_concept:list_code_concept,list_code_concept_weight:list_code_concept_weight,name_virtual_patient:escape(name_virtual_patient),description:escape(description)},
+		beforeSend: function(requester){
+			jQuery("#id_div_save_virtual_patient_done").css("display","none");	
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion();
+			} else {
+				jQuery("#id_div_save_virtual_patient").css("display","none");
+				jQuery("#id_div_save_virtual_patient_done").css("display","block");
+				jQuery("#id_input_name_virtual_patient").val("");
+				jQuery("#id_input_description_virtual_patient").val("");
+				manage_virtual_patient();
+				get_list_patient_in_select ();
+			}
+		},
+		complete: function(requester){
+		},
+		error: function(){
+	}
+});	
+	
+}
+
+
+
+
+function manage_virtual_patient () {
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_outils.php",
+		async:true,
+		data: {action:'manage_virtual_patient'},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion();
+			} else {
+				jQuery("#id_div_virtual_patient_list").html(requester);
+			}
+		},
+		complete: function(requester){
+		},
+		error: function(){
+	}
+	});	
+	
+}
+
+function delete_virtual_patient (virtual_patient_num) {
+	if (confirm (get_translation('JS_REMOVE_VIRTUAL_PATIENT',"Etes-vous sur de vouloir supprimer ce patient virtuel")+'?')) {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_outils.php",
+			async:true,
+			data: {action:'delete_virtual_patient',virtual_patient_num:virtual_patient_num},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				if (requester=='deconnexion') {
+					afficher_connexion();
+				} else {
+					jQuery("#id_tr_virtual_patient_"+virtual_patient_num).remove();
+					get_list_patient_in_select ();
+				}
+			},
+			complete: function(requester){
+			},
+			error: function(){
+			}
+		});	
+	}
+}
+function share_virtual_patient (virtual_patient_num) {
+	if(jQuery('#id_checkbox_shared_vp_'+virtual_patient_num).is(':checked') ){
+		shared=1;
+	} else {
+		shared=0;	
+	}
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_outils.php",
+		async:true,
+		data: {action:'share_virtual_patient',virtual_patient_num:virtual_patient_num,shared:shared},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion();
+			} 
+		},
+		complete: function(requester){
+		},
+		error: function(){
+		}
+	});	
+}
+
+function get_list_patient_in_select () {
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_outils.php",
+		async:true,
+		data: {action:'get_list_patient_in_select'},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion();
+			} else {
+				jQuery("#id_list_virtual_patient_select").html(requester);
+				$("#id_list_virtual_patient_select").select2({
+					placeholder:"search virtual patient",
+					allowClear: true,
+					language: "fr"
+				});
+			}
+		},
+		complete: function(requester){
+		},
+		error: function(){
+		}
+	});
+}

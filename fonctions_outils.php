@@ -320,3 +320,84 @@ function get_mapping_patient ($lastname,$firstname,$birth_date,$option_limite) {
 	}
   	return array($patient_num, $method);
 }
+
+
+
+
+function get_virtual_patient ($user_num,$virtual_patient_num,$text,$shared) {
+	global $dbh;
+	$req="";
+	if ($shared!='' && $user_num!='') {
+		$req.=" and shared='$shared' and user_num!=$user_num ";
+	}
+	if ($shared!='' && $user_num=='') {
+		$req.=" and shared='$shared'  ";
+	}
+	if ($user_num!='' && $shared=='') {
+		$req.=" and user_num=$user_num ";
+	}
+	if ($virtual_patient_num!='') {
+		$req.=" and virtual_patient_num=$virtual_patient_num ";
+	}
+	$text=supprimer_apost(trim($text));
+	if ($text!='') {
+		$req.=" and ( CONVERT(upper(patient_name), 'US7ASCII')  like '%'|| CONVERT(upper('$text'), 'US7ASCII') || '%' or  CONVERT(upper(description), 'US7ASCII')  like '%'|| CONVERT(upper('$text'), 'US7ASCII') ) ";
+	}
+	
+	$query="select virtual_patient_num, patient_name, description, to_char(date_creation,'DD/MM/YYYY') as date_creation_char , to_char(date_creation,'DD/MM/YYYY HH24:MI') as date_creation_time,shared  from DWH_VIRTUAL_PATIENT where 1=1 $req order by patient_name ";	
+	$sel=oci_parse($dbh,$query);
+	oci_execute($sel);
+	$nb=oci_fetch_all($sel,$r, null, null, OCI_FETCHSTATEMENT_BY_ROW); 
+	return $r;
+}
+
+
+function get_virtual_patient_concept ($virtual_patient_num) {
+	global $dbh;
+	#$query="select  concept_code,weight from DWH_VIRTUAL_PATIENT_concept where virtual_patient_num=$virtual_patient_num order by weight";	
+	#$sel=oci_parse($dbh,$query);
+	#oci_execute($sel);
+	#$nb=oci_fetch_all($sel,$r, null, null, OCI_FETCHSTATEMENT_BY_ROW); 
+
+	$res=array();
+	$query="select  patient_record from DWH_VIRTUAL_PATIENT where virtual_patient_num=$virtual_patient_num ";	
+	$sel=oci_parse($dbh,$query);
+	oci_execute($sel);
+	$r=oci_fetch_array($sel,OCI_ASSOC+OCI_RETURN_NULLS);
+	if ($r['PATIENT_RECORD']!='') {
+		$patient_record=$r['PATIENT_RECORD']->load();
+		
+		$tab_patient_record = json_decode($patient_record);
+		foreach ($tab_patient_record->{'phenotypes'} as $concepts) {
+			$concept_code= $concepts->{'concept_code'};
+			$concept_weight= $concepts->{'concept_weight'};
+			$res[]=array("concept_code"=>$concept_code,"concept_weight"=>$concept_weight);
+		}
+	}
+	return $res;
+}
+
+
+function delete_virtual_patient ($virtual_patient_num,$user_num) {
+	global $dbh;
+	$req="";
+	if ($user_num!='') {
+		$req.=" and user_num=$user_num ";
+	}
+	$query="delete from DWH_VIRTUAL_PATIENT where virtual_patient_num=$virtual_patient_num $req";	
+	$sel=oci_parse($dbh,$query);
+	oci_execute($sel);
+}
+
+
+function share_virtual_patient ($virtual_patient_num,$user_num,$shared) {
+	global $dbh;
+	$req="";
+	if ($user_num!='') {
+		$req.=" and user_num=$user_num ";
+	}
+	$query="update  DWH_VIRTUAL_PATIENT set shared=$shared where virtual_patient_num=$virtual_patient_num $req";	
+	$sel=oci_parse($dbh,$query);
+	oci_execute($sel);
+}
+

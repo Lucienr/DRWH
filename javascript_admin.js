@@ -74,6 +74,7 @@ function ajouter_liste_user_admin() {
 	document.getElementById('id_div_resultat_ajouter_liste_user').innerHTML='';
 	
 	list_user=document.getElementById('id_textarea_list_user').value;
+	list_user=list_user.replace(/\+/g,';plus;');
 	
 	liste_profils='';
 	$('.checkbox_liste_user_profile:checked').each(function(){
@@ -165,7 +166,7 @@ jQuery(function() {
 
 function modifier_user_admin() {
 	$(".chosen-select").trigger("chosen:updated");
-	document.getElementById('id_div_resultat_ajouter_user').innerHTML='';
+	document.getElementById('id_div_resultat_modifier_user').innerHTML='';
 	
 	user_num=document.getElementById('id_modifier_num_user').value;
 	login=document.getElementById('id_modifier_login_user').value;
@@ -399,6 +400,7 @@ function afficher_modif_user (user_num) {
 		async:true,
 		data: { action:'afficher_modif_user',user_num:user_num},
 		beforeSend: function(requester){
+				document.getElementById('id_div_resultat_modifier_user').innerHTML='';
 		},
 		success: function(requester){
 			if (requester=='deconnexion') {

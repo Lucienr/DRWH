@@ -333,6 +333,10 @@ function autorisation_voir_patient_nominative ($patient_num,$user_num) {
 function autorisation_voir_patient ($patient_num,$user_num) {
 	global $dbh;
 	$verif='';
+	if ($patient_num=='VIRTUAL') {
+		$verif='ok';
+		$patient_num='';
+	}
 	if ($patient_num!='') {
 		if ($_SESSION['dwh_droit_all_departments0']=='') {
 			$sel=oci_parse($dbh,"select right from dwh_user_profile a, dwh_profile_right b where user_num=$user_num and a.user_profile=b.user_profile");

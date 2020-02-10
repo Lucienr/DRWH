@@ -1,0 +1,11 @@
+{
+	"list_new_features": [{
+		"id": "id_link_quick_test_fulltext_query",
+		"text": "New ! Vous pouvez tester vos requêtes en texte libre : plus rapide ! <br> Les filtres avancés ne sont pas pris en compte."
+	},
+	{
+		"id": "id_div_a_ajouter",
+		"text": "test"
+	}
+	]
+}

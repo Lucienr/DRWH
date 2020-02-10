@@ -60,4 +60,8 @@ while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 }
 
 update_process ($process_num,'1',get_translation('PROCESS_END','process fini'),'',$user_num_session,"");
+
+
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

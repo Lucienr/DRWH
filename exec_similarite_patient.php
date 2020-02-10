@@ -33,7 +33,8 @@ include_once("fonctions_dwh.php");
 include_once "fonctions_concepts.php"; 
 include_once "similarite_fonction.php"; 
 
-if ($argv[1]!='') {
+if ($argv[1]!='' || $argv[14]!='') {
+print_r($argv);
 	$patient_num_principal=$argv[1];
 	$distance=$argv[2];
 	$limite_count_concept_par_patient_num=$argv[3];
@@ -49,7 +50,31 @@ if ($argv[1]!='') {
 	$cohort_num_exclure=$argv[11];
 	$requete_exclure=$argv[12];
 	$date_limite=$argv[13];
-} 
+	$list_concept_selected_tmp=trim($argv[14]);
+	
+	
+	$list_concept_selected_weight_tmp=trim($argv[15]);
+	$list_concept_selected_weight='';
+	$tab_weight=explode(";",$list_concept_selected_weight_tmp);
+	
+	$table_concept_code_weight_principal=array();
+	$list_concept_selected='';
+	$tab_concept_code_principal=explode(";",$list_concept_selected_tmp);
+	$j=0;
+	foreach ($tab_concept_code_principal as $concept_code) {
+		if ($concept_code!='') {
+			$list_concept_selected.="'$concept_code',";
+			$table_concept_code_weight_principal[$concept_code]=$tab_weight[$j];
+		}
+		$j++;
+	}
+	$list_concept_selected=substr($list_concept_selected,0,-1);
+	
+	
+	
+} else {
+	 exit;
+}
   
 $limite_longueur_vecteur=0.0001;
 $limite_valeur_similarite=45;
@@ -103,11 +128,21 @@ $nb_doc=$r['NB_DOC'];
 if ($nb_doc>0) {
 	$requete_sous_population="and c.patient_num in (select patient_num from dwh_process_patient where process_num='$process_num') ";
 } else {
-	$requete_sous_population="and c.concept_code in (select concept_code from dwh_enrsem where patient_num='$patient_num_principal') ";
+	if ($patient_num_principal!='') {
+		$requete_sous_population="and c.concept_code in (select concept_code from dwh_enrsem where patient_num='$patient_num_principal') ";
+	} 
+	if ($list_concept_selected!='') {
+		$requete_sous_population="and c.concept_code in ($list_concept_selected) ";
+	} 
+	
 }
 
 if ($cohort_num_exclure!='.' && $cohort_num_exclure!='') {
-	$requete_sous_population.="and c.patient_num not in (select patient_num from dwh_cohort_result where cohort_num='$cohort_num_exclure' and patient_num!='$patient_num_principal') ";
+	if ($patient_num_principal!='') {
+		$requete_sous_population.="and c.patient_num not in (select patient_num from dwh_cohort_result where cohort_num='$cohort_num_exclure' and patient_num!='$patient_num_principal') ";
+	} else {
+		$requete_sous_population.="and c.patient_num not in (select patient_num from dwh_cohort_result where cohort_num='$cohort_num_exclure') ";
+	}
 }
 
 if ($requete_exclure!='.' && $requete_exclure!='') {
@@ -129,69 +164,87 @@ if ($context_famille=='oui') {
 
 update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'',$user_num_session,"");
 
-if ($patient_num_principal!='') {
+if ($patient_num_principal!='' || $list_concept_selected!='') {
 	$tableau_code_autorise=array();
 	$tableau_tous_concepts=array();
 	$tableau_patient_num_liste_code=array();
-	if ($distance==10) {
-		      
-		$requete="select  concept_code, certainty,count(*) as TF from dwh_enrsem where 
-			patient_num='$patient_num_principal'
-			$req_contexte
-			$req_certitude
-			$req_codes_exclus
-			$req_date_limite
-	          	and concept_code!='C0012634'  and concept_code!='C0012155' and concept_code!='C0039082'
-	          	and concept_str_found not like '% norma%'
-	          	and concept_code in (select concept_code from dwh_thesaurus_enrsem where phenotype=1) 
-			   group by  concept_code,certainty
-	      		  order by concept_code,certainty";
-	} else {
-		$requete=" select  concept_code, certainty,count(*) as TF 
-			from (
-				select  enrsem_num,a.concept_code_son ,patient_num,certainty from dwh_thesaurus_enrsem_graph a, dwh_thesaurus_enrsem_graph b, dwh_enrsem c
-				where a.concept_code_father='RACINE'  and
-				patient_num='$patient_num_principal' and 
-				a.distance=$distance and
+	
+	if ($patient_num_principal!='') {
+		if ($distance==10) {
+			$requete="select  concept_code, certainty,count(*) as TF from dwh_enrsem where 
+				patient_num='$patient_num_principal'
 				$req_contexte
 				$req_certitude
-				a.concept_code_son=b.concept_code_father and
-				b.concept_code_son=c.concept_code 
-				and context='patient_text'
 				$req_codes_exclus
 				$req_date_limite
-				union
-				select  enrsem_num,concept_code_son  ,patient_num,certainty from dwh_thesaurus_enrsem_graph a, dwh_enrsem c
-				where a.concept_code_father='RACINE'   and
-				patient_num='$patient_num_principal' and 
-				a.distance<=$distance and
-				a.concept_code_son=c.concept_code 
-				$req_certitude
-				$req_contexte
-				and context='patient_text'
-				$req_codes_exclus
-				$req_date_limite
-				) t,
-			dwh_thesaurus_enrsem
-			where 
-				concept_code_son=concept_code   and concept_code!='C0012634'  and concept_code!='C0012155' and concept_code!='C0039082'
-	          	and phenotype=1
-			group by  concept_code, certainty
-			order by concept_code
-		      ";
+		          	and concept_code!='C0012634'  and concept_code!='C0012155' and concept_code!='C0039082'
+		          	and concept_str_found not like '% norma%'
+		          	and concept_code in (select concept_code from dwh_thesaurus_enrsem where phenotype=1) 
+				   group by  concept_code,certainty
+		      		  order by concept_code,certainty";
+		} else {
+			$requete=" select  concept_code, certainty,count(*) as TF 
+				from (
+					select  enrsem_num,a.concept_code_son ,patient_num,certainty from dwh_thesaurus_enrsem_graph a, dwh_thesaurus_enrsem_graph b, dwh_enrsem c
+					where a.concept_code_father='RACINE'  and
+					patient_num='$patient_num_principal' and 
+					a.distance=$distance and
+					$req_contexte
+					$req_certitude
+					a.concept_code_son=b.concept_code_father and
+					b.concept_code_son=c.concept_code 
+					and context='patient_text'
+					$req_codes_exclus
+					$req_date_limite
+					union
+					select  enrsem_num,concept_code_son  ,patient_num,certainty from dwh_thesaurus_enrsem_graph a, dwh_enrsem c
+					where a.concept_code_father='RACINE'   and
+					patient_num='$patient_num_principal' and 
+					a.distance<=$distance and
+					a.concept_code_son=c.concept_code 
+					$req_certitude
+					$req_contexte
+					and context='patient_text'
+					$req_codes_exclus
+					$req_date_limite
+					) t,
+				dwh_thesaurus_enrsem
+				where 
+					concept_code_son=concept_code   and concept_code!='C0012634'  and concept_code!='C0012155' and concept_code!='C0039082'
+		          	and phenotype=1
+				group by  concept_code, certainty
+				order by concept_code
+			      ";
+		}
+		print "\n$requete\n";
+		$sel=oci_parse($dbh, $requete);
+		oci_execute($sel);
+		while ($r=oci_fetch_array($sel,OCI_ASSOC+OCI_RETURN_NULLS)) {
+			$concept_code=$r['CONCEPT_CODE'];
+			$tf=$r['TF'];
+			$certainty=$r['CERTAINTY'];
+			$tableau_code_autorise[$concept_code]=ok;
+			//$tableau_patient_num_code_tf[$concept_code]=$tf;
+			//array_push($tableau_tous_concepts, "$concept_code");
+			$tableau_patient_num_liste_code[$patient_num_principal].="$concept_code;";
+		}
+	} 
+	if ($list_concept_selected!='') {
+		$patient_num_principal='VIRTUAL';
+		foreach ($tab_concept_code_principal as $concept_code) {
+			if ($concept_code!='') {
+				$tableau_code_autorise[$concept_code]=ok;
+				if ($table_concept_code_weight_principal[$concept_code]!='') {
+					//$tableau_patient_num_code_tf[$concept_code]=$table_concept_code_weight_principal[$concept_code];
+				} else {
+					//$tableau_patient_num_code_tf[$concept_code]=1;
+				}
+				//array_push($tableau_tous_concepts, "$concept_code");
+				$tableau_patient_num_liste_code[$patient_num_principal].="$concept_code;";
+			}
+		}
 	}
-	print "\n$requete\n";
-	$sel=oci_parse($dbh, $requete);
-	oci_execute($sel);
-	while ($r=oci_fetch_array($sel,OCI_ASSOC+OCI_RETURN_NULLS)) {
-		$concept_code=$r['CONCEPT_CODE'];
-		$tf=$r['TF'];
-		$certainty=$r['CERTAINTY'];
-		$tableau_code_autorise[$concept_code]=ok;
-		$tableau_patient_num_code_tf[$concept_code]=$tf;
-		array_push($tableau_tous_concepts, "$concept_code");
-		$tableau_patient_num_liste_code[$patient_num_principal].="$concept_code;";
-	}
+	
 	
 	$fichier_dot='';
 	$tableau_html_liste_patients='';
@@ -222,4 +275,8 @@ if ($patient_num_principal!='') {
 	
 	update_process ($process_num,'1',get_translation('PROCESS_END','process fini'),'',$user_num_session,"");
 }
+
+
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

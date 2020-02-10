@@ -354,6 +354,16 @@ if ($_POST['action']=='rechercher') {
 			<span id="id_bouton_attendre_moteur" style="display:none;">
 				<input type=button id="id_button_bouton_attendre_moteur" value="<? print get_translation('WAIT_END_PRECOMPUTING','Attendez que le pré calcul se termine'); ?>" class="form_submit_wait" onclick="valider_quand_precalcul_termine();">
 			</span>
+			
+	        	<div id="id_quick_test_fulltext_research" class="quick_test_fulltext_research">
+	        		<div style="position:absolute;left:690px;z-index:22;top:-6;color:grey;cursor:pointer;" onclick="plier('id_quick_test_fulltext_research');">X</div>
+	        		<div>
+	        		<textarea onkeypress="if(event.keyCode==13) {quick_test_fulltext_query ('');event.preventDefault();} else {}" id="id_input_text_quick_test_fulltext_research" style="display: inline; overflow: hidden; overflow-wrap: break-word; resize: horizontal; height: 28px;" class="filtre_texte input_texte autosizejs" cols="50" rows="2"></textarea><br>
+	        		<strong><? print get_translation('THE_20_FIRST_REPORTS','Les N premiers documents'); ?> : <input type="text" id="id_input_nb_quick_test_fulltext_research" value="20" size="3"  onkeypress="if(event.keyCode==13) {quick_test_fulltext_query ('');event.preventDefault();} else {}"> </strong><br>
+	        		<input type="hidden" id="id_input_filtre_quick_test_fulltext_research">
+	        		</div>
+	        		<div id="id_quick_test_fulltext_research_result" class="quick_test_fulltext_research_result"></div>
+	        	</div>
 		</form>
 		<script language="javascript">
 		

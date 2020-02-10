@@ -67,8 +67,10 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 	}
 	
 	print "<div><img $style id=\"img_$i\" src=\"ajax.php?action=load_file&file_num=$file_num\" width=100 height=100 onclick=\"forcer_img($i);\"></a></div><div style=\"height:10px\"></div>";
-	
-	$file_content=$res['FILE_CONTENT']->load();
+	$file_content='';
+	if($res['FILE_CONTENT']!='') {
+		$file_content=$res['FILE_CONTENT']->load();
+	}
 	if ($image_origine = imagecreatefromstring($file_content)) {
 		$largeur_origine = imagesx($image_origine);
 		$hauteur_origine = imagesy($image_origine);

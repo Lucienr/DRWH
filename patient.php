@@ -55,6 +55,7 @@ include "fonctions_ecrf.php";
 <? } else { ?>
 	
 	<script type="text/javascript" src="javascript_patient.js?v=<? print $date_today_unique; ?>"></script>
+	<script type="text/javascript" src="javascript_similarite_patient.js?v=<? print $date_today_unique; ?>"></script>
 	<script type="text/javascript" src="javascript_ecrf_patient.js?v=<? print $date_today_unique; ?>"></script>
 	<script language="javascript">
 		<? 
@@ -320,7 +321,7 @@ include "fonctions_ecrf.php";
 				
 				<h2><? print get_translation('INCLUDE_EXCLUDE_PATIENT_FROM_COHORT',"Inclure / Exclure ce patient d'une cohorte"); ?></h2>
 				
-				<? print get_translation('SELECT_A_COHORT','Sélectionner une cohorte'); ?> : <select id="id_select_ajouter_patient_cohorte" class="form chosen-select">
+				<? print get_translation('SELECT_A_COHORT','Sélectionner une cohorte'); ?> : <select id="id_select_ajouter_patient_cohorte" class="form chosen-select"  data-placeholder="<? print get_translation('SELECT_A_COHORT','Sélectionnez une cohorte'); ?>">
 				<? display_user_cohorts_option_addright($user_num_session); ?>
 				</select>
 				&nbsp;&nbsp;&nbsp;
@@ -350,7 +351,7 @@ include "fonctions_ecrf.php";
 					<? print get_translation('EXCLUDE_PATIENT_WITH_TERMS_IN_CASE_REPORT','Exclure les patients avec ces termes dans les comptes rendus');?> :  <input type="text" size="50" id="id_input_requete_exclure"><br>
 					<? print get_translation('COUNT_MINIMUM_CONCEPTS_PER_PATIENT','Nb minimum de concepts par patient'); ?> : <input type="text" size="3" id="id_input_limite_count_concept_par_patient_num" value="10"><br>
 					<? print get_translation('LIMIT_NUMBER_SIMILAR_PATIENTS','Limite nombre de patients similaires'); ?> : <input type="text" size="3" id="id_input_nbpatient_limite" value="20"><br>
-					<? print get_translation('EXCLUDE_RESULT_COHORT','Exclure cette cohorte des résultats'); ?> : <select id=id_cohort_num_exclure class="chosen-select">
+					<? print get_translation('EXCLUDE_RESULT_COHORT','Exclure cette cohorte des résultats'); ?> : <select id=id_cohort_num_exclure class="chosen-select"  data-placeholder="<? print get_translation('SELECT_A_COHORT','Sélectionnez une cohorte'); ?>">
 					<?	
 						display_user_cohorts_option ($user_num_session,'id_option_similarite_cohorte_') 
 					?>
@@ -368,12 +369,14 @@ include "fonctions_ecrf.php";
 					<div id="id_div_patient_ecrf_extract">
 					</div>
 				</td>
-				<td style="vertical-align:top">document<br>
-					<input name="input_filtre_patient_texte" id="id_input_ecrf_filtre_patient_text" class="filtre_texte" type="text" value="" size="45" onkeypress="if(event.keyCode==13) {filtre_patient_text_ecrf('<? print $patient_num; ?>');return false;}" onkeyup="if(this.value=='') {filtre_patient_text_ecrf('<? print "$patient_num"; ?>');}"> <input class="form_submit" type="button" value="<? print get_translation('SEARCH','RECHERCHER'); ?>" onclick="filtre_patient_text_ecrf('<? print $patient_num; ?>');">
-
-					<div id="id_afficher_list_document_ecrf" style="overflow-y:auto; max-height:350px;">
+				<td style="vertical-align:top">
+					<div style="position:relative" id="id_div_capsule_search_engine">
+					<div id="id_div_ecrf_search_engine" class="ecrf_search_engine" style="position: absolute;top: 0px;z-index: 3;outline: none;">
+						<input name="input_filtre_patient_texte" id="id_input_ecrf_filtre_patient_text" class="filtre_texte" type="text" value="" size="45" onkeypress="if(event.keyCode==13) {filtre_patient_text_ecrf('<? print $patient_num; ?>');return false;}" onkeyup="if(this.value=='') {filtre_patient_text_ecrf('<? print "$patient_num"; ?>');}"> <input class="form_submit" type="button" value="<? print get_translation('SEARCH','RECHERCHER'); ?>" onclick="filtre_patient_text_ecrf('<? print $patient_num; ?>');">
+	
+						<div id="id_afficher_list_document_ecrf" style="overflow-y:auto; max-height:350px;"></div>
+						<div id="id_afficher_document_ecrf" style="position:relative;background-color:white;display:none;"></div>
 					</div>
-					<div id="id_afficher_document_ecrf" style="position:relative;background-color:white">
 					</div>
 				</td>
 				</tr>

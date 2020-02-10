@@ -109,3 +109,7 @@ if ($argv[1]!='') {
 	update_process ($process_num,'1',get_translation('PROCESS_CLUSTER_DONE','cluster fini'),'',$user_num_session,"");
 	
 }
+
+oci_close ($dbh);
+oci_close ($dbh_etl);
+?>

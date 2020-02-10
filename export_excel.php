@@ -432,8 +432,15 @@ if ( $process_num!='' &&  $option=='similarity_cohort') {
 }
 	
 
-if ( $process_num!='' &&  $option=='ecrf_patient_answer') {
+if ($_GET['ecrf_num']!='' &&  $option=='ecrf_patient_answer') {
+	include_once("fonctions_ecrf.php");
+	$ecrf_num=$_GET['ecrf_num'];
+	$autorisation_ecrf_voir=autorisation_ecrf_voir ($ecrf_num,$user_num_session);
+	if ($autorisation_ecrf_voir=='ok') {
+		display_table_ecrf_patient_answer ($ecrf_num,$user_num_session,'excel');
 
+	}
+	save_log_page($user_num_session,"export_list_patient_ecrf");
 }
 	
 ?>

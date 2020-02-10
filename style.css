@@ -114,7 +114,7 @@ h2 {
 }
 
 .filtre_texte_ouvrir_avance a:hover{
-    color: #036ba5;
+    color: #dd16b5;
     outline: medium none;
     text-decoration: none;
 }
@@ -502,12 +502,12 @@ a.infobulle:hover div {
 /* onglet */
 li.color-bullet
 {
-    color: #8194bc;
+    color: #fff;
 }
 
 span.li-content
 {
-    color: #000;
+    color: #000; /* modification Garcelon 2020 02 04, it was #8194bc  */
 }
 /* TABS */
 
@@ -549,7 +549,7 @@ ul#tab-links li
 ul#tab-links li.current
 {
     border-bottom: 0px solid #fff;
-    background-color: #fff;
+    background-color: #8194bc; /* modification Garcelon 2020 02 04 , it was : #fff */
 }
  
 ul#tab-links li a
@@ -971,3 +971,42 @@ background-color:lavender;
 .ql-size-large {
 	font-size: 1.3em;
 }
+
+.ecrf_list_doc_found {
+    max-height: 250px;
+    overflow: auto;
+}
+
+.quick_test_fulltext_research {
+	width:700px;
+	height:400px;
+	position: absolute;
+	background-color:#d6e3e7;
+	left: 430px;
+	display:none;
+	font-size:11px;
+	border:solid 1px #d6e3e7;
+	z-index: 99;
+}
+
+.quick_test_fulltext_research_result {
+	overflow: auto;
+	width: 700px;
+	height: 385px;
+	top: 75px;
+	position: absolute;
+}
+
+.info_new_feature{
+ display:none;
+ position:absolute;
+ background-color:white;
+ border:1px red solid;  
+ width:120px;
+ font-size:10px;
+ padding:2px;
+ } 
+ 
+ .view_document_in_ecrf {
+ 	background-color: #f3f6fd;
+ }

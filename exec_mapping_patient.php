@@ -116,4 +116,8 @@ $resultat_mapping.=  "</table>";
 
 update_process ($process_num,"1","mapping.xls",$resultat_mapping,$user_num_session,"xls");
 sauver_notification ($user_num_session,$user_num_session,'process',"",$process_num);
+
+
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

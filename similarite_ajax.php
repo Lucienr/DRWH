@@ -147,6 +147,9 @@ if ($_POST['action']=='calculer_similarite_patient') {
 
 	save_log_page($user_num_session,'similarities');
 	$patient_num_principal=$_POST['patient_num'];
+	$list_concept_selected=$_POST['list_concept_selected'];
+	$list_concept_selected_weight=$_POST['list_concept_selected_weight'];
+	
 	$process_num=$_POST['process_num'];
 	
 	$context_famille='non';
@@ -191,7 +194,7 @@ if ($_POST['action']=='calculer_similarite_patient') {
 	$r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC);
 	$nb_patient=$r['NB_PATIENT'];
 
-	passthru( "php exec_similarite_patient.php \"$patient_num_principal\" \"$distance\" \"$limite_count_concept_par_patient_num\" \"$limite_min_nb_patient_par_code\" \"$process_num\" \"$negation\" \"$codes_exclus\" \"$context_famille\" \"$anonyme\" \"$nbpatient_limite\" \"$cohort_num_exclure\" \"$requete_exclure\" \"$exclusion_date\"> $CHEMIN_GLOBAL_LOG/log_chargement_similarite_patient_$patient_num_principal.$process_num.txt 2>&1 &");
+	passthru( "php exec_similarite_patient.php \"$patient_num_principal\" \"$distance\" \"$limite_count_concept_par_patient_num\" \"$limite_min_nb_patient_par_code\" \"$process_num\" \"$negation\" \"$codes_exclus\" \"$context_famille\" \"$anonyme\" \"$nbpatient_limite\" \"$cohort_num_exclure\" \"$requete_exclure\" \"$exclusion_date\" \"$list_concept_selected\" \"$list_concept_selected_weight\"> $CHEMIN_GLOBAL_LOG/log_chargement_similarite_patient_$patient_num_principal.$process_num.txt 2>&1 &");
 
 	print "process_num;$process_num;$nb_patient";
 }
@@ -225,6 +228,9 @@ if ($_POST['action']=='verifier_process_fini_similarite') {
 if ($_POST['action']=='afficher_resultat_similarite') {
 	$process_num=$_POST['process_num'];
 	$patient_num=$_POST['patient_num'];
+	if ($patient_num=='') {
+		$patient_num='VIRTUAL';
+	}	
 	if ($process_num!='') {
 		$aleatoire=uniqid();
 		print "<img src=\"$URL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num.$process_num.png?$process_num.$aleatoire\" usemap=\"#cluster_patient\">";

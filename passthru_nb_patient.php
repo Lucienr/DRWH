@@ -34,6 +34,7 @@ $user_num_session=$argv[1];
 $datamart_num=$argv[2];
 $query_key_arg=$argv[3];
 
+$sql='';
 $sel = oci_parse($dbh, "select SQL_CLOB from dwh_tmp_query where query_key='$query_key_arg' and user_num=$user_num_session and datamart_num=$datamart_num ");   
 oci_execute($sel);
 $r = oci_fetch_array($sel, OCI_ASSOC);
@@ -63,4 +64,6 @@ $nb_patient=count($tableau_patient_num);
 $upd = oci_parse($dbh,"update  dwh_tmp_query set count_patient=$nb_patient  where query_key='$query_key_arg' and user_num=$user_num_session and datamart_num=$datamart_num ");   
 oci_execute($upd);
 
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

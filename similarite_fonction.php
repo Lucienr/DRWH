@@ -23,7 +23,7 @@
 */
 function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_num,$limite_longueur_vecteur,$limite_valeur_similarite,$limite_min_nb_patient_par_code,$filtre_sql,$patient_num_principal) {
 	global $dbh,$fichier_dot,$deja_patient_num,$tableau_cluster,$tableau_cluster_liste_patient_num,$tableau_code_autorise,$tableau_html_liste_patients,$user_num_session,$tableau_html_liste_clusters,$tableau_html_liste_concepts_patient_similaire,$liste_type_semantic;
-	global $phrase_parametrage,$req_certitude,$req_contexte,$anonyme,$nbpatient_limite,$cohort_num_exclure,$process_num,$tableau_patient_num_liste_code;
+	global $phrase_parametrage,$req_certitude,$req_contexte,$anonyme,$nbpatient_limite,$cohort_num_exclure,$process_num,$tableau_patient_num_liste_code,$tab_concept_code_principal,$table_concept_code_weight_principal;
 	
 	print "nbpatient_limite :$nbpatient_limite<br>"; 
 	$sel=oci_parse($dbh, "select count_patient from dwh_info_load where year is null and document_origin_code is null");
@@ -40,8 +40,18 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 	$tableau_patient_num_tous_les_codes_nb_concept_par_code=array();
 	$tableau_patient_num_tous_les_codes_nb_concept_total=array();
 	
-	
-	
+	if ($patient_num_principal=='VIRTUAL') {
+		foreach ($tab_concept_code_principal as $concept_code) {
+			if ($concept_code!='') {
+				$tableau_code_nb_pat[$concept_code]++;
+				$tf=$table_concept_code_weight_principal[$concept_code];
+				$tableau_patient_num_code_nb_concept['VIRTUAL'][$concept_code]=$tf;
+				$tableau_patient_num_nb_concept_total['VIRTUAL']+=$tf;
+				$tableau_patient_num['VIRTUAL']='ok';
+			}
+		}
+	}
+	print_r($tableau_patient_num_code_nb_concep);
 	update_process ($process_num,'0',get_translation('PROCESS_EXTRACT_PATIENTS','Extraction des patients'),'',$user_num_session,"");
 	
 	// pour le calcul du TF/IDF
@@ -309,7 +319,8 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 	foreach ($tableau_longueur_vecteur as $patient_num_1 => $longeur_v_1) {
 		foreach ($tableau_longueur_vecteur as $patient_num_2 => $longeur_v_2) {
 			if ($patient_num_1!=$patient_num_2 && $patient_num_1!=$patient_num_principal && $patient_num_2!=$patient_num_principal) {
-			
+				print "patient_num_1 :$patient_num_1 , patient_num_2 : $patient_num_2\n";
+				
 				$tableau_patient_num_code_1=explode(";",$tableau_patient_num_liste_code[$patient_num_1]);
 				$tableau_patient_num_code_2=explode(";",$tableau_patient_num_liste_code[$patient_num_2]);
 				$intersect = array_intersect($tableau_patient_num_code_1,$tableau_patient_num_code_2);
@@ -964,8 +975,6 @@ function calcul_clustering ($distance,$nb_concept_commun,$limite_count_concept_p
 	        $jpgraph_connexion
 	}";	
 }
-
-
 
 
 ?>

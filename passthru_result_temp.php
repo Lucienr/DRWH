@@ -65,7 +65,7 @@ if ($table_name_verif=='') {
 				PATIENT_NUM  INTEGER,
 				DOCUMENT_DATE  DATE,
 				OBJECT_TYPE VARCHAR(50)
-				)");   
+				) NOLOGGING ");   
 	oci_execute($sel);
 }
 
@@ -78,6 +78,7 @@ print "select sql_clob from dwh_tmp_query where query_key='$query_key_arg' and u
 $sel = oci_parse($dbh, "select sql_clob from dwh_tmp_query where query_key='$query_key_arg' and user_num=$user_num and datamart_num=$datamart_num ");   
 oci_execute($sel);
 $r = oci_fetch_array($sel, OCI_ASSOC);
+$sql='';
 if ($r['SQL_CLOB']!='') {
 	$sql=$r['SQL_CLOB']->load();
 }
@@ -165,7 +166,7 @@ if ($nb_patient>0) {
 	}
 }
 
-$sel = oci_parse($dbh, "select index_name from all_indexes where index_name='DWH_TMP_PRERESULT_I_$user_num'  ");   
+$sel = oci_parse($dbh, "select index_name from all_indexes where index_name='DWH_TPR_I_$user_num'  ");   
 oci_execute($sel);
 $r = oci_fetch_array($sel, OCI_ASSOC);
 $index_name_verif=$r['INDEX_NAME'];
@@ -173,10 +174,10 @@ if ($index_name_verif!='') {
 	//$sel = oci_parse($dbh, "drop index DWH_TMP_PRERESULT_I_$user_num ");   
 	//oci_execute($sel);
 }else {
-	$sel = oci_parse($dbh, "create index DWH_TMP_PRERESULT_I_$user_num  on DWH_TMP_PRERESULT_$user_num  (QUERY_KEY , datamart_num)");   
+	$sel = oci_parse($dbh, "create index DWH_TPR_I_$user_num  on DWH_TMP_PRERESULT_$user_num  (QUERY_KEY , datamart_num)");   
 	oci_execute($sel);
 }
-$sel = oci_parse($dbh, "select index_name from all_indexes where index_name='DWH_TMP_PRERESULT_DOC_$user_num'  ");   
+$sel = oci_parse($dbh, "select index_name from all_indexes where index_name='DWH_TPR_DOC_$user_num'  ");   
 oci_execute($sel);
 $r = oci_fetch_array($sel, OCI_ASSOC);
 $index_name_verif=$r['INDEX_NAME'];
@@ -184,10 +185,12 @@ if ($index_name_verif!='') {
 	//$sel = oci_parse($dbh, "drop index DWH_TMP_PRERESULT_DOC_$user_num ");   
 	//oci_execute($sel);
 } else {
-	$sel = oci_parse($dbh, "create index DWH_TMP_PRERESULT_DOC_$user_num  on DWH_TMP_PRERESULT_$user_num  (document_num)");   
+	$sel = oci_parse($dbh, "create index DWH_TPR_DOC_$user_num  on DWH_TMP_PRERESULT_$user_num  (document_num)");   
 	oci_execute($sel);
 }
 
 
 
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

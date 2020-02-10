@@ -203,4 +203,6 @@ if ($_POST['action']=='display_sentence_with_term') {
 	$appercu=display_sentence_with_term ($patient_num,$_POST['list_document_num'],$concept_str);
 	print "$appercu";
 }
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

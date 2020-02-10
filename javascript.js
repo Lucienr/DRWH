@@ -44,7 +44,7 @@ function get_translation (code,libelle_defaut) {
 		});
 	}
 
-	if (typeof translations[code] !== 'undefined') {
+	if (typeof translations[code] != 'undefined') {
 		return translations[code];
 	}
 	else if (libelle_defaut==''){
@@ -1636,30 +1636,45 @@ function supprimer_user(user_num,department_num) {
 }
 
 
-function modifier_passwd () {
+function modifier_passwd (page) {
 	mon_password1=jQuery('#id_mon_password1').val();
 	mon_password2=jQuery('#id_mon_password2').val();
+	mon_password1=mon_password1.replace(/\+/g,';plus;');
+	mon_password2=mon_password2.replace(/\+/g,';plus;');
 	if (mon_password1!='' && mon_password2!='' && mon_password1==mon_password2) {
 		 jQuery.ajax({
 			type:"POST",
 			url:"ajax.php",
 			async:false,
-			data: { action:'modifier_passwd',mon_password1:mon_password1,mon_password2:mon_password2},
+			data: { action:'modifier_passwd',mon_password1:escape(mon_password1),mon_password2:escape(mon_password2)},
 			beforeSend: function(requester){
 			},
 			success: function(requester){
 				contenu=requester;
 				if (contenu=='deconnexion') {
-					afficher_connexion("modifier_passwd()");
+					afficher_connexion("modifier_passwd('')");
 				} else {
-					if (contenu=='erreur') {
-						alert(get_translation('JS_UNE_ERREUR_EST_SURVENUE','Une erreur est survenue'));
+					tab=contenu.split(';');
+					status=tab[0];
+					commentary=tab[1];
+					if (status=='erreur') {
+						alert(get_translation('JS_UNE_ERREUR_EST_SURVENUE','Une erreur est survenue')+" : "+commentary);
+						jQuery('#id_mon_password1').val('');
+						jQuery('#id_mon_password2').val('');
+						deplier('id_span_passwd_1','inline');
+						plier('id_span_passwd_2');
+						jQuery('#id_mon_password1').focus();
+						
 					} else {
 						jQuery('#id_modifmdp_result').html("<strong style='color:green'>"+get_translation('MOT_DE_PASSE_MODIFIE_AVEC_SUCCÈS','Mot de passe modifié avec succès')+"</strong>");
 						jQuery('#id_mon_password1').val('');
 						jQuery('#id_mon_password2').val('');
 						deplier('id_span_passwd_1','inline');
 						plier('id_span_passwd_2');
+						if (page!='') {
+							setTimeout("window.location = '"+page+"'",1000);
+							//window.location =page;
+						}
 						
 					}
 				}
@@ -2540,4 +2555,67 @@ function get_json_query_history (datamart_num) {
 		var row = table.row($(this)).data();
 		charger_moteur_recherche(row[3]);
 	});
+}
+
+var num_filtre_open_quick_test_fulltext_query='';
+function quick_test_fulltext_query (num_filtre) {
+	if (num_filtre!='') {
+		if (num_filtre_open_quick_test_fulltext_query==num_filtre) {
+			num_filtre_open_quick_test_fulltext_query='';
+			jQuery('#id_quick_test_fulltext_research').css("display","none");
+			return false;
+		}
+		jQuery('#id_input_filtre_quick_test_fulltext_research').val(num_filtre);
+		query=jQuery('#id_input_filtre_texte_'+num_filtre).val();
+		jQuery('#id_input_text_quick_test_fulltext_research').val(query);
+	} else {
+		num_filtre=jQuery('#id_input_filtre_quick_test_fulltext_research').val();
+	}
+	num_filtre_open_quick_test_fulltext_query=num_filtre;
+	
+	datamart_num=jQuery('#id_num_datamart').val();
+	nb_doc=jQuery('#id_input_nb_quick_test_fulltext_research').val();
+	
+	query=jQuery('#id_input_text_quick_test_fulltext_research').val();
+	val_top_list_doc=getTop(document.getElementById("id_div_filtre_texte_"+num_filtre));
+	jQuery('#id_quick_test_fulltext_research').css("top",val_top_list_doc);
+	jQuery('#id_quick_test_fulltext_research').css("display","inline");
+	query=jQuery('#id_input_text_quick_test_fulltext_research').val();
+	
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax.php",
+		async:true,
+		data: { action:'quick_test_fulltext_query',datamart_num:datamart_num,query:escape(query),nb_doc:nb_doc},
+		beforeSend: function(requester){
+			jQuery("#id_quick_test_fulltext_research_result").html("<img src='images/chargement_mac.gif'>"); 
+		},
+		success: function(requester){
+			if (requester=='deconnexion') {
+				afficher_connexion("quick_test_fulltext_query ('"+num_filtre+"')");
+			} else {
+				jQuery('#id_quick_test_fulltext_research_result').html(requester);
+			}
+		},
+		complete: function(requester){
+		},
+		error: function(){
+		}
+	});
+}
+
+
+function position_info_new_feature (id,text,j) {
+		val_top=getTop(document.getElementById(id));
+		val_height=jQuery('#'+id).height();
+		val_left=getLeft(document.getElementById(id));
+		val_top_total=eval(val_top+val_height+12);
+		jQuery('#id_div_info_new_feature_'+j).css('top',val_top_total);		
+		jQuery('#id_div_info_new_feature_'+j).css('left',val_left);	
+		jQuery('#id_div_info_new_feature_'+j).css('display','inline');	
+		jQuery('#id_span_info_new_feature_'+j).html(text);		
+}
+
+function html_replace_supinf (str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

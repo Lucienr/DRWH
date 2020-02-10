@@ -25,6 +25,7 @@
 include "head.php";
 include "menu.php";
 session_write_close();
+
 ?>
 
 

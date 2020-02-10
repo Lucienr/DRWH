@@ -234,4 +234,6 @@ if ($_POST['action']=='manage_regexp') {
 	print "</table>";
 }
 
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

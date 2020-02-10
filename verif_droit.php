@@ -54,6 +54,15 @@ if ($verif_cgu_signed==0 && !preg_match("/sign_cgu\.php/",$_SERVER['REQUEST_URI'
 }
 
 
+// Si le mot de passe n'a pas ete modifié depuis 6 mois ou que c'est le mot de passe par défaut, on force sa modification
+if ($_SESSION['dwh_connexion_mode']=='bdd') {
+	$verif_need_to_modify_password=verif_need_to_modify_password($_SESSION['dwh_user_num']);
+	if ($verif_need_to_modify_password=='modify' && !preg_match("/sign_cgu\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/connexion_user\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/contact\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/ajax/",$_SERVER['REQUEST_URI']) && !preg_match("/modify_password\.php/",$_SERVER['REQUEST_URI']) ) {
+		header("Location: modify_password.php");
+		exit;
+	}
+}
+
 //REINITIALISATION//
 foreach ($tableau_user_droit as $right) { 
 	$_SESSION['dwh_droit_'.$right.'0']='';

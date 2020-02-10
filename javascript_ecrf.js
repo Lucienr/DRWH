@@ -305,42 +305,7 @@
 		});
 	}
 	
-	function get_list_ecrf_sub_item_num (ecrf_num,ecrf_item_num) {
-		list_ecrf_sub_item_num='';
-		jQuery.ajax({
-			type:"POST",
-			url:"ajax_ecrf.php",
-			async:true, //false
-			encoding: 'latin1',
-			data:{ action:'get_list_ecrf_sub_item_num',ecrf_num:ecrf_num,ecrf_item_num:ecrf_item_num},
-			beforeSend: function(requester){
-			},
-			success: function(requester){
-				var contenu=requester;
-				if (contenu=='deconnexion') {
-					afficher_connexion("get_list_ecrf_sub_item_num ('"+ecrf_num+"','"+ecrf_item_num+"')");
-				} else {
-					list_ecrf_sub_item_num=contenu;
-					
-					tab_sub_item_num=list_ecrf_sub_item_num.split(';');
-					tab_sub_item_num.forEach(function(ecrf_sub_item_num)  { 
-						if (ecrf_sub_item_num!='') {
-							if (jQuery("#id_input_sub_item_local_str_"+ecrf_sub_item_num).val()=='') {
-								delete_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num);
-							} else {
-								save_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num,'sub_item_local_str');
-								save_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num,'sub_item_local_code');
-								save_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num,'sub_item_ext_code');
-								save_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num,'sub_item_regexp');
-							}
-						}
-					}
-					);
-				}
-			}
-		});
-		return list_ecrf_sub_item_num;
-	}
+	
 	var ecrf_item_num_open='';
 	function modify_ecrf_item(ecrf_num,ecrf_item_num) {
 		if (ecrf_item_num_open!=ecrf_item_num && ecrf_item_num_open!='') {
@@ -419,6 +384,7 @@
 		});
 	}
 	
+	
 	function save_ecrf_sub_item (ecrf_num,ecrf_item_num,ecrf_sub_item_num,variable) {
 		valeur=jQuery("#id_input_"+variable+"_"+ecrf_sub_item_num).val();
 		if (!valeur) {
@@ -438,7 +404,7 @@
 			success: function(requester){
 				var contenu=requester;
 				if (contenu=='deconnexion') {
-					afficher_connexion("save_ecrf_item ('"+ecrf_num+"','"+ecrf_item_num+"','"+ecrf_sub_item_num+"','"+variable+"')");
+					afficher_connexion("save_ecrf_sub_item ('"+ecrf_num+"','"+ecrf_item_num+"','"+ecrf_sub_item_num+"','"+variable+"')");
 				} else {
 					refresh_ecrf_sub_item(ecrf_num,ecrf_item_num,variable,'see');
 					refresh_ecrf_sub_item(ecrf_num,ecrf_item_num,variable,'input');
@@ -484,36 +450,111 @@
 		$(".id_span_ecrf_item_"+ecrf_item_num).css("display","block");
 		$(".id_span_modif_ecrf_item_"+ecrf_item_num).css("display","none");		
 		
-		//$("#id_tr_ecrf_item_"+ecrf_item_num).css("background-color","grey");
-		//$("#id_tr_ecrf_item_"+ecrf_item_num).css('opacity', '0.6');
+		item_str=jQuery("#id_input_item_str_"+ecrf_item_num).val();
+		item_type=jQuery("#id_input_item_type_"+ecrf_item_num).val();
+		item_list=jQuery("#id_input_item_list_"+ecrf_item_num).val();
+		regexp=jQuery("#id_input_regexp_"+ecrf_item_num).val();
+		regexp_index=jQuery("#id_input_regexp_index_"+ecrf_item_num).val();
+		item_ext_name=jQuery("#id_input_item_ext_name_"+ecrf_item_num).val();
+		item_ext_code=jQuery("#id_input_item_ext_code_"+ecrf_item_num).val();
+		item_local_code=jQuery("#id_input_item_local_code_"+ecrf_item_num).val();
+		period=jQuery("#id_input_period_"+ecrf_item_num).val();
+		item_order=jQuery("#id_input_item_order_"+ecrf_item_num).val();
+		ecrf_function=jQuery("#id_select_ecrf_function_"+ecrf_item_num).val();
+		document_origin_code=jQuery("#id_select_document_origin_code_"+ecrf_item_num).val();
 		
-		save_ecrf_item(ecrf_num,ecrf_item_num,'item_str');
-		save_ecrf_item(ecrf_num,ecrf_item_num,'item_type');
-		save_ecrf_item(ecrf_num,ecrf_item_num,'item_list');
-		save_ecrf_item(ecrf_num,ecrf_item_num,'regexp');
-		save_ecrf_item(ecrf_num,ecrf_item_num,'regexp_index');
-		save_ecrf_item(ecrf_num,ecrf_item_num,'item_ext_name');
-		save_ecrf_item(ecrf_num,ecrf_item_num,'item_ext_code');
-		save_ecrf_item(ecrf_num,ecrf_item_num,'item_local_code');
-		save_ecrf_item(ecrf_num,ecrf_item_num,'period');
-		save_ecrf_item(ecrf_num,ecrf_item_num,'item_order');
+		item_str=item_str.replace(/\+/g,';plus;');
+		item_type=item_type.replace(/\+/g,';plus;');
+		item_list=item_list.replace(/\+/g,';plus;');
+		regexp=regexp.replace(/\+/g,';plus;');
+		item_ext_name=item_ext_name.replace(/\+/g,';plus;');
+		item_ext_code=item_ext_code.replace(/\+/g,';plus;');
+		item_local_code=item_local_code.replace(/\+/g,';plus;');
+		period=period.replace(/\+/g,';plus;');
 		
+		if (!item_str) {
+			item_str='';
+		}
+		if (!item_type) {
+			item_type='';
+		}
+		if (!item_list) {
+			item_list='';
+		}
+		if (!regexp) {
+			regexp='';
+		}
+		if (!regexp_index) {
+			regexp_index='';
+		}
+		if (!item_ext_name) {
+			item_ext_name='';
+		}
+		if (!item_ext_code) {
+			item_ext_code='';
+		}
+		if (!item_local_code) {
+			item_local_code='';
+		}
+		if (!period) {
+			period='';
+		}
+		if (!item_order) {
+			item_order='';
+		}
+		if (!ecrf_function) {
+			ecrf_function='';
+		}
+		if (!document_origin_code) {
+			document_origin_code='';
+		}
+		//valeur_clean=valeur_clean.replace(/\\/g,';antislash;');
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_ecrf.php",
+			async:true,
+			encoding: 'latin1',
+			data:{ action:'save_ecrf_item_all',
+				ecrf_num:ecrf_num,
+				ecrf_item_num:ecrf_item_num,
+				item_str:escape(item_str),
+				item_type:escape(item_type),
+				item_list:escape(item_list),
+				regexp:escape(regexp),
+				regexp_index:escape(regexp_index),
+				item_ext_name:escape(item_ext_name),
+				item_ext_code:escape(item_ext_code),
+				item_local_code:escape(item_local_code),
+				period:escape(period),
+				item_order:escape(item_order),
+				ecrf_function:escape(ecrf_function),
+				document_origin_code:escape(document_origin_code)
+			},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				var contenu=requester;
+				if (contenu=='deconnexion') {
+					afficher_connexion("save_ecrf_item ('"+ecrf_num+"','"+ecrf_item_num+"','"+variable+"')");
+				} else {
+					jQuery("#id_span_item_str_"+ecrf_item_num).html(jQuery("#id_input_item_str_"+ecrf_item_num).val());
+					jQuery("#id_span_item_type_"+ecrf_item_num).html(jQuery("#id_input_item_type_"+ecrf_item_num).val());
+					jQuery("#id_span_item_list_"+ecrf_item_num).html(jQuery("#id_input_item_list_"+ecrf_item_num).val());
+					regexp=jQuery("#id_input_regexp_"+ecrf_item_num).val();
+					regexp_html_encode=html_replace_supinf(regexp);
+					jQuery("#id_span_regexp_"+ecrf_item_num).html(regexp_html_encode);
+					jQuery("#id_span_regexp_index_"+ecrf_item_num).html(jQuery("#id_input_regexp_index_"+ecrf_item_num).val());
+					jQuery("#id_span_item_ext_name_"+ecrf_item_num).html(jQuery("#id_input_item_ext_name_"+ecrf_item_num).val());
+					jQuery("#id_span_item_ext_code_"+ecrf_item_num).html(jQuery("#id_input_item_ext_code_"+ecrf_item_num).val());
+					jQuery("#id_span_item_local_code_"+ecrf_item_num).html(jQuery("#id_input_item_local_code_"+ecrf_item_num).val());
+					jQuery("#id_span_period_"+ecrf_item_num).html(jQuery("#id_input_period_"+ecrf_item_num).val());
+					jQuery("#id_span_item_order_"+ecrf_item_num).html(jQuery("#id_input_item_order_"+ecrf_item_num).val());
+					jQuery("#id_span_ecrf_function_"+ecrf_item_num).html(jQuery("#id_select_ecrf_function_"+ecrf_item_num).val());
+					jQuery("#id_span_document_origin_code_"+ecrf_item_num).html(jQuery("#id_select_document_origin_code_"+ecrf_item_num).val());
+				}
+			}
+		});
 		list_ecrf_sub_item_num=get_list_ecrf_sub_item_num (ecrf_num,ecrf_item_num);
-		
-//		tab_sub_item_num=list_ecrf_sub_item_num.split(';');
-//		tab_sub_item_num.forEach(function(ecrf_sub_item_num)  { 
-//			if (ecrf_sub_item_num!='') {
-//				if (jQuery("#id_input_sub_item_local_str_"+ecrf_sub_item_num).val()=='') {
-//					delete_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num);
-//				} else {
-//					save_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num,'sub_item_local_str');
-//					save_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num,'sub_item_local_code');
-//					save_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num,'sub_item_ext_code');
-//					save_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num,'sub_item_regexp');
-//				}
-//			}
-//		}
-//		);
 	}
 	
 	function delete_item_ecrf(ecrf_num,ecrf_item_num) {
@@ -538,7 +579,7 @@
 		}
 	}
 	
-	function delete_patient_ecrf(ecrf_num,patient_num) {
+	function delete_patient_ecrf(ecrf_num,patient_num,user_num_ecrf) {
 		if (confirm ('Etes vous sûr de vouloir supprimer ce patient ? ')) {
 			jQuery.ajax({
 				type:"POST",
@@ -551,13 +592,140 @@
 				success: function(requester){
 					var contenu=requester;
 					if (contenu=='deconnexion') {
-						afficher_connexion("delete_patient_ecrf ('"+ecrf_num+"','"+patient_num+"')");
+						afficher_connexion("delete_patient_ecrf ('"+ecrf_num+"','"+patient_num+"','"+user_num_ecrf+"')");
 					} else {
-						$("tr#id_tr_ecrf_patient_"+ecrf_num+"_"+patient_num).remove();
+						$("tr#id_tr_ecrf_patient_"+ecrf_num+"_"+patient_num+"_"+user_num_ecrf).remove();
 					}
 				}
 			});
 		}
+	}
+	
+	function get_list_ecrf_sub_item_num_old (ecrf_num,ecrf_item_num) {
+		list_ecrf_sub_item_num='';
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_ecrf.php",
+			async:true, //false
+			encoding: 'latin1',
+			data:{ action:'get_list_ecrf_sub_item_num',ecrf_num:ecrf_num,ecrf_item_num:ecrf_item_num},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				var contenu=requester;
+				if (contenu=='deconnexion') {
+					afficher_connexion("get_list_ecrf_sub_item_num ('"+ecrf_num+"','"+ecrf_item_num+"')");
+				} else {
+					list_ecrf_sub_item_num=contenu;
+					
+					tab_sub_item_num=list_ecrf_sub_item_num.split(';');
+					tab_sub_item_num.forEach(function(ecrf_sub_item_num)  { 
+						if (ecrf_sub_item_num!='') {
+							if (jQuery("#id_input_sub_item_local_str_"+ecrf_sub_item_num).val()=='') {
+								delete_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num);
+							} else {
+								save_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num,'sub_item_local_str');
+								save_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num,'sub_item_local_code');
+								save_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num,'sub_item_ext_code');
+								save_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num,'sub_item_regexp');
+							}
+						}
+					}
+					);
+				}
+			}
+		});
+		return list_ecrf_sub_item_num;
+	}
+	
+	
+	function get_list_ecrf_sub_item_num (ecrf_num,ecrf_item_num) {
+		list_ecrf_sub_item_num='';
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_ecrf.php",
+			async:true, //false
+			encoding: 'latin1',
+			data:{ action:'get_list_ecrf_sub_item_num',ecrf_num:ecrf_num,ecrf_item_num:ecrf_item_num},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				var contenu=requester;
+				if (contenu=='deconnexion') {
+					afficher_connexion("get_list_ecrf_sub_item_num ('"+ecrf_num+"','"+ecrf_item_num+"')");
+				} else {
+					list_ecrf_sub_item_num=contenu;
+					
+					tab_sub_item_num=list_ecrf_sub_item_num.split(';');
+					tab_sub_item_num.forEach(function(ecrf_sub_item_num)  { 
+						if (ecrf_sub_item_num!='') {
+							if (jQuery("#id_input_sub_item_local_str_"+ecrf_sub_item_num).val()=='') {
+								delete_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num);
+							} else {
+								save_ecrf_sub_item_all(ecrf_num,ecrf_item_num,ecrf_sub_item_num);
+							}
+						}
+					}
+					);
+				}
+			}
+		});
+		return list_ecrf_sub_item_num;
+	}
+	
+	function save_ecrf_sub_item_all (ecrf_num,ecrf_item_num,ecrf_sub_item_num) {
+		sub_item_local_str=jQuery("#id_input_sub_item_local_str_"+ecrf_sub_item_num).val();
+		if (!sub_item_local_str) {
+			sub_item_local_str='';
+		}
+		sub_item_local_str_clean=sub_item_local_str.replace(/\+/g,';plus;');
+	
+		sub_item_local_code=jQuery("#id_input_sub_item_local_code_"+ecrf_sub_item_num).val();
+		if (!sub_item_local_code) {
+			sub_item_local_code='';
+		}
+		sub_item_local_code_clean=sub_item_local_code.replace(/\+/g,';plus;');
+	
+		sub_item_ext_code=jQuery("#id_input_sub_item_ext_code_"+ecrf_sub_item_num).val();
+		if (!sub_item_ext_code) {
+			sub_item_ext_code='';
+		}
+		sub_item_ext_code_clean=sub_item_ext_code.replace(/\+/g,';plus;');
+	
+		sub_item_regexp=jQuery("#id_input_sub_item_regexp_"+ecrf_sub_item_num).val();
+		if (!sub_item_regexp) {
+			sub_item_regexp='';
+		}
+		sub_item_regexp_clean=sub_item_regexp.replace(/\+/g,';plus;');
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_ecrf.php",
+			async:true,
+			encoding: 'latin1',
+			data:{ action:'save_ecrf_sub_item_all',ecrf_num:ecrf_num,ecrf_item_num:ecrf_item_num
+					,ecrf_sub_item_num:ecrf_sub_item_num
+					,sub_item_local_str:escape(sub_item_local_str_clean)
+					,sub_item_local_code:escape(sub_item_local_code_clean)
+					,sub_item_ext_code:escape(sub_item_ext_code_clean)
+					,sub_item_regexp:escape(sub_item_regexp_clean)
+			},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				var contenu=requester;
+				if (contenu=='deconnexion') {
+					afficher_connexion("save_ecrf_sub_item_all ('"+ecrf_num+"','"+ecrf_item_num+"','"+ecrf_sub_item_num+"')");
+				} else {
+					refresh_ecrf_sub_item_all(ecrf_num,ecrf_item_num);
+					//refresh_ecrf_sub_item (ecrf_num,ecrf_item_num,'sub_item_local_str','see');
+					//refresh_ecrf_sub_item (ecrf_num,ecrf_item_num,'sub_item_local_code','see');
+					//refresh_ecrf_sub_item (ecrf_num,ecrf_item_num,'sub_item_ext_code','see');
+					//refresh_ecrf_sub_item (ecrf_num,ecrf_item_num,'sub_item_regexp','see');
+					
+					//refresh_ecrf_sub_item(ecrf_num,ecrf_item_num,variable,'input');
+				}
+			}
+		});
 	}
 	
 	function delete_ecrf_sub_item(ecrf_num,ecrf_item_num,ecrf_sub_item_num) {
@@ -607,6 +775,27 @@
 					} else {
 						jQuery("#id_span_"+variable+"_"+ecrf_item_num).html(contenu); 
 					}
+				}
+			}
+		});
+	}
+	
+	function refresh_ecrf_sub_item_all(ecrf_num,ecrf_item_num) {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_ecrf.php",
+			async:true,
+			encoding: 'latin1',
+			data:{ action:'refresh_ecrf_sub_item_all',ecrf_num:ecrf_num,ecrf_item_num:ecrf_item_num},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				var contenu=requester;
+				if (contenu=='deconnexion') {
+					afficher_connexion("refresh_ecrf_sub_item ('"+ecrf_num+"','"+ecrf_item_num+"')");
+				} else {
+					eval(contenu);
+					
 				}
 			}
 		});
@@ -695,14 +884,14 @@
 			encoding: 'latin1',
 			data:{ action:'list_patient_ecrf',ecrf_num:ecrf_num},
 			beforeSend: function(requester){
-					jQuery("#id_liste_patient_ecrf").html("<img src='images/chargement_mac.gif'>"); 
+					jQuery("#id_list_patient_ecrf").html("<img src='images/chargement_mac.gif'>"); 
 			},
 			success: function(requester){
 				var contenu=requester;
 				if (contenu=='deconnexion') {
 					afficher_connexion("list_patient_ecrf ('"+ecrf_num+"')");
 				} else {
-					jQuery("#id_liste_patient_ecrf").html(contenu); 
+					jQuery("#id_list_patient_ecrf").html(contenu); 
 				}
 			}
 		});

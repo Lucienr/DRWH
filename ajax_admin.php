@@ -77,14 +77,11 @@ if ($_POST['action']=='ajouter_user_admin' && $_SESSION['dwh_droit_admin']!='') 
 	if ($login!='') {
 		$user_num=ajouter_user ($login,$lastname,$firstname,$mail,$expiration_date,$liste_profils,$liste_services,'ok') ;
 		ajouter_query_demo($user_num);
-
 		if ($passwd!='') {
-			$req="update dwh_user set  passwd='".md5($passwd)."'  where user_num=$user_num";
+			$req="update dwh_user set  passwd='".md5($passwd)."',LAST_MODIF_PASSWORD_DATE=sysdate,DEFAULT_PASSWORD=1  where user_num=$user_num";
 			$sel=oci_parse($dbh,$req);
-			oci_execute($sel) || die ("");
+			oci_execute($sel) || die ("error");
 		}
-
-		print $user_num;
 	}
 }
 
@@ -96,13 +93,15 @@ if ($_POST['action']=='ajouter_liste_user_admin' && $_SESSION['dwh_droit_admin']
 	
 	foreach ($tableau_users as $user) {
 		if ($user!='') {
-			$tableau_user=preg_split("/[,;\t]/",$user);
+			$user=preg_replace("/;plus;/","+",urldecode($user));
+			$tableau_user=preg_split("/[;\t]/",$user);
 		
 			$login=trim($tableau_user[0]);
-			$lastname=nettoyer_pour_inserer(trim(urldecode($tableau_user[1])));
-			$firstname=nettoyer_pour_inserer(trim(urldecode($tableau_user[2])));
-			$mail=trim(urldecode($tableau_user[3]));
-			$expiration_date=trim(urldecode($tableau_user[4]));
+			$lastname=nettoyer_pour_inserer(trim($tableau_user[1]));
+			$firstname=nettoyer_pour_inserer(trim($tableau_user[2]));
+			$mail=trim($tableau_user[3]);
+			$expiration_date=trim($tableau_user[4]);
+			$passwd=trim($tableau_user[5]);
 			if ($login!='') {
 				
 				$sel_var1=oci_parse($dbh,"select user_num from dwh_user where lower(login)=lower('$login')   ");
@@ -110,7 +109,7 @@ if ($_POST['action']=='ajouter_liste_user_admin' && $_SESSION['dwh_droit_admin']
 				$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
 				$user_num=$r['USER_NUM'];
 				if ($user_num!='') {
-					print "<strong style=\"color:red\">".get_translation('USER','Utilisateur')." $login ".get_translation('ALREADY_REGISTERED','déjà enregistré')."</strong>";
+					print "<strong style=\"color:red\">".get_translation('USER','Utilisateur')." $login ".get_translation('ALREADY_REGISTERED','déjà enregistré')."</strong><br>";
 				
 				} else {
 					if ($lastname=='') {
@@ -121,7 +120,7 @@ if ($_POST['action']=='ajouter_liste_user_admin' && $_SESSION['dwh_droit_admin']
 						$mail=$ident[2];
 					}
 				
-					$user_num=get_uniqid();
+					$user_num=get_uniqid('DWH_USER_SEQ');
 					
 					$req="insert into dwh_user  (user_num , lastname ,firstname ,mail ,login,passwd,creation_date,expiration_date) values ($user_num,'$lastname','$firstname','$mail','$login','',sysdate,to_date('$expiration_date','DD/MM/YYYY'))";
 					$sel_var1=oci_parse($dbh,$req);
@@ -144,7 +143,14 @@ if ($_POST['action']=='ajouter_liste_user_admin' && $_SESSION['dwh_droit_admin']
 							oci_execute($sel_var1) ||die ("<strong style=\"color:red\">erreur : $login services non sauvés</strong><br>");
 						}
 					}
-					print "<strong style=\"color:green\">".get_translation('USER','Utilisateur')." $login ".get_translation('REGISTERED','enregistré')."</strong>";
+					
+					if ($passwd!='') {
+						update_user_attempt('',$user_num,'reinit');
+						$req="update dwh_user set  passwd='".md5($passwd)."',LAST_MODIF_PASSWORD_DATE=sysdate,DEFAULT_PASSWORD=1  where user_num=$user_num";
+						$sel_var1=oci_parse($dbh,$req);
+						oci_execute($sel_var1) || die ("<strong style=\"color:red\">erreur : $login $lastname $firstname patient non modifié</strong>");
+					}
+					print "<strong style=\"color:green\">".get_translation('USER','Utilisateur')." $login ".get_translation('REGISTERED','enregistré')."</strong><br>";
 				}
 			}
 		}
@@ -211,7 +217,7 @@ if ($_POST['action']=='modifier_user_admin' && $_SESSION['dwh_droit_admin']!='')
 		
 		if ($passwd!='') {
 			update_user_attempt('',$user_num,'reinit');
-			$req="update dwh_user set  passwd='".md5($passwd)."'  where user_num=$user_num";
+			$req="update dwh_user set  passwd='".md5($passwd)."',LAST_MODIF_PASSWORD_DATE=sysdate,DEFAULT_PASSWORD=1  where user_num=$user_num";
 			$sel_var1=oci_parse($dbh,$req);
 			oci_execute($sel_var1) || die ("<strong style=\"color:red\">erreur : $login $lastname $firstname patient non modifié</strong>");
 		}
@@ -229,7 +235,7 @@ if ($_POST['action']=='modifier_user_admin' && $_SESSION['dwh_droit_admin']!='')
 			}
 		}
 		
-		$req="delete from dwh_user_department   where user_num=$user_num";
+		$req="delete from dwh_user_department where user_num=$user_num";
 		$sel_var1=oci_parse($dbh,$req);
 		oci_execute($sel_var1) ||die ("<strong style=\"color:red\">erreur : profils non sauvés</strong>");
 		
@@ -241,7 +247,7 @@ if ($_POST['action']=='modifier_user_admin' && $_SESSION['dwh_droit_admin']!='')
 				oci_execute($sel_var1) ||die ("<strong style=\"color:red\">erreur : services non sauvés</strong>");
 			}
 		}
-		print "<strong style=\"color:green\">".get_translation('USER_SUCESSFULY_REGISTERED','utilisateur enregistré avec succès')."</strong>";
+		print "<strong style=\"color:green\">".get_translation('USER_SUCESSFULY_MODIFIED','utilisateur modifié avec succès')."</strong>";
 	}
 }
 

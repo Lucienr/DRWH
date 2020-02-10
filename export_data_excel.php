@@ -235,10 +235,11 @@ if ($export_type=='row'){
 		foreach ($tableau_thesaurus_data_used as $thesaurus_data_num => $ok){
 			//select info concept
 			if ($thesaurus_data_num!='') {
-		  		$query="select concept_str,info_complement,measuring_unit,thesaurus_data_num from dwh_thesaurus_data where thesaurus_data_num='$thesaurus_data_num'";
+		  		$query="select CONCEPT_CODE,concept_str,info_complement,measuring_unit,thesaurus_data_num from dwh_thesaurus_data where thesaurus_data_num='$thesaurus_data_num'";
 				$sel=oci_parse($dbh,$query);
 				oci_execute($sel);
 				$r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC);
+				$CONCEPT_CODE=$r['CONCEPT_CODE'];
 				$CONCEPT_STR=$r['CONCEPT_STR'];
 				$INFO_COMPLEMENT=$r['INFO_COMPLEMENT'];
 				$MEASURING_UNIT=$r['MEASURING_UNIT'];
@@ -290,10 +291,11 @@ if (!empty($tableau_thesaurus_data_used)){
 				foreach ($tableau_thesaurus_data_used as $thesaurus_data_num => $ok){
 					if ($thesaurus_data_num!='') {
 						//select info concept
-				  		$query="select concept_str,info_complement,measuring_unit,thesaurus_data_num from dwh_thesaurus_data where thesaurus_data_num='$thesaurus_data_num'";
+				  		$query="select CONCEPT_CODE,concept_str,info_complement,measuring_unit,thesaurus_data_num from dwh_thesaurus_data where thesaurus_data_num='$thesaurus_data_num'";
 						$sel=oci_parse($dbh,$query);
 						oci_execute($sel);
 						$r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC);
+						$CONCEPT_CODE=$r['CONCEPT_CODE'];
 						$CONCEPT_STR=$r['CONCEPT_STR'];
 						$INFO_COMPLEMENT=$r['INFO_COMPLEMENT'];
 						$MEASURING_UNIT=$r['MEASURING_UNIT'];
@@ -323,7 +325,7 @@ if (!empty($tableau_thesaurus_data_used)){
 								   	<td>$DOCUMENT_NUM</td>
 									<td>$DOCUMENT_DATE</td>
 									<td>$THESAURUS_CODE</td>
-									<td>$concept</td>
+									<td>$CONCEPT_CODE</td>
 									<td>$CONCEPT_STR</td>
 									<td>$INFO_COMPLEMENT</td>
 									<td>$MEASURING_UNIT</td>
@@ -333,7 +335,7 @@ if (!empty($tableau_thesaurus_data_used)){
 									<td>$UPPER_BOUND</td>
 								  	</tr>";
 							}else{
-								$resultat_final.="$patient_num	$HOSPITAL_PATIENT_ID	$BIRTH_DATE\t$ENCOUNTER_NUM\t$PATIENT_SEX\t$PATIENT_AGE\t$DOCUMENT_NUM\t$DOCUMENT_DATE\t$THESAURUS_CODE\t$concept\t$CONCEPT_STR\t$INFO_COMPLEMENT\t$MEASURING_UNIT\t$VAL_NUMERIC\t$VAL_TEXT\t$LOWER_BOUND\t$UPPER_BOUND\n";
+								$resultat_final.="$patient_num	$HOSPITAL_PATIENT_ID	$BIRTH_DATE\t$ENCOUNTER_NUM\t$PATIENT_SEX\t$PATIENT_AGE\t$DOCUMENT_NUM\t$DOCUMENT_DATE\t$THESAURUS_CODE\t$CONCEPT_CODE\t$CONCEPT_STR\t$INFO_COMPLEMENT\t$MEASURING_UNIT\t$VAL_NUMERIC\t$VAL_TEXT\t$LOWER_BOUND\t$UPPER_BOUND\n";
 							}
 						} 	
 					}	

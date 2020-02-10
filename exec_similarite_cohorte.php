@@ -425,5 +425,9 @@ function calcul_similarite_tfidf_simplifie ($cohort_num,$process_num,$patient_nu
 	
 	return $tableau_final;
 }
+
+
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>
 	

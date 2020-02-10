@@ -250,4 +250,6 @@ if ($_POST['action']=='get_all_export_data') {
 	print "</tbody>";
 	print "</table>";
 }
+oci_close ($dbh);
+oci_close ($dbh_etl);
 ?>

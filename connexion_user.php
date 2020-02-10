@@ -63,6 +63,12 @@ if ($_POST['action']=='connexion' && $_POST['passwd']!='' && $_POST['login']!=''
 		header("Location: $script_appel");
 		exit;
 	} 
+
+	if ($verif_connexion=='modify') {
+		save_log_page($_SESSION['dwh_user_num'],'modify_passwd');
+		header("Location: modify_passwd.php");
+		exit;
+	} 
 }
 session_write_close();
 include "menu.php";

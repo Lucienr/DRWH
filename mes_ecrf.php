@@ -86,7 +86,7 @@ if ($_POST['action']=='ajouter_ecrf' ) {
 
 <tr>
 	<td style="vertical-align:top;width:400px;">
-		<h2 onclick="plier_deplier('id_div_creer_ecrf');plier_deplier('id_div_mon_ecrf');" style="cursor:pointer;"><span id="plus_id_div_creer_ecrf">+</span> <? print get_translation('CREATE_ECRF','Créer un Formulaire'); ?></h2>
+		<h2 onclick="plier_deplier('id_div_creer_ecrf');plier_deplier('id_div_mon_ecrf');" style="cursor:pointer;"><span id="plus_id_div_creer_ecrf">+</span> <? print get_translation('CREATE_ECRF','Créer un Questionnaire'); ?></h2>
 		<h2><? print get_translation('MY_ECRF','Mes Questionnaires'); ?> :</h2>
 		<div id="id_div_liste_ecrf">
 		<?
@@ -226,7 +226,7 @@ if ($_POST['action']=='ajouter_ecrf' ) {
 					print "</div>";
 					print "<div id=\"id_div_ecrf_patient\" class=\"div_result\" style=\"display:none;width:100%;\" >
 						<br><br>
-						<div id=\"id_liste_patient_ecrf\" style=\"width:100%;\" ></div>";
+						<div id=\"id_list_patient_ecrf\" style=\"width:100%;\" ></div>";
 					print "</div>";
 					
 					
