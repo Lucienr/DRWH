@@ -5026,6 +5026,19 @@ function surligner_resultat ($text,$json_full_text_queries,$option,$colorer,$tab
         
         $tableau_liste_texte_query=array();
         
+        $regexp_exclude_balise="";
+        // if </xx> etc : HTML
+        if (preg_match("/<\/[a-z]*>/i",$text) && preg_match("/<[a-z]+\s+[^>]*>/i",$text)) {   //preg_match("/<[a-z]+\s*[^>]*>/i",$text) &&  
+        	// IF HTML //
+        	// Encodage < et > de type html tag
+        	$text=preg_replace("/<([a-z\/][^><]*?)>/i",";balise_deb;$1;balise_end;",$text);
+        	$text=str_replace("<","&lt;",$text);
+        	$text=str_replace(">","&gt;",$text);
+        	$text=str_replace(";balise_deb;","<",$text);
+        	$text=str_replace(";balise_end;",">",$text);
+	        $regexp_exclude_balise="(?![^<]*>)";
+        }
+        
         $expression_deja_trouve='';
         $expression_bloc_deja_trouve='';
         $text=str_replace("\n","\n ",$text);
@@ -5111,18 +5124,27 @@ function surligner_resultat ($text,$json_full_text_queries,$option,$colorer,$tab
 		                }
 		                if ($test_unique=='' && $deja_fait==0 || $test_unique==1 && $expression_deja_trouve=='') {
 		                        $nb_parenthese=3+count(explode("(",$sous_requete_unitaire_normalise))-1;// if parenthesis in the regexp, we need the number to add them for the replace 
-		                        if (preg_match("/%/",$sous_requete_unitaire_normalise)) {
-		                                $sous_requete_unitaire_normalise=preg_replace("/%/","",$sous_requete_unitaire_normalise);
-		                                $couleur=$requete_tableau_couleur[$sous_requete_unitaire];
-		                                $pattern="#([^a-z0-9])(".$sous_requete_unitaire_normalise."[a-z0-9]*)([^a-z0-9])#i";
-		                                $text=preg_replace($pattern,"$1<b style='background:$couleur;color:black;' class='highlight'><u>$2</u></b>$".$nb_parenthese,$text,-1,$count);
-		                                $text_final=preg_replace($pattern,"$1<b style='background:$couleur;color:black;' class='highlight'><u>$2</u></b>$".$nb_parenthese,$text_final);
+		                        if ($regexp_exclude_balise!='') {
+			                        if (preg_match("/%/",$sous_requete_unitaire_normalise)) {
+			                                $sous_requete_unitaire_normalise=preg_replace("/%/","",$sous_requete_unitaire_normalise);
+			                                $couleur=$requete_tableau_couleur[$sous_requete_unitaire];
+			                                $pattern="#(".$regexp_exclude_balise."[^a-z0-9><]*)(".$sous_requete_unitaire_normalise."[a-z0-9]*)([^a-z0-9])#i";
+			                        } else {
+			                                $couleur=$requete_tableau_couleur[$sous_requete_unitaire];
+			                                $pattern="#(".$regexp_exclude_balise."[^a-z0-9><]*)(".$sous_requete_unitaire_normalise.")(s?[^a-z0-9])#i";
+			                        }
 		                        } else {
-		                                $couleur=$requete_tableau_couleur[$sous_requete_unitaire];
-		                                $pattern="#([^a-z0-9])(".$sous_requete_unitaire_normalise.")(s?[^a-z0-9])#i";
-		                                $text=preg_replace($pattern,"$1<b style='background:$couleur;color:black;' class='highlight'><u>$2</u></b>$".$nb_parenthese,$text,-1,$count);
-		                                $text_final=preg_replace($pattern,"$1<b style='background:$couleur;color:black;' class='highlight'><u>$2</u></b>$".$nb_parenthese,$text_final);
-		                        }
+			                        if (preg_match("/%/",$sous_requete_unitaire_normalise)) {
+			                                $sous_requete_unitaire_normalise=preg_replace("/%/","",$sous_requete_unitaire_normalise);
+			                                $couleur=$requete_tableau_couleur[$sous_requete_unitaire];
+			                                $pattern="#([^a-z0-9])(".$sous_requete_unitaire_normalise."[a-z0-9]*)([^a-z0-9])#i";
+			                        } else {
+			                                $couleur=$requete_tableau_couleur[$sous_requete_unitaire];
+			                                $pattern="#([^a-z0-9])(".$sous_requete_unitaire_normalise.")(s?[^a-z0-9])#i";
+			                        }
+			                }
+	                                $text=preg_replace($pattern,"$1<b style='background:$couleur;color:black;' class='highlight'><u>$2</u></b>$".$nb_parenthese,$text,-1,$count);
+	                                $text_final=preg_replace($pattern,"$1<b style='background:$couleur;color:black;' class='highlight'><u>$2</u></b>$".$nb_parenthese,$text_final);
 		                        if ($count>0) {
 		                                $expression_deja_trouve.= " $sous_requete_unitaire ";
 		                                $expression_bloc_deja_trouve='ok';
