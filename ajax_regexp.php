@@ -39,7 +39,7 @@ if ($_POST['action']=='connexion') {
 	exit;
 }
 
-if ($_SESSION['dwh_login']=='') {
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']=='') {
 	print "deconnexion";
 	exit;
 } else {
@@ -58,7 +58,7 @@ if ($_POST['action']=='rechercher_regexp') {
 	$regexp=trim(clean_for_regexp(urldecode($_POST['regexp'])));
 
 	$datamart_num=$_POST['datamart_num'];
-	$filter_query_user_right=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+	$filter_query_user_right=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
 
 	$process_num=get_uniqid();
 	passthru( "php exec_regexp.php $user_num_session $tmpresult_num $process_num $datamart_num \"$regexp\" \"$filter_query_user_right\">> $CHEMIN_GLOBAL_LOG/log_regexp_$process_num.txt 2>&1 &");
@@ -82,7 +82,7 @@ if ($_POST['action']=='afficher_document_regexp') {
 
 if ($_POST['action']=='verif_process_execute_regexp') {
 	$process_num=$_POST['process_num'];
-	$process=get_process ($process_num);
+	$process=get_process ($process_num,'dontget_result');
 	$status=$process['STATUS'];
 	$commentary=$process['COMMENTARY'];
 	print "$status;$commentary";
@@ -92,7 +92,7 @@ if ($_POST['action']=='verif_process_execute_regexp') {
 
 if ($_POST['action']=='get_regexp_result') {
 	$process_num=$_POST['process_num'];
-	$process=get_process ($process_num);
+	$process=get_process ($process_num,'get_result');
 	$status=$process['STATUS'];
 	$commentary=$process['COMMENTARY'];
 	print $process['RESULT'];
@@ -136,7 +136,7 @@ if ($_POST['action']=='list_regexp_select') {
 		$description=preg_replace("/\"/"," ",$description);
 		$title=preg_replace("/\"/"," ",$regexp['TITLE']);
 		$regexp_num=$regexp['REGEXP_NUM'];
-		$list_regexp_select.="<option value='$regexp_num'>$title : $description</option>";
+		$list_regexp_select.="<option value='$regexp_num'>$title </option>";
 	}
 	$list_regexp_select.="</optgroup>";
 	$list_regexp_select.="<optgroup label='Other Patterns'>";
@@ -148,7 +148,7 @@ if ($_POST['action']=='list_regexp_select') {
 		$title=preg_replace("/\"/"," ",$regexp['TITLE']);
 		$user=get_user_info ($regexp['USER_NUM_CREATION']);
 		$nom_prenom_creation=$user['lastname']." ".$user['firstname'];
-		$list_regexp_select.="<option value='$regexp_num'>$title ($nom_prenom_creation) : $description</option>";
+		$list_regexp_select.="<option value='$regexp_num'>$title ($nom_prenom_creation)</option>";
 	}
 	$list_regexp_select.="</optgroup>";
 	
@@ -202,13 +202,14 @@ if ($_POST['action']=='manage_regexp') {
 		} else {
 			 $checked_shared="";
 		}
+		$regexp_read=str_replace("<","&lt;",$regexp);
 		print "<tr id=\"id_tr_regexp_$regexp_num\">
 			<td>
 				<span class=\"regexp_$regexp_num\" id=\"id_regexp_title_$regexp_num\" onclick=\"edit_modify_regexp($regexp_num)\">$title</span>
 				<span class=\"regexp_modify_$regexp_num\" style=\"display:none\" ><input id=\"id_regexp_input_modify_title_$regexp_num\" type=\"text\" size=\"30\" value=\"$title\"></span>
 			</td>
 			<td>
-				<span class=\"regexp_$regexp_num\" id=\"id_regexp_regexp_$regexp_num\" onclick=\"edit_modify_regexp($regexp_num)\" class=\"filtre_regexp\">$regexp</span>
+				<span class=\"regexp_$regexp_num\" id=\"id_regexp_regexp_$regexp_num\" onclick=\"edit_modify_regexp($regexp_num)\" class=\"filtre_regexp\">$regexp_read</span>
 				<span class=\"regexp_modify_$regexp_num\"  style=\"display:none\">
 				<textarea id=\"id_regexp_input_modify_regexp_$regexp_num\" cols=\"40\" rows=\"5\" class=\"filtre_regexp\">$regexp</textarea>
 			</td>

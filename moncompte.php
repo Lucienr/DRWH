@@ -119,8 +119,8 @@ $nb_patient_inclus_par_moi=$r['NB_PATIENT_INCLUS_PAR_MOI'];
 
 		<? print get_translation('EMAIL','Email'); ?> : 
 		<? 
-		$user_mail_session=$_SESSION['dwh_mail'];
-		$user_mail_session_value=$_SESSION['dwh_mail'];
+		$user_mail_session=$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_mail'];
+		$user_mail_session_value=$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_mail'];
 		if ($user_mail_session_value=='') {
 			$user_mail_session=get_translation('ADD_AN_EMAIL','Add an email');
 		}
@@ -134,8 +134,8 @@ $nb_patient_inclus_par_moi=$r['NB_PATIENT_INCLUS_PAR_MOI'];
 		<br>
 		<? print get_translation('TELEPHONE_SHORT','Tel'); ?> : 
 		<? 
-		$user_phone_number_session=$_SESSION['dwh_user_phone_number'];
-		$user_phone_number_session_value=$_SESSION['dwh_user_phone_number'];
+		$user_phone_number_session=$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_phone_number'];
+		$user_phone_number_session_value=$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_phone_number'];
 		if ($user_phone_number_session_value=='') {
 			$user_phone_number_session=get_translation('ADD_A_PHONE_NUMBER','Ajouter un numéro de téléphone');
 		}

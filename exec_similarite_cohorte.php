@@ -89,7 +89,7 @@ if ($patients_importes!='') {
 }
 
 
-$tableau_process=get_process ($process_num) ;
+$tableau_process=get_process ($process_num,'dontget_result') ;
 
 $user_num_session=$tableau_process['USER_NUM'];
 

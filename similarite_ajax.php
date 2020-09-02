@@ -43,7 +43,7 @@ if ($_POST['action']=='connexion') {
 	exit;
 }
 
-if ($_SESSION['dwh_login']=='') {
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']=='') {
 	print 'deconnexion';
 	exit;
 } else {
@@ -109,7 +109,7 @@ if ($_POST['action']=='precalcul_nb_patient_similarite_patient') {
 	
 	$process_num=$_POST['process_num'];
 		
-	$tableau_process=get_process($process_num);
+	$tableau_process=get_process($process_num,'dontget_result');
 	$verif_process_num=$tableau_process['PROCESS_NUM'];
 	
         
@@ -131,7 +131,7 @@ if ($_POST['action']=='verifier_process_fini_precalcul_nb_patient_similarite_pat
 	if ($process_num!='') {
 		
 		
-		$tableau_process=get_process ($process_num);
+		$tableau_process=get_process ($process_num,'dontget_result');
 		$status=$tableau_process['STATUS'];
 		
 		$sel=oci_parse($dbh,"select count(distinct patient_num) as nb_patient from dwh_process_patient where process_num='$process_num' ");
@@ -179,7 +179,7 @@ if ($_POST['action']=='calculer_similarite_patient') {
 	}
 	$requete_exclure=preg_replace("/\"/"," ",$requete_exclure);
 	
-	$tableau_process=get_process($process_num);
+	$tableau_process=get_process($process_num,'dontget_result');
 	$verif_process_num=$tableau_process['PROCESS_NUM'];
 	
         
@@ -205,7 +205,7 @@ if ($_POST['action']=='verifier_process_fini_similarite') {
 	$patient_num=$_POST['patient_num'];
 	if ($process_num!='') {
 	
-		$tableau_process=get_process ($process_num);
+		$tableau_process=get_process ($process_num,'dontget_result');
 		$status=$tableau_process['STATUS'];
 		$commentary=$tableau_process['COMMENTARY'];
 		$res= "$status;$commentary";
@@ -233,7 +233,9 @@ if ($_POST['action']=='afficher_resultat_similarite') {
 	}	
 	if ($process_num!='') {
 		$aleatoire=uniqid();
-		print "<img src=\"$URL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num.$process_num.png?$process_num.$aleatoire\" usemap=\"#cluster_patient\">";
+		$tmp_graphviz_similarite_tfidf_png = join('',file("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num.$process_num.png")); 
+		//print "<img src=\"$URL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num.$process_num.png?$process_num.$aleatoire\" usemap=\"#cluster_patient\">";
+		print "<img src=\"data: image/x-png;base64,".base64_encode($tmp_graphviz_similarite_tfidf_png)."\" usemap=\"#cluster_patient\">";
 		$map=join('',file("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_similarite_tfidf_$patient_num.$process_num.map"));
 		print $map;
 		$tableau_html_liste_patients = join('',file("$CHEMIN_GLOBAL_UPLOAD/tableau_html_liste_patients_$patient_num.$process_num.html")); 

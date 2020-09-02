@@ -21,9 +21,11 @@
     75015 Paris
     France
 */
-  
+
  function rechercher_examen_thesaurus_labo ($requete_texte,$thesaurus_data_father_num,$sans_filtre,$tmpresult_num) {
 	global $dbh,$thesaurus_code_labo,$user_num_session;
+	
+	$list_thesaurus_code_labo=detect_list_query($thesaurus_code_labo);
 	$requete_texte=nettoyer_pour_requete(trim($requete_texte));
 	
 	if ($requete_texte!='') {
@@ -44,13 +46,13 @@
 			from dwh_thesaurus_data a,
 	           dwh_thesaurus_data_graph b
 	           where 
-	            a.thesaurus_code='$thesaurus_code_labo' and  
+	            a.thesaurus_code in ($list_thesaurus_code_labo) and  
 	           a.thesaurus_code=b.thesaurus_code and 
 	           a.thesaurus_data_num=b.thesaurus_data_son_num and 
 	           b.thesaurus_data_father_num=$thesaurus_data_father_num  and 
 	           distance=1  and 
 	           ( ( contains(description,'$requete_texte_avec_pourcent%')>0 or contains(description,'$requete_texte')>0    $req_num_thesaurus )
-	           or a.thesaurus_data_num in (select thesaurus_data_father_num from dwh_thesaurus_data a, dwh_thesaurus_data_graph b where    a.thesaurus_code='$thesaurus_code_labo' and  
+	           or a.thesaurus_data_num in (select thesaurus_data_father_num from dwh_thesaurus_data a, dwh_thesaurus_data_graph b where    a.thesaurus_code in ($list_thesaurus_code_labo) and  
 	           a.thesaurus_code=b.thesaurus_code and a.thesaurus_data_num=b.thesaurus_data_son_num and    ( contains(description,'$requete_texte_avec_pourcent%')>0 or contains(description,'$requete_texte')>0  $req_num_thesaurus )))
 	           
 			";
@@ -60,7 +62,7 @@
 			from dwh_thesaurus_data a,
 	           dwh_thesaurus_data_graph b
 	           where 
-	            a.thesaurus_code='$thesaurus_code_labo' and  
+	            a.thesaurus_code in ($list_thesaurus_code_labo) and  
 	           a.thesaurus_code=b.thesaurus_code and 
 	           a.thesaurus_data_num=b.thesaurus_data_son_num and 
 	           b.thesaurus_data_father_num=$thesaurus_data_father_num  and 
@@ -255,18 +257,19 @@
 	$avg=str_replace(",",".",$avg);
 	$median=str_replace(",",".",$median);
 	$stddev=str_replace(",",".",$stddev);
-	
-	$sel=oci_parse($dbh,"select count(*) as nb_supborne_sup ,round(100*count(*)/$nb) as pourcent_sup from dwh_data where thesaurus_data_num=$thesaurus_data_num and patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)  and val_numeric>upper_bound");
-	oci_execute($sel);
-	$r=oci_fetch_array($sel);
-	$nb_supborne_sup=$r['NB_SUPBORNE_SUP'];
-	$pourcent_sup=$r['POURCENT_SUP'];
-	
-	$sel=oci_parse($dbh,"select count(*) as nb_infborne_inf ,round(100*count(*)/$nb) as pourcent_inf from dwh_data where thesaurus_data_num=$thesaurus_data_num and patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)  and val_numeric<lower_bound");
-	oci_execute($sel);
-	$r=oci_fetch_array($sel);
-	$nb_infborne_inf=$r['NB_INFBORNE_INF'];
-	$pourcent_inf=$r['POURCENT_INF'];
+	if ($nb>0) {
+		$sel=oci_parse($dbh,"select count(*) as nb_supborne_sup ,round(100*count(*)/$nb) as pourcent_sup from dwh_data where thesaurus_data_num=$thesaurus_data_num and patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)  and val_numeric>upper_bound");
+		oci_execute($sel);
+		$r=oci_fetch_array($sel);
+		$nb_supborne_sup=$r['NB_SUPBORNE_SUP'];
+		$pourcent_sup=$r['POURCENT_SUP'];
+		
+		$sel=oci_parse($dbh,"select count(*) as nb_infborne_inf ,round(100*count(*)/$nb) as pourcent_inf from dwh_data where thesaurus_data_num=$thesaurus_data_num and patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)  and val_numeric<lower_bound");
+		oci_execute($sel);
+		$r=oci_fetch_array($sel);
+		$nb_infborne_inf=$r['NB_INFBORNE_INF'];
+		$pourcent_inf=$r['POURCENT_INF'];
+	}
 	
 	print "<tfoot>";
 	print "<tr><th>".get_translation('TOTAL','Total')."</th><th>$nb</th><th>$min</th><th>$max</th><th>$median</th><th>$avg</th><th>$stddev</th><th>$nb_supborne_sup</th><th>$pourcent_sup</th><th>$nb_infborne_inf</th><th>$pourcent_inf</th><th></th></tr>";
@@ -293,6 +296,7 @@
            
  function visualiser_tableau_all_exam ($tmpresult_num) {
 	global $dbh,$thesaurus_code_labo,$user_num_session;
+	$list_thesaurus_code_labo=detect_list_query($thesaurus_code_labo);
 	print "
 	<form autocomplete=\"off\"><table class=\"tablefin\" id=\"id_tableau_visualiser_tableau_all_exam\">
 	<thead><tr>
@@ -316,7 +320,7 @@
 	 
   
 	$sel=oci_parse($dbh,"select thesaurus_data_num,count(distinct patient_num),count(*) nb_supborne_sup from dwh_data where   patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)
-	and thesaurus_code='$thesaurus_code_labo'  and val_numeric>upper_bound having count(distinct patient_num) >2  group by thesaurus_data_num");
+	and thesaurus_code in ($list_thesaurus_code_labo)  and val_numeric>upper_bound having count(distinct patient_num) >2  group by thesaurus_data_num");
 	oci_execute($sel);
 	while ($r=oci_fetch_array($sel)) {
 		$thesaurus_data_num=$r['THESAURUS_DATA_NUM'];
@@ -326,7 +330,7 @@
 	 
   
 	$sel=oci_parse($dbh,"select thesaurus_data_num,count(distinct patient_num),count(*) nb_infborne_inf from dwh_data where   patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)
-	and thesaurus_code='$thesaurus_code_labo'  and val_numeric<lower_bound having count(distinct patient_num) >2  group by thesaurus_data_num");
+	and thesaurus_code in ($list_thesaurus_code_labo)  and val_numeric<lower_bound having count(distinct patient_num) >2  group by thesaurus_data_num");
 	oci_execute($sel);
 	while ($r=oci_fetch_array($sel)) {
 		$thesaurus_data_num=$r['THESAURUS_DATA_NUM'];
@@ -337,7 +341,7 @@
   
 	$sel_patient_num=oci_parse($dbh,"select concept_str,measuring_unit,info_complement,dwh_data.thesaurus_data_num,count(distinct patient_num) as nb_patient,count(*) as nb_examen,median(val_numeric) as median,round(stddev(val_numeric),1) as stddev,round(avg(val_numeric),1) as avg,min(val_numeric) as min,max(val_numeric) as max,round(avg(lower_bound),1),round(avg(upper_bound),1) 
 	from dwh_data, dwh_thesaurus_data where dwh_data.thesaurus_data_num= dwh_thesaurus_data.thesaurus_data_num and  patient_num in (select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)
-  and dwh_data.thesaurus_code='$thesaurus_code_labo' having count(distinct patient_num) >2  group by concept_str,measuring_unit,info_complement,dwh_data.thesaurus_data_num order by count(distinct patient_num)  desc");
+  and dwh_data.thesaurus_code in ($list_thesaurus_code_labo) having count(distinct patient_num) >2  group by concept_str,measuring_unit,info_complement,dwh_data.thesaurus_data_num order by count(distinct patient_num)  desc");
 	oci_execute($sel_patient_num);
 	while ($r_patient_num=oci_fetch_array($sel_patient_num)) {
 		$concept_str=$r_patient_num['CONCEPT_STR'];

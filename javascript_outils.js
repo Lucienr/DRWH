@@ -187,12 +187,17 @@ function mapper_patient () {
 	if (document.getElementById("id_option_limite").checked) {
 		option_limite='2';
 	}
+	option_patient_num='not_patient_num';
+	if (document.getElementById("id_option_patient_num").checked) {
+		option_patient_num='patient_num';
+	}
+	
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_outils.php",
 		async:true,
 		encoding: 'latin1',
-		data:{ action:'mapper_patient',liste_patient:escape(liste_patient),process_num:process_num,option_limite:option_limite},
+		data:{ action:'mapper_patient',liste_patient:escape(liste_patient),process_num:process_num,option_limite:option_limite,option_patient_num:option_patient_num},
 		beforeSend: function(requester){
 				jQuery("#id_result_mapping_patient").html("<img src='images/chargement_mac.gif'>"); 
 		},
@@ -256,7 +261,7 @@ function display_thesaurus_table() {
 	if (data_search!='' || thesaurus_code!='') {
 		jQuery.ajax({
 			type:"POST",
-			url:"ajax_admin.php",
+			url:"ajax_outils.php",
 			async:true,
 			data: { action:'display_thesaurus_table',data_search:escape(data_search),thesaurus_code:thesaurus_code},
 			beforeSend: function(requester){
@@ -298,12 +303,13 @@ function display_thesaurus_tree (thesaurus_data_num) {
 		if (data_search!='' || thesaurus_code!='') {
 			jQuery.ajax({
 				type:"POST",
-				url:"ajax_admin.php",
+				url:"ajax_outils.php",
 				async:true,
 				data: { action:'display_thesaurus_tree',data_search:escape(data_search),thesaurus_code:thesaurus_code,thesaurus_data_num:thesaurus_data_num},
 				beforeSend: function(requester){
 						$("#"+div_result).empty();
 						$("#"+div_result).css('display','block');
+						$("#plus_id_span_thesaurus_"+thesaurus_data_num).html('-');
 						$("#"+div_result).append("<img src='images/chargement_mac.gif'>");
 				},
 				success: function(requester){
@@ -322,6 +328,7 @@ function display_thesaurus_tree (thesaurus_data_num) {
 		}
 	} else {
 		$("#"+div_result).css('display','none');
+		$("#plus_id_span_thesaurus_"+thesaurus_data_num).html('+');
 	}
 }
 

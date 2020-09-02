@@ -32,7 +32,7 @@ include_once("fonctions_droit.php");
 include_once("fonctions_dwh.php");
 
 
-$user_num_session=$_SESSION['dwh_user_num'];
+$user_num_session=$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_num'];
 
 
 if ($_POST['action']=='connexion') {
@@ -41,7 +41,7 @@ if ($_POST['action']=='connexion') {
 	exit;
 }
 
-if ($_SESSION['dwh_login']=='') {
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']=='') {
 	print "deconnexion";
 	exit;
 } else {
@@ -212,10 +212,11 @@ if ($_POST['action']=='execute_process_export_data') {
 
 if ($_POST['action']=='verif_process_execute_process_export_data') {
 	$process_num=$_POST['process_num'];
-	$process=get_process ($process_num);
+	$process=get_process ($process_num,'dontget_result');
 	$status=$process['STATUS'];
 	$commentary=$process['COMMENTARY'];
-	print "$status;$commentary";
+	$anonymous_export_url=make_anonymous_export_url("process", $process_num, "");
+	print "$status;$commentary;$anonymous_export_url";
 }
 
 if ($_POST['action']=='get_all_export_data') {
@@ -225,12 +226,14 @@ if ($_POST['action']=='get_all_export_data') {
 	<th>".get_translation('STATUS',"Statut")."</th>
 	<th>".get_translation('COMMENT',"Commentaire")."</th>
 	<th>".get_translation('DATE_OF_DELETION',"Date de suppression")." Date of deletion</th>
-	<th>".get_translation('TELECHARGER',"Télécharger")."</th>
-	</thead>
-	<tbody>";
+	<th>".get_translation('TELECHARGER',"Télécharger")."</th>";
+	if($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_export_anonymized']=='ok') {
+		print "<th> Anonymiser </th>";
+	}
+	print "</thead> <tbody>";
 	foreach ($all_process as $process_num) {
 	
-		$process=get_process  ($process_num);
+		$process=get_process  ($process_num,'dontget_result');
 		$user_num=$process['USER_NUM'];
 		$status=$process['STATUS'];
 		$commentary=$process['COMMENTARY'];
@@ -240,12 +243,21 @@ if ($_POST['action']=='get_all_export_data') {
 		if ($status=='1') { // end
 			$telecharger="<a href='export_process.php?process_num=$process_num' target='_blank'>".get_translation('TELECHARGER',"Télécharger")."</a>"; 
 			$status=get_translation('TERMINATED',"Terminé");
+			$export_anonymous_url = make_anonymous_export_url("process", $process_num, "");
+			$export_anonymous = 
+			"<form accept-charset='utf-8' target='_blank' action=$export_anonymous_url method='post'>
+				<button type='submit' class='btn btn-link pl-1' style='font-size:10px;'><a>Anonymiser</a></button>
+			</form>";
 		} else {
 			$telecharger='';
 			$status=get_translation('IN_PROGRESS',"En cours");
 		}
 		
-		print "<tr><td>$status</td><td>$commentary</td><td>$process_end_date</td><td>$telecharger</td></tr>";
+		print "<tr><td>$status</td><td>$commentary</td><td>$process_end_date</td><td>$telecharger</td>";
+		if($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_export_anonymized']=='ok') {
+			print "<td>$export_anonymous</td>";
+		}
+		print "</tr>";
 	}
 	print "</tbody>";
 	print "</table>";

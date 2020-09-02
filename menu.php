@@ -29,17 +29,17 @@
 			<td width="80px" nowrap="nowrap" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';" style="text-align:center;padding:0px 10px;"><a class="connexion" href="index.php" nowrap=nowrap><? print get_translation('HOME','Accueil'); ?></a></td>
 			<td class="connexion" width="1"> | </td>
 
-			<? if ($_SESSION['dwh_droit_search_engine0']!='') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_search_engine0']!='') { ?>
 				<td  nowrap="nowrap" style="text-align:center;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';"><a href="moteur.php" class="connexion"><? print get_translation('SEARCH_ENGINE','Moteur de recherche'); ?></a></td>
 				<td class="connexion" width="1"> | </td>
 				
-				<? if ($_SESSION['dwh_login']!='') { ?>
+				<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']!='') { ?>
 					<td  nowrap="nowrap" style="text-align:center;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';"><a href="mes_requetes.php" class="connexion"><? print get_translation('MY_QUERIES','Mes requêtes'); ?></a></td>
 					<td class="connexion" width="1"> | </td>
 				<? } ?>
 			<? } ?>
 
-			<? if ($_SESSION['dwh_login']!='') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']!='') { ?>
 				<td  nowrap="nowrap" style="text-align:center;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';"><a href="mes_cohortes.php" class="connexion"><? print get_translation('MY_COHORTS','Mes cohortes'); ?></a></td>
 				<td class="connexion" width="1"> | </td>
 	
@@ -50,15 +50,19 @@
 				</td>
 				<td class="connexion" width="1"> | </td>
 				-->
-				
+
 				<td  nowrap="nowrap" style="text-align:center;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';"><a href="outils.php" class="connexion"><? print get_translation('TOOLS','Outils'); ?></a></td>
 				<td class="connexion" width="1"> | </td>
 				
-				<td  nowrap="nowrap" style="text-align:center;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';"><a href="mes_ecrf.php" class="connexion"><? print get_translation('FORMS','Mes questionnaires'); ?></a></td>
+				<td  nowrap="nowrap" style="text-align:center;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';"><a href="mes_ecrf.php" class="connexion"><? print get_translation('FORMS','Mes ecrf'); ?></a></td>
 				<td class="connexion" width="1"> | </td>
+				<? if ($module_arno_active) { ?>
+					<td  nowrap="nowrap" style="text-align:center;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';"><a href="protocols.php" class="connexion"><? print get_translation('MY_PROTOCOLS','Mes protocoles'); ?></a></td>
+					<td class="connexion" width="1"> | </td>
+				<? } ?>
 			<? } ?>
 			
-		<!-- <? if ($_SESSION['dwh_droit_search_engine0']!='') { ?>
+		<!-- <? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_search_engine0']!='') { ?>
 			
 				<td  nowrap="nowrap" style="text-align:center;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';">
 				<span class="connexion">Recherche rapide : 
@@ -76,7 +80,7 @@
 			<? } ?>
 		-->
 			
-			<? if ($_SESSION['dwh_droit_patient_quick_access0']!='') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_patient_quick_access0']!='') { ?>
 				<td  nowrap="nowrap" style="text-align:center;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';"><span class="connexion"><? print get_translation('PATIENT','Patient'); ?> </a></span>
 					<div class="ui-widget" style="padding-left: 0px;width:260px;font-size:10px;display:inline;">
 						<span class="ui-helper-hidden-accessible" aria-live="polite" role="status"></span>
@@ -129,13 +133,13 @@
 				</td>
 				<td class="connexion" width="1"> | </td>
 			<? } ?>
-			<? if ($_SESSION['dwh_droit_admin']!='') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']!='') { ?>
 				<td  nowrap="nowrap" style="text-align:center;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';"><a href="admin.php" class="connexion"><? print get_translation('ADMIN','Admin'); ?></a></td>
 				<td class="connexion" width="1"> | </td>
 			<? } ?>	
 
 			<td width="100%"></td>
-			<? if ($_SESSION['dwh_login']!='') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']!='') { ?>
 				<td  style="text-align:right;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';" nowrap="nowrap">
 					<div style="display:inline;position:relative;" class="connexion"  id="id_div_menu_notification"><span onclick="open_notification('non');" style="cursor:pointer;"><? print get_translation('NOTIFICATIONS','Notifications'); ?></span>
 						<div  id="id_div_notification" style="display:none;position:absolute;background-color:white;color:#333333;left:-200px;width:370px;border:1px solid grey;text-align:left;top: 30px;" >
@@ -187,7 +191,7 @@
 				</td>
 				<td class="connexion" width="1"> | </td>
 			<? } ?>
-			<? if ($_SESSION['dwh_login']!='') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']!='') { ?>
 				<td style="text-align:right;padding:0px 10px;" onmouseover="this.style.backgroundColor='#D1D0D5';" onmouseout="this.style.backgroundColor='#1e2a63';" nowrap="nowrap"><a href="connexion_user.php" class="connexion"><? print get_translation('LOGOUT','Déconnexion'); ?></a></td>
 			<? } ?>
 		</tr>

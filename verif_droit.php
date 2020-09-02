@@ -21,14 +21,14 @@
     75015 Paris
     France
 */
-if ($_SESSION['dwh_login']=='' && !preg_match("/connexion_user\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/contact\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/ajax\.php/",$_SERVER['REQUEST_URI'])) {
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']=='' && !preg_match("/connexion_user\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/contact\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/ajax\.php/",$_SERVER['REQUEST_URI'])) {
 	header("Location: connexion_user.php?script_appel=".preg_replace('/&/','ETCOMMERCIAL',$_SERVER['REQUEST_URI']));
 	exit;
 }
 
 $erreur_droit="";
 
-$login_session=$_SESSION['dwh_login'];
+$login_session=$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login'];
 
 $sel_var1=oci_parse($dbh,"select user_num,firstname,lastname,mail,user_phone_number from  dwh_user where login='$login_session' ");
 oci_execute($sel_var1);
@@ -39,15 +39,15 @@ $lastname_user_session=$r['LASTNAME'];
 $mail_session=$r['MAIL'];
 $user_phone_number_session=$r['USER_PHONE_NUMBER'];
 
-$_SESSION['dwh_user_num']=$user_num_session;
-$_SESSION['dwh_firstname_user']=$firstname_user_session;
-$_SESSION['dwh_lastname_user']=$lastname_user_session;
-$_SESSION['dwh_mail']=$mail_session;
-$_SESSION['dwh_user_phone_number']=$user_phone_number_session;
+$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_num']=$user_num_session;
+$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_firstname_user']=$firstname_user_session;
+$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_lastname_user']=$lastname_user_session;
+$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_mail']=$mail_session;
+$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_phone_number']=$user_phone_number_session;
 
 
 // CGU ///
-$verif_cgu_signed=verif_cgu_signed($_SESSION['dwh_user_num']);
+$verif_cgu_signed=verif_cgu_signed($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_num']);
 if ($verif_cgu_signed==0 && !preg_match("/sign_cgu\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/connexion_user\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/contact\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/ajax\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/admin\.php/",$_SERVER['REQUEST_URI']) ) {
 	header("Location: sign_cgu.php");
 	exit;
@@ -55,8 +55,8 @@ if ($verif_cgu_signed==0 && !preg_match("/sign_cgu\.php/",$_SERVER['REQUEST_URI'
 
 
 // Si le mot de passe n'a pas ete modifié depuis 6 mois ou que c'est le mot de passe par défaut, on force sa modification
-if ($_SESSION['dwh_connexion_mode']=='bdd') {
-	$verif_need_to_modify_password=verif_need_to_modify_password($_SESSION['dwh_user_num']);
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_connexion_mode']=='bdd') {
+	$verif_need_to_modify_password=verif_need_to_modify_password($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_num']);
 	if ($verif_need_to_modify_password=='modify' && !preg_match("/sign_cgu\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/connexion_user\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/contact\.php/",$_SERVER['REQUEST_URI']) && !preg_match("/ajax/",$_SERVER['REQUEST_URI']) && !preg_match("/modify_password\.php/",$_SERVER['REQUEST_URI']) ) {
 		header("Location: modify_password.php");
 		exit;
@@ -65,8 +65,8 @@ if ($_SESSION['dwh_connexion_mode']=='bdd') {
 
 //REINITIALISATION//
 foreach ($tableau_user_droit as $right) { 
-	$_SESSION['dwh_droit_'.$right.'0']='';
-	$_SESSION['dwh_droit_'.$right]='';
+	$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_'.$right.'0']='';
+	$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_'.$right]='';
 }
 if (is_array($tableau_user_droit_default)==false) {
 	$tableau_user_droit_default=array('search_engine','nominative','see_detailed','see_stat','see_concept','patient_quick_access');
@@ -80,19 +80,19 @@ $sel_var1=oci_parse($dbh,"select user_profile from dwh_user_profile where user_n
 oci_execute($sel_var1);
 while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
 	$user_profile=$r['USER_PROFILE'];
-	$_SESSION['dwh_profil_'.$user_profile]='ok';
+	$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_profil_'.$user_profile]='ok';
 
 	$sel_vardroit=oci_parse($dbh,"select right from dwh_profile_right where user_profile='$user_profile'");
 	oci_execute($sel_vardroit);
 	while ($r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$right=$r_droit['RIGHT'];
-		$_SESSION['dwh_droit_'.$right.'0']='ok';
-		$_SESSION['dwh_droit_'.$right]='ok';
+		$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_'.$right.'0']='ok';
+		$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_'.$right]='ok';
 	}
 	
 }
-if ($_SESSION['dwh_droit_see_detailed0']=='ok') {
-	$_SESSION['dwh_droit_add_patient0']='ok';
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_detailed0']=='ok') {
+	$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_add_patient0']='ok';
 }
 
 //// LES SERVICES DE L'UTILISATEUR //////////
@@ -156,7 +156,8 @@ if ($_GET['action']=='rechercher_dans_cohorte') {
 		
 		insert_datamart ($cohort_num,"Cohorte $title_cohort",$description_cohort,'sysdate','sysdate','sysdate+1',1,$datamart_num_origin);
 		
-		$sel_var1=oci_parse($dbh,"select right from dwh_cohort_user_right where cohort_num=$cohort_num and user_num=$user_num_session");
+		//$sel_var1=oci_parse($dbh,"select right from dwh_cohort_user_right where cohort_num=$cohort_num and user_num=$user_num_session");
+		$sel_var1=oci_parse($dbh,"select right from dwh_cohort_user_right where cohort_num=$cohort_num "); // we have to add all users to avoid conflict between two users!
 		oci_execute($sel_var1) ;
 		while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
 			$right=nettoyer_pour_inserer($r['RIGHT']);
@@ -236,7 +237,7 @@ if ($_GET['action']=='rechercher_dans_resultat') {
 		}
 	}
 
-	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
         if ($_GET['concept_code']!='' && $_GET['type']=='patient') {
         	$concept_code=$_GET['concept_code'];
 		$filtre_sql_resultat.="   AND exists 
@@ -292,12 +293,9 @@ if ($_GET['action']=='rechercher_dans_requete_sauvegardee') {
 	if ($autorisation_requete_voir=='ok') {
 		$num_datamart_insert=get_uniqid();
 		$query=get_query($query_num);
-#		$sel_var1=oci_parse($dbh,"select title_query,datamart_num from dwh_query where query_num=$query_num  ");
-#		oci_execute($sel_var1);
-#		$r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC);
 		$title_query=nettoyer_pour_inserer($query['TITLE_QUERY']);
 		$datamart_num_origin=$query['DATAMART_NUM'];
-		
+		$crontab_periode=$query['CRONTAB_PERIODE'];
 		insert_datamart ($num_datamart_insert,"Requete $title_query $load_date",'','sysdate','sysdate','sysdate+1',1,$datamart_num_origin);
 		
 		if ($datamart_num_origin!=0) {
@@ -309,13 +307,7 @@ if ($_GET['action']=='rechercher_dans_requete_sauvegardee') {
 					insert_datamart_user_droit ($num_datamart_insert,$user_num_session,$right);
 				}
 			}
-			
-#			$sel_vardroit=oci_parse($dbh,"select document_origin_code from dwh_datamart_doc_origin where datamart_num=$datamart_num_origin");
-#			oci_execute($sel_vardroit);
-#			while ($r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC)) {
-#				$document_origin_code=$r_droit['DOCUMENT_ORIGIN_CODE'];
-#				insert_datamart_document_origin_code ($num_datamart_insert,$document_origin_code);
-#			}
+
 			$table_origin_code_session=list_authorized_document_origin_code_for_one_datamart($datamart_num_origin,$user_num_session,'table');
 			foreach ($table_origin_code_session as $document_origin_code) {
 				insert_datamart_document_origin_code ($num_datamart_insert,$document_origin_code);
@@ -355,16 +347,26 @@ if ($_GET['action']=='rechercher_dans_requete_sauvegardee') {
 		                }
 		        }
 		}
-		
-		
-	        if ($load_date!='') {
-	        	if ($option=="load_previous") {
-				$filtre_sql_resultat.=" and   load_date<= last_day(to_date('01/$load_date','DD/MM/YYYY'))   ";
-			} else {
-				$filtre_sql_resultat.=" and to_char(load_date,'MM/YYYY')='$load_date' ";
+		$load_date=trim($load_date);
+        if ($load_date!='') {
+        	if ($option=="load_previous") {
+        		if (preg_match("/^[0-9][0-9]?\/[0-9][0-9]?\/[0-9][0-9][0-9][0-9]$/",$load_date)) { //day
+		            $filtre_sql_resultat.=" and   load_date<= to_date('$load_date','DD/MM/YYYY')   ";
+        		} else if (preg_match("/^[0-9][0-9]?\/[0-9][0-9][0-9][0-9]$/",$load_date)) { // month
+		            $filtre_sql_resultat.=" and   load_date<= last_day(to_date('01/$load_date','DD/MM/YYYY'))   "; // <= last day of the month (31/01/2020)
+        		} else if ( preg_match("/^[0-9][0-9][0-9][0-9][0-9][0-9]?$/",$load_date)) { //week
+		            $filtre_sql_resultat.=" and   load_date<= TRUNC(TO_DATE(substr('$load_date',1,4) || '-01-04', 'YYYY-MM-DD'), 'IW') + 7 * (substr('$load_date',5,2) - 1)+6 "; // <= last day of the week (24/01/2020)
+        		}
+		    } else {
+				if ($crontab_periode=='month' ||   preg_match("/^[0-9][0-9]?\/[0-9][0-9][0-9][0-9]$/",$load_date)) {// month
+					$filtre_sql_resultat.=" and to_char(load_date,'MM/YYYY')='$load_date' ";
+				} else if ($crontab_periode=='week'  ||   preg_match("/^[0-9][0-9][0-9][0-9][0-9][0-9]?$/",$load_date) ) { //week
+					$filtre_sql_resultat.=" and to_char(load_date,'YYYYIW')='$load_date' ";
+				} else if (preg_match("/^[0-9][0-9]?\/[0-9][0-9]?\/[0-9][0-9][0-9][0-9]$/",$load_date)) {  //day
+					$filtre_sql_resultat.=" and to_char(load_date,'DD/MM/YYYY')='$load_date' ";
+				}
 			}
-	        }
-	        
+	    }
 		insert_datamart_resultat ("select distinct $num_datamart_insert,patient_num from dwh_query_result where query_num=$query_num $filtre_sql_resultat");
 		
 		$_POST['datamart_num']=$num_datamart_insert;
@@ -376,12 +378,12 @@ if ($_GET['action']=='rechercher_dans_requete_sauvegardee') {
 /// Verification right datamart ou entrepot
 if (($_GET['datamart_num']=='' && $_POST['datamart_num']=='') || $_GET['datamart_num']=='0' || $_POST['datamart_num']=='0') {
 	$datamart_num=0;
-	if ($_SESSION['dwh_droit_all_departments0']=='ok') {
+	if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments0']=='ok') {
 		$titre_global=get_translation('ON_THE_ENTIRE_DATAWAREHOUSE',"Sur tout l'entrepôt");
 		//$titre_global="Sur tout l'entrepôt";
 	} else {
 		$titre_global=" ".get_translation('ON_ALL_PATIENTS_OF_YOUR_HOSPITAL_DEPARTMENTS','Sur les patients de vos services')." ";
-		if ($liste_service_session=='' && $_SESSION['dwh_droit_admin_datamart0']=='') {
+		if ($liste_service_session=='' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin_datamart0']=='') {
 			$erreur_droit="<strong style=\"color:red;\">".get_translation('NO_HOSPITAL_DEPARTMENT_FOUND',"Vous n'êtes rattaché à aucun service").". ".get_translation('CONTACT_ADMIN',"Veuillez contacter l'administrateur").".</strong>";
 		}
 	}
@@ -396,7 +398,7 @@ if (($_GET['datamart_num']=='' && $_POST['datamart_num']=='') || $_GET['datamart
 	if ($datamart_num!='' && $datamart_num!=0) {
 		// REINITIALISATION RIGHT //
 		foreach ($tableau_datamart_droit as $right) { 
-			$_SESSION['dwh_droit_'.$right.$datamart_num]='';
+			$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_'.$right.$datamart_num]='';
 		}
 		
 		// VERIFICATION RIGHT DATAMART //
@@ -426,11 +428,11 @@ if (($_GET['datamart_num']=='' && $_POST['datamart_num']=='') || $_GET['datamart
 			oci_execute($sel_vardroit);
 			while ($r_droit=oci_fetch_array($sel_vardroit,OCI_RETURN_NULLS+OCI_ASSOC)) {
 				$right=$r_droit['RIGHT'];
-				$_SESSION['dwh_droit_'.$right.$datamart_num]='ok';
+				$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_'.$right.$datamart_num]='ok';
 			}
-			$_SESSION['dwh_droit_all_departments'.$datamart_num]='ok';
-			if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') {
-				$_SESSION['dwh_droit_add_patient'.$datamart_num]='ok';
+			$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num]='ok';
+			if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_detailed'.$datamart_num]=='ok') {
+				$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_add_patient'.$datamart_num]='ok';
 			}
 			
 			$liste_document_origin_code_session=list_authorized_document_origin_code_for_one_datamart($datamart_num,$user_num_session,'sql');

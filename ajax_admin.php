@@ -33,7 +33,7 @@ include_once("fonctions_droit.php");
 include_once("fonctions_dwh.php");
 include_once "fonctions_admin.php";
 
-if ($_SESSION['dwh_login']=='') {
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']=='') {
 	print "deconnexion";
 	exit;
 } else {
@@ -46,14 +46,14 @@ if ($_SESSION['dwh_login']=='') {
 session_write_close();
 
 
-if ($_POST['action']=='add_table_line_profil' && $_SESSION['dwh_droit_admin']!='') {
+if ($_POST['action']=='add_table_line_profil' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']!='') {
 	$user_profile=$_POST['user_profile'];
 	$line=get_line_profile_admin ($user_profile,$_POST['option']) ;		
 	print $line;
 }
 
 
-if ($_POST['action']=='check_all_patient_features' && $_SESSION['dwh_droit_admin']!='') {
+if ($_POST['action']=='check_all_patient_features' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']!='') {
 	$patient_features=$_POST['patient_features'];
 
 	$sel_profile=oci_parse($dbh,"select distinct user_profile from dwh_profile_right  order by user_profile ");
@@ -64,7 +64,7 @@ if ($_POST['action']=='check_all_patient_features' && $_SESSION['dwh_droit_admin
 	}
 }
 
-if ($_POST['action']=='ajouter_user_admin' && $_SESSION['dwh_droit_admin']!='') {
+if ($_POST['action']=='ajouter_user_admin' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']!='') {
 	$login=trim($_POST['login']);
 	$lastname=nettoyer_pour_inserer(trim(urldecode($_POST['lastname'])));
 	$firstname=nettoyer_pour_inserer(trim(urldecode($_POST['firstname'])));
@@ -85,7 +85,7 @@ if ($_POST['action']=='ajouter_user_admin' && $_SESSION['dwh_droit_admin']!='') 
 	}
 }
 
-if ($_POST['action']=='ajouter_liste_user_admin' && $_SESSION['dwh_droit_admin']!='') {
+if ($_POST['action']=='ajouter_liste_user_admin' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']!='') {
 	$list_user=$_POST['list_user'];
 	$liste_profils=trim(urldecode($_POST['liste_profils']));
 	$liste_services=trim(urldecode($_POST['department_num']));
@@ -113,18 +113,17 @@ if ($_POST['action']=='ajouter_liste_user_admin' && $_SESSION['dwh_droit_admin']
 				
 				} else {
 					if ($lastname=='') {
-						$ident=ldap_user_name($login);
-						$ident=preg_split("/,/",$ident);
-						$lastname=$ident[0];
-						$firstname=$ident[1];
-						$mail=$ident[2];
+						$tab_id=ldap_user_name_new($login);
+						$lastname=$tab_id['lastname'];
+						$firstname=$tab_id['firstname'];
+						$mail=$tab_id['mail'];
 					}
 				
 					$user_num=get_uniqid('DWH_USER_SEQ');
 					
 					$req="insert into dwh_user  (user_num , lastname ,firstname ,mail ,login,passwd,creation_date,expiration_date) values ($user_num,'$lastname','$firstname','$mail','$login','',sysdate,to_date('$expiration_date','DD/MM/YYYY'))";
 					$sel_var1=oci_parse($dbh,$req);
-					oci_execute($sel_var1) || die ("<strong style=\"color:red\">erreur : $login patient non sauvé</strong><br>");
+					oci_execute($sel_var1) || die ("<strong style=\"color:red\">erreur : $login non sauvé</strong><br>");
 					
 					$tableau_profils=explode(',',$liste_profils);
 					foreach ($tableau_profils as $user_profile) {
@@ -159,7 +158,7 @@ if ($_POST['action']=='ajouter_liste_user_admin' && $_SESSION['dwh_droit_admin']
 
 
 
-if ($_POST['action']=='add_expiration_date_group_admin' && $_SESSION['dwh_droit_admin']!='') {
+if ($_POST['action']=='add_expiration_date_group_admin' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']!='') {
 	$list_user=$_POST['list_user'];
 	$expiration_date=trim(urldecode($_POST['expiration_date']));
 	$tableau_users=preg_split ("/\n|;|,|\s|\t/",$list_user);
@@ -184,7 +183,7 @@ if ($_POST['action']=='add_expiration_date_group_admin' && $_SESSION['dwh_droit_
 }
 
 
-if ($_POST['action']=='supprimer_user_admin' && $_SESSION['dwh_droit_admin']!='') {
+if ($_POST['action']=='supprimer_user_admin' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']!='') {
 	$user_num=trim($_POST['user_num']);
 	$del=oci_parse($dbh,"delete from dwh_user where user_num=$user_num");
 	oci_execute($del);
@@ -200,7 +199,7 @@ if ($_POST['action']=='supprimer_user_admin' && $_SESSION['dwh_droit_admin']!=''
 	oci_execute($del);
 }
 
-if ($_POST['action']=='modifier_user_admin' && $_SESSION['dwh_droit_admin']!='') {
+if ($_POST['action']=='modifier_user_admin' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']!='') {
 	$user_num=trim($_POST['user_num']);
 	$login=trim($_POST['login']);
 	$lastname=nettoyer_pour_inserer(trim(urldecode($_POST['lastname'])));
@@ -210,6 +209,9 @@ if ($_POST['action']=='modifier_user_admin' && $_SESSION['dwh_droit_admin']!='')
 	$passwd=trim(urldecode($_POST['passwd']));
 	$liste_profils=trim(urldecode($_POST['liste_profils']));
 	$liste_services=trim(urldecode($_POST['liste_services']));
+	
+	$option_delete_passwd_user=trim($_POST['option_delete_passwd_user']);
+	
 	if ($login!='' && $user_num!='') {
 		$req="update dwh_user set  lastname='$lastname',firstname='$firstname',mail='$mail',login='$login',expiration_date=to_date('$expiration_date','DD/MM/YYYY') where user_num=$user_num";
 		$sel_var1=oci_parse($dbh,$req);
@@ -220,6 +222,11 @@ if ($_POST['action']=='modifier_user_admin' && $_SESSION['dwh_droit_admin']!='')
 			$req="update dwh_user set  passwd='".md5($passwd)."',LAST_MODIF_PASSWORD_DATE=sysdate,DEFAULT_PASSWORD=1  where user_num=$user_num";
 			$sel_var1=oci_parse($dbh,$req);
 			oci_execute($sel_var1) || die ("<strong style=\"color:red\">erreur : $login $lastname $firstname patient non modifié</strong>");
+		}
+		if ($option_delete_passwd_user!='') {
+			$req="update dwh_user set  passwd='',LAST_MODIF_PASSWORD_DATE=null,DEFAULT_PASSWORD=0  where user_num=$user_num";
+			$sel_var1=oci_parse($dbh,$req);
+			oci_execute($sel_var1) || die ("<strong style=\"color:red\">erreur : $login $lastname $firstname password non supprimé</strong>");
 		}
 		
 		$req="delete from dwh_user_profile   where user_num=$user_num";
@@ -251,7 +258,7 @@ if ($_POST['action']=='modifier_user_admin' && $_SESSION['dwh_droit_admin']!='')
 	}
 }
 
-if ($_POST['action']=='rafraichir_tableau_users' && $_SESSION['dwh_droit_admin']!='') {
+if ($_POST['action']=='rafraichir_tableau_users' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']!='') {
 		print "<table  class=\"tableau_bord_fin\" id=\"id_tableau_users\">
 				<thead>
 				<tr>
@@ -263,13 +270,14 @@ if ($_POST['action']=='rafraichir_tableau_users' && $_SESSION['dwh_droit_admin']
 					<th class=\"question_user\">Creation date</th>
 					<th class=\"question_user\">Expiration date</th>
 					<th class=\"question_user\">Last click</th>
+					<th class=\"question_user\">Local password</th>
 					<th class=\"question_user\">Modify</th>
 					<th class=\"question_user\">Delete</th>
 				</tr>
 				</thead>
 				
 				 <tbody>";
-		$sel=oci_parse($dbh,"select user_num,lastname ,firstname ,mail ,login,to_char(creation_date,'DD/MM/YYYY') as creation_date,to_char(expiration_date,'DD/MM/YYYY') as expiration_date from dwh_user order by lastname,firstname ");
+		$sel=oci_parse($dbh,"select user_num,lastname ,firstname ,mail ,login,to_char(creation_date,'DD/MM/YYYY') as creation_date,to_char(expiration_date,'DD/MM/YYYY') as expiration_date, passwd from dwh_user order by lastname,firstname ");
 		oci_execute($sel);
 		while ($r_p=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 			$user_num=$r_p['USER_NUM'];
@@ -279,6 +287,11 @@ if ($_POST['action']=='rafraichir_tableau_users' && $_SESSION['dwh_droit_admin']
 			$login=$r_p['LOGIN'];
 			$creation_date=$r_p['CREATION_DATE'];
 			$expiration_date=$r_p['EXPIRATION_DATE'];
+			$passwd=$r_p['PASSWD'];
+			$local_password='';
+			if ($passwd!='') {
+				$local_password='ok';
+			}
 			//$last_connexion_date_user=last_connexion_date_user ($user_num);
 			$last_click_date_user=last_click_date_user ($user_num);
 			print "<tr id=\"id_tr_user_$user_num\" onmouseover=\"this.style.backgroundColor='#dcdff5';\" onmouseout=\"this.style.backgroundColor='#ffffff';\">
@@ -312,6 +325,7 @@ if ($_POST['action']=='rafraichir_tableau_users' && $_SESSION['dwh_droit_admin']
 			print "<td>$expiration_date</td>";
 			//print "<td>$last_connexion_date_user</td>";
 			print "<td>$last_click_date_user</td>";
+			print "<td>$local_password</td>";
 			print "<td><span style=\"cursor:pointer\" class=\"action\" onclick=\"deplier('id_admin_modifier_user','block');plier('id_admin_ajouter_liste_user');plier('id_admin_ajouter_user');afficher_modif_user($user_num);\">Modifier</span></td>";
 			print "<td><span style=\"cursor:pointer\" class=\"action\" onclick=\"supprimer_user_admin($user_num);\">X</span></td>";
 			print "</tr>";
@@ -366,7 +380,8 @@ if ($_POST['action']=='recup_services') {
 	while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$department_num=$r['DEPARTMENT_NUM'];
 		if ($department_num!='') {
-			print "document.getElementById('id_modifier_select_department_num_multiple_$department_num').selected=false;";
+			print "jQuery('#id_modifier_select_department_num_multiple_$department_num').prop('selected', false);";
+			//print "document.getElementById('id_modifier_select_department_num_multiple_$department_num').selected=false;";
 		}
 	}
 	$sel_var1=oci_parse($dbh,"select distinct department_num from  dwh_user_department where user_num=$user_num ");
@@ -374,13 +389,14 @@ if ($_POST['action']=='recup_services') {
 	while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$department_num=$r['DEPARTMENT_NUM'];
 		if ($department_num!='') {
-			print "document.getElementById('id_modifier_select_department_num_multiple_$department_num').selected=true;";
+			print "jQuery('#id_modifier_select_department_num_multiple_$department_num').prop('selected', true);";
+			//print "document.getElementById('id_modifier_select_department_num_multiple_$department_num').selected=true;";
 		}
 	}
 }
 
 
-if ($_POST['action']=='affecter_manager_department_service' && $_SESSION['dwh_droit_admin']!='') {
+if ($_POST['action']=='affecter_manager_department_service' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']!='') {
 	$user_num=trim($_POST['user_num']);
 	$department_num=trim($_POST['department_num']);
 	$manager_department=trim($_POST['manager_department']);
@@ -389,7 +405,7 @@ if ($_POST['action']=='affecter_manager_department_service' && $_SESSION['dwh_dr
 }
 
 
-if ($_POST['action']=='ajouter_droit_profil'  && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='ajouter_droit_profil'  && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$user_profile=$_POST['user_profile'];
 	$right=$_POST['right'];
 	
@@ -399,7 +415,7 @@ if ($_POST['action']=='ajouter_droit_profil'  && $_SESSION['dwh_droit_admin']=='
 	
 }
 
-if ($_POST['action']=='ajouter_droit_profil_document_origin_code'  && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='ajouter_droit_profil_document_origin_code'  && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$user_profile=$_POST['user_profile'];
 	$document_origin_code=$_POST['document_origin_code'];
 	
@@ -408,14 +424,14 @@ if ($_POST['action']=='ajouter_droit_profil_document_origin_code'  && $_SESSION[
 	oci_execute($ins) ||die ("<strong style=\"color:red\">erreur profil non modifié</strong><br>");
 }
 
-if ($_POST['action']=='supprimer_profil'  && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='supprimer_profil'  && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$user_profile=$_POST['user_profile'];
 	$req="delete from dwh_profile_right  where user_profile='$user_profile'";
 	$del=oci_parse($dbh,$req);
 	oci_execute($del) ||die ("<strong style=\"color:red\">erreur profil non supprimé</strong><br>");
 }
 
-if ($_POST['action']=='supprimer_droit_profil'   && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='supprimer_droit_profil'   && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$user_profile=$_POST['user_profile'];
 	$right=$_POST['right'];
 	
@@ -424,7 +440,7 @@ if ($_POST['action']=='supprimer_droit_profil'   && $_SESSION['dwh_droit_admin']
 	oci_execute($del) ||die ("<strong style=\"color:red\">erreur profil non supprimé</strong><br>");
 }
 
-if ($_POST['action']=='supprimer_droit_profil_document_origin_code'   && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='supprimer_droit_profil_document_origin_code'   && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$user_profile=$_POST['user_profile'];
 	$document_origin_code=$_POST['document_origin_code'];
 	
@@ -433,7 +449,7 @@ if ($_POST['action']=='supprimer_droit_profil_document_origin_code'   && $_SESSI
 	oci_execute($del) ||die ("<strong style=\"color:red\">erreur document_origin_code non supprimé</strong><br>");
 }
 
-if ($_POST['action']=='ajouter_nouveau_profil' && $_SESSION['dwh_droit_admin']!='') {
+if ($_POST['action']=='ajouter_nouveau_profil' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']!='') {
 	$user_profile=trim(nettoyer_pour_inserer(urldecode($_POST['user_profile'])));
 	if ($user_profile!='') {
 		$sel=oci_parse($dbh,"select count(*) NB from dwh_profile_right where user_profile='$user_profile'  ");
@@ -442,7 +458,6 @@ if ($_POST['action']=='ajouter_nouveau_profil' && $_SESSION['dwh_droit_admin']!=
 		$verif=$r['NB'];
 		if ($verif==0) {
 			$req="insert into dwh_profile_right  (user_profile ,right) values ('$user_profile','')";
-			print "$req";
 			$ins=oci_parse($dbh,$req);
 			oci_execute($ins) ||die ("<strong style=\"color:red\">erreur profil non ajouté</strong><br>");
 			foreach ($tableau_user_droit_default as $right) { 
@@ -460,7 +475,7 @@ if ($_POST['action']=='ajouter_nouveau_profil' && $_SESSION['dwh_droit_admin']!=
 }
 
 
-if ($_POST['action']=='ajouter_uf' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='ajouter_uf' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$unit_str=nettoyer_pour_inserer(urldecode($_POST['unit_str']));
 	$unit_code=urldecode($_POST['unit_code']);
 	$unit_start_date=trim(urldecode($_POST['unit_start_date']));
@@ -471,7 +486,7 @@ if ($_POST['action']=='ajouter_uf' && $_SESSION['dwh_droit_admin']=='ok') {
 	oci_execute($sel_var);
 	$r=oci_fetch_array($sel_var);
 	$manager_department_groupe=$r[0];
-	if ($_SESSION['dwh_droit_admin']=='ok' || $manager_department_groupe==1) {
+	if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok' || $manager_department_groupe==1) {
 		if ($unit_code!='' && $unit_start_date!='' && $unit_end_date!='') {
 		        $sel_var=oci_parse($dbh,"select unit_num from dwh_thesaurus_unit where unit_code='$unit_code' and unit_start_date=to_date('$unit_start_date','DD/MM/YYYY') and unit_end_date=to_date('$unit_end_date','DD/MM/YYYY') ");
 			oci_execute($sel_var);
@@ -487,7 +502,7 @@ if ($_POST['action']=='ajouter_uf' && $_SESSION['dwh_droit_admin']=='ok') {
 					<td>$unit_start_date</td>
 					<td>$unit_end_date</td>";
 				
-				if ($_SESSION['dwh_droit_admin']=='ok' || $verif_manager_department==1) {
+				if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok' || $verif_manager_department==1) {
 					print "<td><a onclick=\"supprimer_uf('$unit_num','$department_num');return false;\" href=\"#\" class=\"admin_lien\">X</a></td>";
 				} else {
 					print "<td></td>";
@@ -500,7 +515,7 @@ if ($_POST['action']=='ajouter_uf' && $_SESSION['dwh_droit_admin']=='ok') {
 	}
 }
 
-if ($_POST['action']=='supprimer_uf' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='supprimer_uf' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$unit_num=$_POST['unit_num'];
 	$department_num=$_POST['department_num'];
 	$req_uf="delete dwh_thesaurus_unit where department_num=$department_num and unit_num=$unit_num ";
@@ -508,7 +523,7 @@ if ($_POST['action']=='supprimer_uf' && $_SESSION['dwh_droit_admin']=='ok') {
 	oci_execute($sel_uf);
 }
 
-if ($_POST['action']=='display_department' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='display_department' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 
 	print "<table border=1 id=\"id_table_admin_department\" class=\"tablefin\">
 			<thead>
@@ -545,35 +560,52 @@ if ($_POST['action']=='display_department' && $_SESSION['dwh_droit_admin']=='ok'
 	print "</tbody></table>";
 }
 		
-if ($_POST['action']=='ajouter_service' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='ajouter_service' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
+	$department_code=nettoyer_pour_inserer(urldecode($_POST['department_code']));
 	$department_str=nettoyer_pour_inserer(urldecode($_POST['department_str']));
 
-        $sel_var=oci_parse($dbh,"select department_num from dwh_thesaurus_department where upper(department_str)=upper('$department_str')");
+        $sel_var=oci_parse($dbh,"select department_num from dwh_thesaurus_department where upper(department_code)=upper('$department_code')");
 	oci_execute($sel_var);
 	$r=oci_fetch_array($sel_var);
 	$department_num=$r[0];
 	if ($department_num=='') {
 		$department_num=get_uniqid();
-	        $sel_var=oci_parse($dbh,"insert into dwh_thesaurus_department (department_num, department_str) values ($department_num,'$department_str')");
+	        $sel_var=oci_parse($dbh,"insert into dwh_thesaurus_department (department_num, department_str,department_code) values ($department_num,'$department_str','$department_code')");
 		oci_execute($sel_var);
-		display_department($department_num,$department_str,'');
-	} 
+		display_department($department_num,$department_str,$department_code,'');
+	} else {
+		print "erreur:Le code du service existe deja";
+	}
 
 }
 
-
-if ($_POST['action']=='supprimer_service'  && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='modifier_libelle_service' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
+	$department_str=nettoyer_pour_inserer(urldecode($_POST['department_str']));
+	$department_code=urldecode($_POST['department_code']);
 	$department_num=$_POST['department_num'];
-	$req_user="delete dwh_user_department where department_num=$department_num";
-	$sel_user = oci_parse($dbh,$req_user);
-	oci_execute($sel_user);
-	
-	$req_user="delete dwh_thesaurus_department where department_num=$department_num";
-	$sel_user = oci_parse($dbh,$req_user);
-	oci_execute($sel_user);
+        $sel_var=oci_parse($dbh,"select department_num from dwh_thesaurus_department where upper(department_code)=upper('$department_code')");
+	oci_execute($sel_var);
+	$r=oci_fetch_array($sel_var);
+	$department_num_code=$r[0];
+	if ($department_num==$department_num_code || $department_num_code=='' ) {
+		$req="update dwh_thesaurus_department set department_str='$department_str', department_code='$department_code' where department_num=$department_num ";
+		$upd = oci_parse($dbh,$req);
+		oci_execute($upd);
+	} else {
+		print "erreur:Le code du service existe deja pour un autre service";
+	}
 }
 
-if ($_POST['action']=='set_department_master'  && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='supprimer_service'  && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
+	$department_num=$_POST['department_num'];
+	if ($department_num!='') {
+		$req_user="delete dwh_user_department where department_num=$department_num";
+		$sel_user = oci_parse($dbh,$req_user);
+		oci_execute($sel_user);
+	}
+}
+
+if ($_POST['action']=='set_department_master'  && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$department_num=$_POST['department_num'];
 	$department_code=$_POST['department_code'];
 	$department_master=$_POST['department_master'];
@@ -584,7 +616,7 @@ if ($_POST['action']=='set_department_master'  && $_SESSION['dwh_droit_admin']==
 }
 
 
-if ($_POST['action']=='affiche_patient_opposition' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='affiche_patient_opposition' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$term=supprimer_apost(trim(urldecode($_POST['term'])));
 	if ($term!='') {
 		$tab_patient_num=array();
@@ -658,7 +690,7 @@ if ($_POST['action']=='affiche_patient_opposition' && $_SESSION['dwh_droit_admin
     
 } 
 
-if ($_POST['action']=='list_patients_opposed' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='list_patients_opposed' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
     $tableau_list_patients_opposed=get_list_patients_opposed();
     print "<table class=\"tablefin\"><thead><th>IPP</th><th>Origine</th><th>Date</th><th>".get_translation('CANCELLED','Annuler')."</th></thead><tbody>";
     foreach ($tableau_list_patients_opposed as $tab) {
@@ -672,7 +704,7 @@ if ($_POST['action']=='list_patients_opposed' && $_SESSION['dwh_droit_admin']=='
     print "</tbody></table>";
 }
 
-if ($_POST['action']=='validate_opposition' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='validate_opposition' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
     $patient_num=trim($_POST['patient_num']);
     if ($patient_num!='') {
             $result_validate=validate_opposition($patient_num);
@@ -681,7 +713,7 @@ if ($_POST['action']=='validate_opposition' && $_SESSION['dwh_droit_admin']=='ok
 } 
     
 
-if ($_POST['action']=='cancel_opposition' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='cancel_opposition' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
     $patient_num=trim($_POST['patient_num']);
     if ($patient_num!='') {
             $result_validate=cancel_opposition($patient_num);
@@ -690,7 +722,7 @@ if ($_POST['action']=='cancel_opposition' && $_SESSION['dwh_droit_admin']=='ok')
 } 
     
 
-if ($_POST['action']=='insert_outil' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='insert_outil' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
     $tableau['TITLE']=urldecode($_POST['title']);
     $tableau['DESCRIPTION']=urldecode($_POST['description']);
     $tableau['AUTHORS']=urldecode($_POST['authors']);
@@ -699,7 +731,7 @@ if ($_POST['action']=='insert_outil' && $_SESSION['dwh_droit_admin']=='ok') {
     admin_lister_outil () ;
 }
 
-if ($_POST['action']=='update_outil' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='update_outil' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
     $tableau['TOOL_NUM']=urldecode($_POST['tool_num']);
     $tableau['TITLE']=urldecode($_POST['title']);
     $tableau['DESCRIPTION']=urldecode($_POST['description']);
@@ -708,12 +740,12 @@ if ($_POST['action']=='update_outil' && $_SESSION['dwh_droit_admin']=='ok') {
     update_outil($tableau);
 }
 
-if ($_POST['action']=='delete_outil' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='delete_outil' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
     $tool_num=$_POST['tool_num'];
     delete_outil($tool_num);
 }
 
-if ($_POST['action']=='calculate_nb_insert' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='calculate_nb_insert' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
     $nb_jours=$_POST['nb_jours'];
     $type_distribution=$_POST['type_distribution'];
     $tableau_calculate_nb_insert=calculate_nb_insert($nb_jours,$type_distribution);
@@ -789,7 +821,7 @@ if ($_POST['action']=='calculate_nb_insert' && $_SESSION['dwh_droit_admin']=='ok
 
 
 
-if ($_POST['action']=='afficher_concepts' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='afficher_concepts' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$liste_concept=supprimer_apost(trim(urldecode($_POST['concept'])));
 	$tableau_concept=explode(';',$liste_concept);
 	if ($liste_concept!='') {
@@ -880,7 +912,7 @@ if ($_POST['action']=='afficher_concepts' && $_SESSION['dwh_droit_admin']=='ok')
 
 
 
-if ($_POST['action']=='exclure_concepts' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='exclure_concepts' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$liste_val=supprimer_apost(trim(urldecode($_POST['liste_val'])));
 	$process_num=get_uniqid();
 	create_process ($process_num,$user_num_session,0,get_translation('PROCESS_ONGOING','process en cours'),'',"sysdate + 20","admin_concepts");
@@ -890,16 +922,16 @@ if ($_POST['action']=='exclure_concepts' && $_SESSION['dwh_droit_admin']=='ok') 
 
 
 
-if ($_POST['action']=='verif_process_exclure_concepts' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='verif_process_exclure_concepts' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$process_num=$_POST['process_num'];
-	$tableau_process=get_process($process_num);
+	$tableau_process=get_process($process_num,'dontget_result');
 	$status=$tableau_process['STATUS'];
 	$commentary=$tableau_process['COMMENTARY'];
 	print "$status;$commentary";
 }
 
 
-if ($_POST['action']=='ajouter_concepts' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='ajouter_concepts' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$concept_str=supprimer_apost(trim(urldecode($_POST['concept_libelle_new'])));
 	$concept_code=trim($_POST['concept_code']);
 	$semantic_type=supprimer_apost(trim(urldecode($_POST['semantic_type'])));
@@ -954,7 +986,7 @@ if ($_POST['action']=='ajouter_concepts' && $_SESSION['dwh_droit_admin']=='ok') 
 
 
 
-if ($_POST['action']=='display_thesaurus_table' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='display_thesaurus_table' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$data_search=supprimer_apost(trim(urldecode($_POST['data_search'])));
 	$thesaurus_code=$_POST['thesaurus_code'];
 	if ($data_search!='' || $thesaurus_code!='') {
@@ -1015,7 +1047,7 @@ if ($_POST['action']=='display_thesaurus_table' && $_SESSION['dwh_droit_admin']=
 
 
 
-if ($_POST['action']=='display_thesaurus_tree' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='display_thesaurus_tree' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$data_search=supprimer_apost(trim(urldecode($_POST['data_search'])));
 	$thesaurus_code=$_POST['thesaurus_code'];
 	$thesaurus_data_num=$_POST['thesaurus_data_num'];
@@ -1046,7 +1078,7 @@ if ($_POST['action']=='display_thesaurus_tree' && $_SESSION['dwh_droit_admin']==
 }
 
 
-if ($_POST['action']=='save_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='save_cgu' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$cgu_text=trim(urldecode($_POST['cgu_text']));
         $cgu_text=preg_replace("/;plus;/","+",$cgu_text);
 	if ($cgu_text!='') {
@@ -1054,7 +1086,7 @@ if ($_POST['action']=='save_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
 	}
 }
 
-if ($_POST['action']=='list_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='list_cgu' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	print "<table class=tablefin id=\"id_table_list_thesaurus_data\">
 	<thead>
 		<tr>
@@ -1121,21 +1153,21 @@ if ($_POST['action']=='list_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
 }
 
 
-if ($_POST['action']=='delete_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='delete_cgu' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$cgu_num=$_POST['cgu_num'];
 	if ($cgu_num!='') {
 		delete_cgu ($cgu_num);
 	}
 }
 
-if ($_POST['action']=='published_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='published_cgu' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$cgu_num=$_POST['cgu_num'];
 	if ($cgu_num!='') {
                 update_cgu ($cgu_num,1);
 	}
 }
 
-if ($_POST['action']=='unpublished_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='unpublished_cgu' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$cgu_num=$_POST['cgu_num'];
 	if ($cgu_num!='') {
                 update_cgu ($cgu_num,0);
@@ -1146,7 +1178,7 @@ if ($_POST['action']=='unpublished_cgu' && $_SESSION['dwh_droit_admin']=='ok') {
 
 
 
-if ($_POST['action']=='save_actu' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='save_actu' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$actu_text=trim(urldecode($_POST['actu_text']));
 	$actu_num=$_POST['actu_num'];
         $actu_text=preg_replace("/;plus;/","+",$actu_text);
@@ -1159,7 +1191,7 @@ if ($_POST['action']=='save_actu' && $_SESSION['dwh_droit_admin']=='ok') {
 	}
 }
 
-if ($_POST['action']=='list_actu' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='list_actu' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	print "<table class=tablefin id=\"id_table_list_thesaurus_data\">
 	<thead>
 		<tr>
@@ -1215,28 +1247,28 @@ if ($_POST['action']=='list_actu' && $_SESSION['dwh_droit_admin']=='ok') {
 }
 
 
-if ($_POST['action']=='delete_actu' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='delete_actu' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$actu_num=$_POST['actu_num'];
 	if ($actu_num!='') {
 		delete_actu ($actu_num);
 	}
 }
 
-if ($_POST['action']=='published_actu' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='published_actu' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$actu_num=$_POST['actu_num'];
 	if ($actu_num!='') {
                 update_actu ($actu_num,1);
 	}
 }
 
-if ($_POST['action']=='unpublished_actu' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='unpublished_actu' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$actu_num=$_POST['actu_num'];
 	if ($actu_num!='') {
                 update_actu ($actu_num,0);
 	}
 }
 
-if ($_POST['action']=='update_actu_alert' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='update_actu_alert' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$actu_num=$_POST['actu_num'];
 	$alert=$_POST['alert'];
 	if ($actu_num!='') {
@@ -1244,7 +1276,7 @@ if ($_POST['action']=='update_actu_alert' && $_SESSION['dwh_droit_admin']=='ok')
 	}
 }
 
-if ($_POST['action']=='save_contact' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='save_contact' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$contact_text=trim(urldecode($_POST['contact_text']));
         $contact_text=preg_replace("/;plus;/","+",$contact_text);
 	save_parameters ('contact',$contact_text);

@@ -35,7 +35,7 @@ include_once("fonctions_droit.php");
 include_once("fonctions_dwh.php");
 include_once("fonctions_stat.php");
 
-if ($maintenance=='ok' && $_SESSION['dwh_droit_admin']==''  && $_SESSION['dwh_login']!='' && !preg_match("/maintenance\.php/i",$_SERVER['REQUEST_URI'])) {
+if ($maintenance=='ok' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']==''  && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']!='' && !preg_match("/maintenance\.php/i",$_SERVER['REQUEST_URI'])) {
 	header("Location: maintenance.php");
 	exit;
 }
@@ -44,13 +44,15 @@ include_once("verif_droit.php");
 
 $date_today_unique=date("dmYHis");
 
-
+if ($TITLE_APPLICATION=='') {
+	$TITLE_APPLICATION="Dr Warehouse";
+}
 
 ?>
 <!DOCTYPE html>
 <html>
 <head>
-	<title><? print get_translation('TITLE_APPLICATION','Dr Warehouse'); ?></title>
+	<title><? print $TITLE_APPLICATION; ?></title>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 	<script src="jquery.js" type="text/javascript"></script>
 	<link rel="stylesheet" href="jquery-ui.css">
@@ -88,7 +90,7 @@ $date_today_unique=date("dmYHis");
 	
 	<link href="style.css?<? print "v=$date_today_unique"; ?>" type="text/css" rel="StyleSheet"></link>
 	<link href="style_local.css?<? print "v=$date_today_unique"; ?>" type="text/css" rel="StyleSheet"></link>
-	<? if ($_SESSION['dwh_droit_fuzzy_display']=='ok') { ?>
+	<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_fuzzy_display']=='ok') { ?>
 		<link href="style_capture_fuzzy.css?<? print "v=$date_today_unique"; ?>" type="text/css" rel="StyleSheet"></link>
 	<? } ?>
 	
@@ -97,9 +99,26 @@ $date_today_unique=date("dmYHis");
 	    jQuery.fn.dataTable.moment( 'DD/MM/YYYY' );
 	} );
 	</script>
+
+	<link rel="stylesheet" href="fontawesome/css/all.css">
+	<script type="module" src="APIService.js"></script>
+	<script src="vue/axios.min.js"></script>
+	<script src="vue/vue.js"></script>
+	<script src="vue/moment.min.js"></script>
+	<script src="vue/bootstrap.min.js"></script>
+
 </head>
 <body>
 	<table border="0" cellspacing="0" cellpadding="0" style="background-color:#8F94B1" width="100%" height=113 id="id_tableau_titre_application">
-		<tr><td class="geant" style="text-align:center;"><span style="padding-left:60px;"><? print get_translation('DRWAREHOUSE_LOCAL_TITLE','Dr WareHouse'); ?> <sup style="font-size:12px">&copy;<? print get_translation('IMAGINE_INSTITUTE','Imagine'); ?></sup></span><br><span style="font-size: 16px; color:#DDDFE8; line-height: 40px;">Entrepôt de données</span></td></tr>
+		<tr><td class="geant" style="text-align:center;"><span style="padding-left:60px;"><? print $TITLE_APPLICATION; ?> <sup style="font-size:12px">&copy;<? print get_translation('IMAGINE_INSTITUTE','Imagine'); ?></sup></span><br><span style="font-size: 16px; color:#DDDFE8; line-height: 40px;">Entrepôt de données</span></td></tr>
 	</table>
 	<div id="id_div_corps">
+
+
+<?php
+  $token = $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_jwt_key_session'];
+?>
+<script>
+	var token = <?php echo json_encode($token); ?>;
+	localStorage.setItem('access_token_drwh', token)
+</script>

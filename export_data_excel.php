@@ -29,7 +29,7 @@ error_reporting(E_ALL ^ E_NOTICE);
 
 if ($_GET['process_num'] !='') {
 	session_start();
-	$user_num_session=$_SESSION['dwh_user_num'];
+	$user_num_session=$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_num'];
 }
 ini_set("memory_limit","500M");
 
@@ -47,7 +47,7 @@ $date=date("YMjHms");
 //php export_data_excel.php $user_num_session $tmpresult_num $process_num $file_type $export_type \"$list_thesaurus\" \"$list_concepts\" \"$file_name\"
 
 if ($_GET['process_num'] !='') {
-	$process=get_process ($_GET['process_num']);
+	$process=get_process ($_GET['process_num'],'get_result');
 	$user_num=$process['USER_NUM'];
 	if ($user_num==$user_num_session) {
 		$file_name=$process['COMMENTARY'];
@@ -59,6 +59,7 @@ if ($_GET['process_num'] !='') {
 		if (preg_match("/.xls/i",$file_name)) {
 			header ("Content-Type: application/excel");
 			header ("Content-Disposition: attachment; filename=$file_name.xls");	
+			print "<style>.num {  mso-number-format:General;} .text{  mso-number-format:\"\@\";/*force text*/ } </style> ";
 		}
 		print $result;
 	}
@@ -105,18 +106,10 @@ if ($argv[1] !='') {
 	}
 	update_process ($process_num,'0',get_translation('PROCESS_START','debut du process'),'',$user_num_session,$file_type);
 
-	print "
-	file_type $file_type
-	process_num $process_num
-	tmpresult_num $tmpresult_num
-	export_type $export_type
-	list_thesaurus $list_thesaurus
-	list_concepts $list_concepts
-	file_name $file_name
-	";	
+
 } else {
 	$mode_export="post";
-	$user_num_session=$_SESSION['dwh_user_num'];
+	$user_num_session=$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_num'];
 
 	$tmpresult_num=$_POST['tmpresult_num'];
 	$export_type=$_POST['export_type']; // empty, row //
@@ -134,17 +127,15 @@ if ($argv[1] !='') {
 	if ($file_type=='xls'){
 		header ("Content-Type: application/excel");
 		header ("Content-Disposition: attachment; filename=$file_name.xls");	
+		print "<style>.num {  mso-number-format:General;} .text{  mso-number-format:\"\@\";/*force text*/ } </style> ";
 	} else {
 		header("Content-Type: text/plain");
 		header ("Content-Disposition: attachment; filename=$file_name.txt");
 	}
 }
-print "3
-";
 
 $tableau_thesaurus_data_used=array();
 if (!empty($thesaurus)){
-	print "test_thes deb\n";
 	foreach ($thesaurus as $selected_thesaurus){
 		$query="select thesaurus_data_num from DWH_DATA where thesaurus_code='$selected_thesaurus' and $patient_or_document in (select dwh_tmp_result_$user_num_session.$patient_or_document from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num)";
 		$sel=oci_parse($dbh,$query);
@@ -162,17 +153,9 @@ if (!empty($concepts)){
 		}
 	}
 }
-print_r($tableau_thesaurus_data_used);
 /// ENTETE EXPORT 
 if ($file_type=='xls'){
-#	$resultat_final.="<style>
-#		.num {
-#		  mso-number-format:General;
-#		}
-#		.text{	
-#		  mso-number-format:\"\@\";/*force text*/
-#		}
-#		</style>";
+	$resultat_final.= "<style>.num {  mso-number-format:General;} .text{  mso-number-format:\"\@\";/*force text*/ } </style> ";
 	$resultat_final.="<table id=\"id_table_export_concept\" style=\"width:100%\">";	
 }
 		
@@ -235,7 +218,7 @@ if ($export_type=='row'){
 		foreach ($tableau_thesaurus_data_used as $thesaurus_data_num => $ok){
 			//select info concept
 			if ($thesaurus_data_num!='') {
-		  		$query="select CONCEPT_CODE,concept_str,info_complement,measuring_unit,thesaurus_data_num from dwh_thesaurus_data where thesaurus_data_num='$thesaurus_data_num'";
+		  		$query="select CONCEPT_CODE,concept_str,info_complement,measuring_unit,thesaurus_data_num,value_type from dwh_thesaurus_data where thesaurus_data_num='$thesaurus_data_num'";
 				$sel=oci_parse($dbh,$query);
 				oci_execute($sel);
 				$r=oci_fetch_array($sel, OCI_RETURN_NULLS+OCI_ASSOC);
@@ -243,9 +226,11 @@ if ($export_type=='row'){
 				$CONCEPT_STR=$r['CONCEPT_STR'];
 				$INFO_COMPLEMENT=$r['INFO_COMPLEMENT'];
 				$MEASURING_UNIT=$r['MEASURING_UNIT'];
+				$VALUE_TYPE=$r['VALUE_TYPE'];
 				$CONCEPT_STR=str_replace("	"," ",$CONCEPT_STR);
 				$INFO_COMPLEMENT=str_replace("	"," ",$INFO_COMPLEMENT);
 				$MEASURING_UNIT=str_replace("	"," ",$MEASURING_UNIT);
+				$tableau_value_type[$thesaurus_data_num]=$VALUE_TYPE;
 				if ($file_type=='xls'){
 					$resultat_final.="<th>$CONCEPT_STR $INFO_COMPLEMENT $MEASURING_UNIT</th>";
 				} else {
@@ -253,7 +238,7 @@ if ($export_type=='row'){
 				}
 			}
 		}
-		print_r($resultat_final);
+		//print_r($resultat_final);
 	}
 	if ($file_type=='xls'){
 		$resultat_final.="</tr>";
@@ -317,7 +302,7 @@ if (!empty($tableau_thesaurus_data_used)){
 							if ($file_type=='xls'){
 									$resultat_final.="<tr>
 									<td>$patient_num</td>
-									<td>'$HOSPITAL_PATIENT_ID</td>
+									<td class='text'>$HOSPITAL_PATIENT_ID</td>
 									<td>$BIRTH_DATE</td>
 									<td>$ENCOUNTER_NUM</td>
 									<td>$PATIENT_SEX</td>
@@ -350,7 +335,6 @@ if (!empty($tableau_thesaurus_data_used)){
 		$tableau_patient_ok=array();
 		$tableau_patient=array();
     		
-		print "$i_patient / $nb_patient\n";
 		update_process ($process_num,'0',"$i_patient / $nb_patient",'',$user_num_session,$file_type);
     		$query_patients="select distinct $patient_or_document as cle,patient_num, to_char(document_date,'DD/MM/YYYY HH24:MI') as date_char, document_date from DWH_DATA where $patient_or_document in (select dwh_tmp_result_$user_num_session.$patient_or_document from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num) order by patient_num, document_date";
     		$sel_patient = oci_parse($dbh,$query_patients); 
@@ -363,13 +347,11 @@ if (!empty($tableau_thesaurus_data_used)){
 	    		if ($i_patient % 100==0 && $mode_export=='argv') {
 				update_process ($process_num,'0',"$i_patient / $nb_patient",$resultat_final,$user_num_session,$file_type);
 				$resultat_final='';
-				print "$i_patient / $nb_patient\n";
     			}
     			$verif=autorisation_voir_patient($patient_num,$user_num_session);
     			if($verif=='ok'){
     				
 				if ($tableau_patient_ok["$patient_num"]=='') {
-			    		print "tableau_patient deb\n";
 				    	$tableau_patient=array();
 					$query_data="select data_num,thesaurus_data_num,to_char(document_date,'DD/MM/YYYY HH24:MI') as document_date_char,VAL_NUMERIC,VAL_TEXT from DWH_DATA where $patient_or_document=$cle  ";			      				
 					$sel = oci_parse($dbh,$query_data); 
@@ -381,12 +363,14 @@ if (!empty($tableau_thesaurus_data_used)){
 						$VAL_NUMERIC=$r['VAL_NUMERIC'];
 						$VAL_TEXT=$r['VAL_TEXT'];
 						$val=$VAL_NUMERIC.$VAL_TEXT;
+						if ($tableau_value_type[$thesaurus_data_num]=='present') {
+							$val=1;
+						}
 						$tableau_patient_ok["$patient_num"]='ok';
 						if ($document_date_char!='' && $tableau_thesaurus_data_used[$thesaurus_data_num]=='ok') {
 							$tableau_patient["$patient_num;$thesaurus_data_num;$document_date_char"]=$val;
 						}
 					}
-			    		print "tableau_patient fini\n";
 		    			$tab_patient=array();
 		    			$tab_patient=get_patient ($patient_num);
 		    			$HOSPITAL_PATIENT_ID=$tab_patient['HOSPITAL_PATIENT_ID'];   
@@ -398,7 +382,7 @@ if (!empty($tableau_thesaurus_data_used)){
 				if ($file_type=='xls'){
 					$line_concepts="<tr>
 				   	<td>$patient_num</td>
-					<td>'$HOSPITAL_PATIENT_ID</td>
+					<td class='text'>$HOSPITAL_PATIENT_ID</td>
 				   	<td>$BIRTH_DATE</td>
 					<td>$PATIENT_SEX</td>
 					<td>$date_char</td>";
@@ -447,11 +431,16 @@ if (!empty($tableau_thesaurus_data_used)){
 		      		    			$UPPER_BOUND=$r['UPPER_BOUND'];
 		      		    			$ENCOUNTER_NUM=$r['ENCOUNTER_NUM'];
 		      		      			$PATIENT_AGE=$r['AGE_PATIENT'];
+		      		      			$val="$VAL_NUMERIC$VAL_TEXT";
+							if ($tableau_value_type[$thesaurus_data_num]=='present') {
+								$val=1;
+								$val_exists='ok';
+							}
 		
 							if ($file_type=='xls'){
-								$line_concepts.="<td>$VAL_NUMERIC$VAL_TEXT</td>";
+								$line_concepts.="<td>$val</td>";
 							}else{
-								$line_concepts.="$VAL_NUMERIC$VAL_TEXT\t";
+								$line_concepts.="$val\t";
 							}
 							if ($VAL_NUMERIC!=''||$VAL_TEXT!='') {
 								$val_exists='ok';

@@ -37,7 +37,7 @@ include "fonctions_ecrf.php";
 	if ($patient=='') {
 		$patient_num='';
 	}
-	if ($_SESSION['dwh_droit_modify_patient']=='ok') {
+	if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_modify_patient']=='ok') {
 		print "<h1 id=\"id_h1_patient\"  style=\"display:block;\" onclick=\"plier_deplier('id_h1_patient_modifier');\">$patient</h1>";
 		print "<h1 id=\"id_h1_patient_modifier\" style=\"display:none;\"><input type=text id=id_input_hospital_patient_id value='$hospital_patient_id'> <input type=button value= ".get_translation('MODIFY','modifier')." onclick=\"modify_hospital_patient_id('$patient_num','$hospital_patient_id');\"></h1>";
 		print "<div id=\"id_div_modifier_patient\"></div>";
@@ -46,6 +46,8 @@ include "fonctions_ecrf.php";
 	}
 	$cohort_num_patient=$_GET['cohort_num_patient'];
 	$ecrf_num_open=$_GET['ecrf_num_open'];
+	$donotexecute_extract_ecrf=$_GET['donotexecute_extract_ecrf'];
+	$ecrf_patient_event_num_open=$_GET['ecrf_patient_event_num_open'];
 ?>
 	
 <? if ($patient_num=='') { ?>
@@ -59,7 +61,7 @@ include "fonctions_ecrf.php";
 	<script type="text/javascript" src="javascript_ecrf_patient.js?v=<? print $date_today_unique; ?>"></script>
 	<script language="javascript">
 		<? 
-		if ($_SESSION['dwh_droit_modify_patient']=='ok') { 
+		if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_modify_patient']=='ok') { 
 		?>
 			function modify_hospital_patient_id (patient_num,hospital_patient_id) {
 				hospital_patient_id_new=document.getElementById('id_input_hospital_patient_id').value;
@@ -161,60 +163,69 @@ include "fonctions_ecrf.php";
 	<?
 	
 	// if patient vizualized from a cohort //
+	$next_patient_num='';
+	$prev_patient_num='';
 	if ($cohort_num_patient!='') {
 		$cohort=get_cohort($cohort_num_patient,'');
 		$title_cohort=$cohort['TITLE_COHORT'];
 		print "<input type=\"hidden\" id=\"id_cohort_num_patient\" value=\"$cohort_num_patient\">";
 		if ($cohort_num_patient!='') {
 			$next_patient_num=get_a_patient_in_a_cohort ($cohort_num_patient,$patient_num,'next');
-		}
-		print "<input type=\"hidden\" id=\"id_next_patient_num\" value=\"$next_patient_num\">";
-		if ($next_patient_num!='') {
-			print "<a href=\"patient.php?patient_num=$next_patient_num&cohort_num_patient=$cohort_num_patient\" class=\"link\"> Direct access to the next patient of the cohort $title_cohort</a>";
-		} else {
+			$prev_patient_num=get_a_patient_in_a_cohort ($cohort_num_patient,$patient_num,'prev');
 			$first_patient_num=get_a_patient_in_a_cohort ($cohort_num_patient,'','first');
-			print "<a href=\"patient.php?patient_num=$first_patient_num&cohort_num_patient=$cohort_num_patient\" class=\"link\"> No more patient in the cohort $title_cohort, back to the first one</a>";
+		}
+		
+		if ($first_patient_num!=$patient_num && $first_patient_num!=$next_patient_num && $first_patient_num!=$prev_patient_num) {
+			print "<a href=\"patient.php?patient_num=$first_patient_num&cohort_num_patient=$cohort_num_patient\" class=\"link\">".get_translation('FIRST_PATIENT_OF_THE_COHORT','Premier patient de la cohorte')."</a>";
+		}
+		if ($prev_patient_num!='') {
+			print " - <a href=\"patient.php?patient_num=$prev_patient_num&cohort_num_patient=$cohort_num_patient&ecrf_num_open=$ecrf_num\">".get_translation('PREVIOUS_PATIENT_OF_THE_COHORT','Patient précédent de la cohorte')."</a>";
+		}
+		if ($next_patient_num!='') {
+			print " - <a href=\"patient.php?patient_num=$next_patient_num&cohort_num_patient=$cohort_num_patient&ecrf_num_open=$ecrf_num\">".get_translation('NEXT_PATIENT_OF_THE_COHORT','Patient suivant de la cohorte')."</a> ";
 		}
 	 }
 	 
+	print "<input type=\"hidden\" id=\"id_next_patient_num\" value=\"$next_patient_num\">";
+	print "<input type=\"hidden\" id=\"id_prev_patient_num\" value=\"$prev_patient_num\">";
 	 $resultat_famille=famille_patient_bis ($patient_num); 
 	?>
 	
 	<a name="ancre_entete"> </a>
 	<div id="tabs" style="width:100%">
 		<ul id="tab-links">
-		<? if ($_SESSION['dwh_droit_patient_documents']=='ok') {  ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_patient_documents']=='ok') {  ?>
 			<li class="current color-bullet" id="id_bouton_documents"><span class="li-content"><a href="#" onclick="voir_patient_onglet('documents',<? print $patient_num; ?>);return false;"><? print get_translation('DOCUMENTS','Documents'); ?></a></span></li>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_patient_labo']=='ok') {  ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_patient_labo']=='ok') {  ?>
 			<li class="color-bullet" id="id_bouton_biologie"><span class="li-content"><a href="#" onclick="voir_patient_onglet('biologie',<? print $patient_num; ?>);return false;"><? print get_translation('BIOLOGY','Biologie'); ?></a></span></li>
 		<? } ?>
 		
-		<? if ($_SESSION['dwh_droit_patient_family']=='ok') {  ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_patient_family']=='ok') {  ?>
 			<? if ($resultat_famille!='') { ?>
 				<li class="color-bullet" id="id_bouton_famille"><span class="li-content"><a href="#" onclick="voir_patient_onglet('famille',<? print $patient_num; ?>);return false;"><? print get_translation('FAMILY','Famille'); ?></a></span></li>
 			<? } ?>
  		<? } ?>
  		
-		<? if ($_SESSION['dwh_droit_patient_timeline']=='ok') {  ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_patient_timeline']=='ok') {  ?>
  			<li class="color-bullet" id="id_bouton_timeline"><span class="li-content"><a href="#" onclick="voir_patient_onglet('timeline',<? print $patient_num; ?>);return false;"><? print get_translation('TIMELINE','TimeLine'); ?></a></span></li>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_patient_carepath']=='ok') {  ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_patient_carepath']=='ok') {  ?>
 			<li class="color-bullet" id="id_bouton_parcours"><span class="li-content"><a href="#" onclick="voir_patient_onglet('parcours',<? print $patient_num; ?>);return false;"><? print get_translation('JOURNEY','Parcours'); ?></a></span></li>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_patient_pmsi']=='ok') {  ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_patient_pmsi']=='ok') {  ?>
 			<li class="color-bullet" id="id_bouton_pmsi"><span class="li-content"><a href="#" onclick="voir_patient_onglet('pmsi',<? print $patient_num; ?>);return false;"><? print get_translation('PMSI','PMSI'); ?></a></span></li>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_patient_cohort']=='ok') {  ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_patient_cohort']=='ok') {  ?>
 			<li class="color-bullet" id="id_bouton_cohorte"><span class="li-content"><a href="#" onclick="voir_patient_onglet('cohorte',<? print $patient_num; ?>);return false;"><? print get_translation('COHORT','Cohorte'); ?></a></span></li>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_patient_concept']=='ok') {  ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_patient_concept']=='ok') {  ?>
 			<li class="color-bullet" id="id_bouton_concepts"><span class="li-content"><a href="#" onclick="voir_patient_onglet('concepts',<? print $patient_num; ?>);return false;"><? print get_translation('CONCEPTS','Concepts'); ?></a></span></li>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_patient_similarity']=='ok') {  ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_patient_similarity']=='ok') {  ?>
 			<li class="color-bullet" id="id_bouton_similarite_patient"><span class="li-content"><a href="#" onclick="voir_patient_onglet('similarite_patient',<? print $patient_num; ?>);return false;"><? print get_translation('SIMILARITY','Similarité'); ?></a></span></li>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_patient_ecrf']=='ok') {  ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_patient_ecrf']=='ok') {  ?>
 			<li class="color-bullet" id="id_bouton_ecrf_patient"><span class="li-content"><a href="#" onclick="voir_patient_onglet('ecrf_patient',<? print $patient_num; ?>);return false;"><? print get_translation('ECRF','eCRF'); ?></a></span></li>
 		<? } ?>
 		</ul>
@@ -233,7 +244,7 @@ include "fonctions_ecrf.php";
 				<table border="0" width="100%">
 					<tr>
 						<td style="vertical-align:top" width="500px">
-							<div id="id_div_tableau_document" style="height:500px;overflow-y:auto;"></div>
+							<div id="id_div_tableau_document" style="height:500px;width:500px;overflow-y:auto;"></div>
 						</td>
 						<td style="vertical-align:top">
 							<div id="id_div_voir_document" class="afficher_document_patient">
@@ -256,7 +267,7 @@ include "fonctions_ecrf.php";
 					<table border="0" width="100%">
 						<tr>
 							<td style="vertical-align:top" width="500px">
-								<div id="id_div_list_document_biologie" style="height:500px;overflow-y:auto;"></div>
+								<div id="id_div_list_document_biologie" style="height:500px;width:500px;overflow-y:auto;"></div>
 							</td>
 							<td style="vertical-align:top">
 								<div id="id_div_voir_biologie"></div>
@@ -410,7 +421,8 @@ include "fonctions_ecrf.php";
 	jQuery(document).ready(function() { 
 		$('#tabs').css('pointer-events','auto');
 		$('#tabs').css('opacity','1');
-		open_ecrf('<? print $patient_num; ?>','<? print $ecrf_num_open; ?>');
+		open_ecrf('<? print $patient_num; ?>','<? print $ecrf_num_open; ?>','<? print $ecrf_patient_event_num_open; ?>','<? print $donotexecute_extract_ecrf; ?>');
+		
 		filtre_patient_texte('<? print $patient_num; ?>');
 	})
 	

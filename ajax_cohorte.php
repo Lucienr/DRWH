@@ -40,7 +40,7 @@ if ($_POST['action']=='connexion') {
 	exit;
 }
 
-if ($_SESSION['dwh_login']=='') {
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']=='') {
 	print "deconnexion";
 	exit;
 } else {
@@ -92,7 +92,7 @@ if ($_POST['action']=='verifier_process_fini_precalcul_nb_patient_similarite_coh
 	$process_num=$_POST['process_num'];
 	$cohort_num=$_POST['cohort_num'];
 	if ($process_num!='') {
-		$tableau_process=get_process ($process_num);
+		$tableau_process=get_process ($process_num,'dontget_result');
 		$status=$tableau_process['STATUS'];
 		print "$status;";
 		
@@ -113,7 +113,7 @@ if ($_POST['action']=='calculer_similarite_cohorte') {
 	$patients_importes=$_POST['patients_importes'];
 	$cohorte_exclue=urldecode($_POST['cohorte_exclue']);
 
-	$tableau_process=get_process($process_num);
+	$tableau_process=get_process($process_num,'dontget_result');
 	$verif_process_num=$tableau_process['PROCESS_NUM'];
 	
         
@@ -133,7 +133,7 @@ if ($_POST['action']=='verifier_process_fini_similarite_cohorte') {
 	$process_num=$_POST['process_num'];
 	$cohort_num=$_POST['cohort_num'];
 	if ($process_num!='') {
-		$tableau_process=get_process ($process_num);
+		$tableau_process=get_process ($process_num,'dontget_result');
 		$status=$tableau_process['STATUS'];
 		$commentary=$tableau_process['COMMENTARY'];
 		$res= "$status;$commentary";
@@ -158,7 +158,7 @@ if ($_POST['action']=='afficher_resultat_similarite_cohorte') {
 	$cohort_num=$_POST['cohort_num'];
 	$result='';
 	if ($process_num!='') {
-		$tableau_process=get_process ($process_num);
+		$tableau_process=get_process ($process_num,'get_result');
 		$result=$tableau_process['RESULT'];
 	}
 	print $result;

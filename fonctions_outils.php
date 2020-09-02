@@ -31,7 +31,15 @@ function get_mapping_patient ($lastname,$firstname,$birth_date,$option_limite) {
 	
 	$method='';
 	$sql_sih="and patient_num in (select patient_num from dwh_patient_ipphist where origin_patient_id='SIH') ";
-	if ($lastname!='' && $firstname!='' && $birth_date!='') {
+	if (preg_match("/^[0-9]+$/",$lastname)) {
+		$hospital_patient_id=$lastname;
+		$patient_num=get_patient_num($hospital_patient_id,'SIH');
+		$method='IPP';
+		if ($patient_num=='') {
+			$patient_num=get_patient_num('0'.$hospital_patient_id,'SIH');
+			$method='0+IPP';
+		}
+	} else	if ($lastname!='' && $firstname!='' && $birth_date!='') {
 		$sel=oci_parse($dbh,"select patient_num from dwh_patient where 
 		(
 		regexp_replace(upper( CONVERT(lastname, 'US7ASCII') ),'[^A-Z]','') =regexp_replace(upper( CONVERT('$lastname_q', 'US7ASCII') ),'[^A-Z]','') or 
@@ -309,15 +317,7 @@ function get_mapping_patient ($lastname,$firstname,$birth_date,$option_limite) {
 			}
 		}
 	
-  	} else if (preg_match("/^[0-9]+$/",$lastname)) {
-		$hospital_patient_id=$lastname;
-		$patient_num=get_patient_num($hospital_patient_id,'SIH');
-		$method='IPP';
-		if ($patient_num=='') {
-			$patient_num=get_patient_num('0'.$hospital_patient_id,'SIH');
-			$method='0+IPP';
-		}
-	}
+  	}
   	return array($patient_num, $method);
 }
 

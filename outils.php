@@ -321,18 +321,19 @@ session_write_close();
 				print get_translation('MANUAL_MAPPING_PATIENTS_COPY_PAST_LIST_OF_PATIENTS',"Copier coller une liste de patients")."<br>";
 				print get_translation('MANUAL_MAPPING_PATIENTS_RESPECT_ORDER_COLUMNS',"Respecter l'ordre des colonnes")." :<br>";
 				print get_translation('MANUAL_MAPPING_PATIENTSLIST_COLONNE',"LASTNAME;FIRSTNAME;DATE DE NAISSANCE")."<br>";
-				print get_translation('MANUAL_MAPPING_PATIENTS_SEPARATOR',"Utiliser comme séparateur le \";\" ou la \",\" ou la tabulation (un copier coller depuis Excel fonctionnera)")."<br>";
-				print "<pre>garcelon;nicolas;13/05/2007<br>garcelon	nicolas	13/05/2007<br>garcelon,nicolas,13/05/2007</pre><br>";
-				print get_translation('YOU_CAN_ADD_COMMENT_COLUMN',"Vous pouvez ajouter une 4ieme colonne de commentaire (avec une patient_id si vous voulez)")."<br>";
+				print get_translation('MANUAL_MAPPING_PATIENTS_SEPARATOR',"Utiliser comme séparateur le \";\" ou la \",\" ou la tabulation (un copier coller depuis Excel fonctionnera)")." :<br>";
+				print "<pre>garcelon;nicolas;13/05/2007<br>garcelon	nicolas	13/05/2007<br>garcelon,nicolas,13/05/2007</pre><br><br>";
+				print get_translation('YOU_CAN_ADD_COMMENT_COLUMN',"Vous pouvez ajouter une 4ieme colonne de commentaire (avec une patient_id si vous voulez)").".<br><br>";
 				
 				
-				print get_translation('MANUAL_MAPPING_LIST_IPP_TEXT',"Vous pouvez aussi mettre une liste d'IPP pour récupérer les noms prénoms date de naissace et IPP maitre")."<br>";
+				print get_translation('MANUAL_MAPPING_LIST_IPP_TEXT',"Vous pouvez aussi mettre une liste d'IPP pour récupérer les noms prénoms date de naissace et IPP maitre <br>(ou une liste de patient ids internes à Dr Warehouse, il faut alors cocher la case le précisant)")."<br>";
 				print "<pre>123456789<br>2122145324<br>687654131</pre><br>";
 				print "
 				<table border=\"0\">
 					<tr><td style=\"vertical-align:top;\"><textarea id=\"id_textarea_mapper_patient\"  style=\"width:500px;\" rows=\"10\"></textarea></td></tr>
 				</table>
-				<br>". get_translation('AUTHORIZE_MORE_THAN_ONE_PATIENT',"Autoriser les mapping si plus d'un patient trouvé par patient")." : <input type='checkbox'  name='option_limite' id='id_option_limite' value='oui'><br><br>
+				<br><input type='checkbox'  name='option_limite' id='id_option_limite' value='oui'> ". get_translation('AUTHORIZE_MORE_THAN_ONE_PATIENT',"Autoriser les mapping si plus d'un patient trouvé par patient")." 
+				<br><input type='checkbox'  name='option_patient_num' id='id_option_patient_num' value='yes'> ". get_translation('LIST_PAT_ID_DRWH',"Liste de patient id dans dr warehouse")."<br><br>
 				<input type=\"button\" value=\"Mapper ces patients\" onclick=\"mapper_patient();\"> ";
 				
 				print "<br><br><div id=\"id_journal_mapping_patient\" style=\"width:100%;\" ></div>";

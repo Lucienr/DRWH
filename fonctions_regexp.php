@@ -73,17 +73,18 @@ function afficher_document_regexp($document_num,$full_text_query) {
         $title=$document['title'];     
         $patient_num=$document['patient_num']; 
         $document_date=$document['document_date']; 
-        if ($_SESSION['dwh_droit_see_debug']=='ok') {
+        if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_debug']=='ok') {
 	       $displayed_text= afficher_dans_document_tal($document_num,$user_num_session);
 	}
 	$nominative='oui';
-        if ($_SESSION['dwh_droit_nominative'.$datamart_num]=='' || $_SESSION['dwh_droit_anonymized'.$datamart_num]=='ok') {
+        if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_nominative'.$datamart_num]=='' || $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_anonymized'.$datamart_num]=='ok') {
                 $displayed_text=anonymisation_document ($document_num,$displayed_text);
                 $nominative='non';
                 $document_date='[DATE]';
         }
         
         $displayed_text=nettoyer_pour_afficher ($displayed_text);
+        $full_text_query=str_replace("\\/","\\\/",$full_text_query);
 	$displayed_text=surligner_resultat_exp_reguliere ($displayed_text,$full_text_query,'oui');
       
 	$displayed_text=display_image_in_document ($patient_num,$document_num,$user_num_session,$displayed_text);

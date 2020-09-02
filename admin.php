@@ -22,12 +22,13 @@
     France
 */
 ?>
-<?
+<? 
 include "head.php";
 include "menu.php";
+include "admin_menu.php";
 include_once "fonctions_admin.php";
 
-if ($_SESSION['dwh_droit_admin']!='ok') {
+/* if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']!='ok') {
 	print "<br><br><br>Vous n'avez pas les droits d'administration<br>";
 	include "foot.php"; 
 	exit;
@@ -89,6 +90,7 @@ if ($_GET['action']=='admin_contact') {
 
 
 ?>
+
 <script src="javascript_admin.js?<? print "v=$date_today_unique"; ?>" type="text/javascript"></script>
 <style>
 .admin_menu {
@@ -127,9 +129,17 @@ if ($_GET['action']=='admin_contact') {
 -->
 		<? } ?>
 		<? if (in_array('opposition',$tableau_admin_features)) {?>
-			<td nowrap="nowrap" class="<? print $class_opposition; ?>"><a class="connexion" href="admin.php?action=opposition" nowrap=nowrap><? print get_translation('OPPOSITION','Opposition'); ?></a></td>
-			<td class="connexion" width="1"> | </td>
-
+			<? if ($module_arno_active) { ?>
+					<td  nowrap="nowrap" class="admin_menu">
+            <a href="oppositions.php" class="connexion" nowrap=nowrap><?print get_translation('OPPOSITION','Opposition'); ?></a>
+          </td>
+					<td class="connexion" width="1"> | </td>
+			<? } else { ?>
+				<td nowrap="nowrap" class="<? print $class_opposition; ?>">
+          <a class="connexion" href="admin.php?action=opposition" nowrap=nowrap><? print get_translation('OPPOSITION','Opposition'); ?></a>
+        </td>
+				<td class="connexion" width="1"> | </td>
+			<? } ?>
 		<? } ?>
 		<? if (in_array('admin_concepts',$tableau_admin_features)) {?>
 			<td nowrap="nowrap" class="<? print $class_admin_concepts; ?>"><a class="connexion" href="admin.php?action=admin_concepts" nowrap=nowrap><? print get_translation('THE_CONCEPTS','Concepts'); ?></a></td>
@@ -166,10 +176,22 @@ if ($_GET['action']=='admin_contact') {
 		<? } ?>
 		<td nowrap="nowrap" class="<? print $class_admin_contact; ?>"><a class="connexion" href="admin.php?action=admin_contact" nowrap=nowrap><? print get_translation('CONTACT','Contacts'); ?></a></td>
 		<td class="connexion" width="1"> | </td>
-			<td width="100%">&nbsp;</td>
+			
+    <? if (in_array('tokens', $tableau_admin_features)) {?>
+      <? if ($module_arno_active) { ?>
+      <td  nowrap="nowrap" class="admin_menu">
+        <a href="generate_token.php" class="connexion" nowrap=nowrap><?print get_translation('TOKEN','Token'); ?></a>
+      </td>
+      <td class="connexion" width="1"> | </td>
+      <? } ?>
+    <? } ?>
+
+    <td width="100%">&nbsp;</td>
 		</tr>
 	</table>
 </div>
+ */
+?>
 <?
 
 
@@ -180,10 +202,9 @@ if ($_GET['action']=='admin_department') {
 
 	<h2><? print get_translation('HOSPITAL_DEPARTMENTS_USER_MANAGEMENT','Gestion des services et des utilisateurs'); ?></h2><br>
 	<div  style="font-size:11px;text-align:left;padding-left:4px;padding-bottom:400px;">
-		<? print get_translation('CREATE_HOSPITAL_DEPARTMENT','Créer un service'); ?> : <input type=text size=12 id=id_service_ajouter > <input type=button value="<? print get_translation('CREATE','Créer'); ?>" onclick="ajouter_service();"><br>
+		<? print get_translation('CREATE_HOSPITAL_DEPARTMENT','Créer un service'); ?> : <? print get_translation('DEPARTMENT_LABEL','Libellé du service'); ?> <input type=text size=20 id=id_service_ajouter > ,  <? print get_translation('DEPARTMENT_CODE','Code du service'); ?> <input type=text size=5 id=id_service_code_ajouter > <input type=button value="<? print get_translation('CREATE','Créer'); ?>" onclick="ajouter_service();"><br>
 		<br>
 		<div id="id_div_admin_department">
-		
 		</div>
 	</div>
 	<script language=javascript>
@@ -289,7 +310,7 @@ if ($_GET['action']=='admin_department') {
 
 	<? 
 	$table_user_profil=get_list_user_profil(); 
-	$table_list_department=get_list_departments('','');
+	$table_list_department=get_list_departments('master','');
 	?>
 	<h1><? print get_translation('USERS_ADMINISTRATION','Administration des utilisateurs'); ?></h1>
 	<table border="0">
@@ -305,7 +326,7 @@ if ($_GET['action']=='admin_department') {
 		<div id="id_admin_ajouter_user"  class="div_admin" style="display:none;">
 			<h3><? print get_translation('ADD_USER','Ajouter un utilisateur'); ?></h3>
 			<table>
-				<tr><td class="question_user"><? print get_translation('SEARCH_IN_HOSPITAL_DIRECTORY',"Rechercher dans l'annuaire de l'hôpital"); ?> : </td><td>
+				<tr><td class="question_user" width="350px"><? print get_translation('SEARCH_IN_HOSPITAL_DIRECTORY',"Rechercher dans l'annuaire de l'hôpital"); ?> : </td><td>
 				<div class="ui-widget" style="padding-left: 0px;width:260px;font-size:10px;">
 					<span class="ui-helper-hidden-accessible" aria-live="polite" role="status"></span>
 					<span class="ui-helper-hidden-accessible" role="status" aria-live="polite"></span>
@@ -318,7 +339,7 @@ if ($_GET['action']=='admin_department') {
 				<tr><td class="question_user"><? print get_translation('FIRSTNAME','Prénom'); ?> : </td><td><input type="text" size="30" id="id_ajouter_firstname_user" class="form"></td></tr>
   				<tr><td class="question_user"><? print get_translation('EMAIL','Mail'); ?> : </td><td><input type="text" size="50" id="id_ajouter_mail_user" class="form"></td></tr>
 				<tr><td class="question_user"><? print get_translation('EXPIRATION_DATE','Date expiration'); ?> : </td><td><input type="text" size="11" id="id_ajouter_expiration_date_user" class="form"> (dd/mm/yyyy)</td></tr>
-				<tr><td class="question_user"><? print get_translation('PASSWORD','Mot de passe'); ?><br><? print get_translation('UNIQUEMENT_SI_VOUS_VOULEZ_LE_MODIFIER','(uniquement si vous voulez le modifier)'); ?> : </td><td><input type="password" size="50" id="id_ajouter_passwd_user" class="form"></td></tr>
+				<tr><td class="question_user"><? print get_translation('PASSWORD','Mot de passe'); ?> :<br><? print get_translation('ONLY_IF_YOU_WANT_A_DIFFERENT_PASSWORD','uniquement si vous voulez un mot de passe différent du SIH'); ?></td><td><input type="password" size="50" id="id_ajouter_passwd_user" class="form"></td></tr>
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('PROFILES','Profils'); ?> : </td><td>
 				<?
 				foreach ($table_user_profil as $user_profile) { 
@@ -346,7 +367,7 @@ if ($_GET['action']=='admin_department') {
 			<h3><? print get_translation('ADD_USER_LIST',"Ajouter une liste d'utilisateurs"); ?></h3>
 			
 			<table>
-				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('LOGIN','Identifiant'); ?>;<? print get_translation('LASTNAME','Nom'); ?>;<? print get_translation('FIRSTNAME','Prénom'); ?>;<? print get_translation('EMAIL','Email'); ?>;<? print get_translation('PASSWORD','Mot de passe'); ?>  <br><i><? print get_translation('ONLY_LOGIN_IF_HOSPITAL_ACCOUNT',"Uniquement le login si c'est un compte hospitalier"); ?></i> </td><td>
+				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('LOGIN','Identifiant'); ?>;<? print get_translation('LASTNAME','Nom'); ?>;<? print get_translation('FIRSTNAME','Prénom'); ?>;<? print get_translation('EMAIL','Email'); ?>;<? print get_translation('EXPIRATION_DATE',"Date d'expiration"); ?>;<? print get_translation('PASSWORD','Mot de passe'); ?>  <br><i><? print get_translation('ONLY_LOGIN_IF_HOSPITAL_ACCOUNT',"Uniquement le login si c'est un compte hospitalier"); ?></i> </td><td>
 					<textarea id="id_textarea_list_user" rows="6" cols="60" class="form"></textarea>
 				</td></tr>
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('PROFILES','Profils'); ?> : </td><td>
@@ -376,7 +397,7 @@ if ($_GET['action']=='admin_department') {
 			
 			<h3><? print get_translation('USER_MODIFY',"Modifier un utilisateurs"); ?></h3>
 			<table>
-				<tr><td class="question_user"><? print get_translation('SEARCH_IN_INTERNAL_DIRECTORY',"Rechercher dans l'annuaire interne"); ?> : </td><td>
+				<tr><td class="question_user" width="350px"><? print get_translation('SEARCH_IN_INTERNAL_DIRECTORY',"Rechercher dans l'annuaire interne"); ?> : </td><td>
 				<div class="ui-widget" style="padding-left: 0px;width:260px;font-size:10px;">
 					<span class="ui-helper-hidden-accessible" aria-live="polite" role="status"></span>
 					<span class="ui-helper-hidden-accessible" role="status" aria-live="polite"></span>
@@ -389,7 +410,8 @@ if ($_GET['action']=='admin_department') {
 				<tr><td class="question_user"><? print get_translation('FIRSTNAME','Prénom'); ?> : </td><td><input type="text" size="30" id="id_modifier_firstname_user" class="form"></td></tr>
 				<tr><td class="question_user"><? print get_translation('EMAIL','Mail'); ?> : </td><td><input type="text" size="50" id="id_modifier_mail_user" class="form"></td></tr>
 				<tr><td class="question_user"><? print get_translation('EXPIRATION_DATE','Date expiration'); ?> : </td><td><input type="text" size="11" id="id_modifier_expiration_date_user" class="form"> (dd/mm/yyyy)</td></tr>
-				<tr><td class="question_user"><? print get_translation('PASSWORD','Mot de passe'); ?><br><? print get_translation('UNIQUEMENT_SI_VOUS_VOULEZ_LE_MODIFIER','(uniquement si vous voulez le modifier)'); ?> : </td><td><input type="password" size="50" id="id_modifier_passwd_user" class="form"></td></tr>
+				<tr><td class="question_user"><? print get_translation('PASSWORD','Mot de passe'); ?> :<br><i><? print get_translation('UNIQUEMENT_SI_VOUS_VOULEZ_LE_MODIFIER',"uniquement si vous voulez le modifier ou en ajouter un différent de l'annuaire"); ?></i></td><td><input type="password" size="50" id="id_modifier_passwd_user" class="form"></td></tr>
+				<tr><td class="question_user"><? print get_translation('DELETE_PASSWORD','Supprimer le mot de passe'); ?> :<br><i><? print get_translation('IF_A_PASSWORD_HAS_BEEN_SAVED_YOU_CAN_DELETE_IT','uniquement si vous voulez supprimer le mot de passe local, il ne pourra utiliser que le mot de passe du SIH'); ?></i></td><td><input type="checkbox" id="id_delete_passwd_user" class="form"></td></tr>
 				<tr><td style="vertical-align:top;" class="question_user"><? print get_translation('PROFILES','Profils'); ?> : </td><td>
 				<?
 					foreach ($table_user_profil as $user_profile) { 
@@ -410,7 +432,7 @@ if ($_GET['action']=='admin_department') {
 				 
 			</table>
 			<input type="hidden" id="id_modifier_num_user" class="form">
-			<input type="button" onclick="modifier_user_admin();" class="form" value="<? print get_translation('MODIFY','Modifier'); ?>">
+			<input type="button" onclick="modifier_user_admin();" class="form" value="<? print get_translation('SAVE','Sauver'); ?>">
 			
 			<div id="id_div_resultat_modifier_user"></div>
 			
@@ -486,7 +508,7 @@ if ($_GET['action']=='admin_etl') {
 		
 <?
 	$nb_jours=200;
-	print "<br><h3 style=\"color: #333333;fill: #333333;font-size: 18px;font-family:Lucida Sans Unicode;font-weight:normal;\">".get_translation('DOCUMENT_ORIGINS_DETAILED','Libellé des origines des document')."</h3>
+	print "<br><h3 style=\"color: #333333;fill: #333333;font-size: 18px;font-family:Lucida Sans Unicode;font-weight:normal;\">".get_translation('DOCUMENT_ORIGINS_DETAILED','Libellé des origines des documents')."</h3>
 	
 	<form method=post action=admin.php>
 	<table border=0>";
@@ -514,7 +536,8 @@ if ($_GET['action']=='admin_etl') {
 	while ($r=oci_fetch_array($sel_var1,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$script=$r['SCRIPT'];
 		$char_last_execution_date=$r['CHAR_LAST_EXECUTION_DATE'];
-		$commentary=$r['COMMENTARY'];
+                $commentary=addslashes($r['COMMENTARY']);
+       	        $commentary=str_replace('\"', "\'", $commentary);
 		$count_document=$r['COUNT_DOCUMENT'];
 		if ($count_document=='') {
 			$count_document='#';

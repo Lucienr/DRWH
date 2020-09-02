@@ -72,6 +72,10 @@
 						document.getElementById('id_bouton_cohorte_encours').style.display='block';
 						
 						colorer_patient_cohorte(cohort_num_encours);
+						jQuery("#id_input_nb_patient_displayed_1").val("0");
+						jQuery("#id_input_nb_patient_displayed_2").val("0");
+						jQuery("#id_input_nb_patient_displayed_0").val("0");
+						jQuery("#id_input_nb_patient_displayed_3").val("0");
 						liste_patient_cohorte_encours(cohort_num_encours,1);
 						liste_patient_cohorte_encours(cohort_num_encours,2);
 						liste_patient_cohorte_encours(cohort_num_encours,0);
@@ -99,6 +103,12 @@
 		colorer_patient_cohorte('');
 		$(".icone_cohorte").css("display","none");
 		voir_detail_dwh('resultat_detail');
+		
+		jQuery("#id_input_nb_patient_displayed_1").val("0");
+		jQuery("#id_input_nb_patient_displayed_2").val("0");
+		jQuery("#id_input_nb_patient_displayed_0").val("0");
+		jQuery("#id_input_nb_patient_displayed_3").val("0");
+		
 		liste_patient_cohorte_encours('',1);
 		liste_patient_cohorte_encours('',2);
 		liste_patient_cohorte_encours('',0);
@@ -134,14 +144,15 @@
 			});
 		} 
 	}
-	function liste_patient_cohorte_encours(cohort_num_encours,status) {
+	function liste_patient_cohorte_encours_old(cohort_num_encours,status) {
 		if (document.getElementById('id_liste_patient_cohorte_encours'+status)) {
+			nb_patient_displayed=jQuery('#id_input_nb_patient_displayed_'+status).val();
 			if (cohort_num_encours!='') {
 				jQuery.ajax({
 					type:"POST",
 					url:"ajax.php",
 					async:true,
-					data: { action:'liste_patient_cohorte_encours',cohort_num_encours:cohort_num_encours,status:status,datamart_num:<? print $datamart_num; ?>},
+					data: { action:'liste_patient_cohorte_encours',cohort_num_encours:cohort_num_encours,status:status,datamart_num:<? print $datamart_num; ?>,nb_patient_displayed:nb_patient_displayed},
 					beforeSend: function(requester){
 						document.getElementById('id_liste_patient_cohorte_encours'+status).innerHTML="<img src='images/chargement_mac.gif'>";
 					},
@@ -150,7 +161,7 @@
 							afficher_connexion();
 						} else {
 							document.getElementById('id_liste_patient_cohorte_encours'+status).innerHTML=requester;
-							$(".icone_cohorte").css("display","inline");
+							jQuery(".icone_cohorte").css("display","inline");
 						}
 					},
 					complete: function(requester){
@@ -163,6 +174,71 @@
 			}
 		}
 	}
+	
+	function liste_patient_cohorte_encours(cohort_num_encours,status) {
+		if (document.getElementById('id_liste_patient_cohorte_encours'+status)) {
+			nb_patient_displayed=parseInt(jQuery('#id_input_nb_patient_displayed_'+status).val(),10);
+			if (cohort_num_encours!='') {
+				jQuery.ajax({
+					type:"POST",
+					url:"ajax.php",
+					async:true,
+					data: { action:'liste_patient_cohorte_encours_header',cohort_num_encours:cohort_num_encours,status:status,datamart_num:<? print $datamart_num; ?>,nb_patient_displayed:nb_patient_displayed},
+					beforeSend: function(requester){
+					},
+					success: function(requester){
+						if (requester=='deconnexion') {
+							afficher_connexion();
+						} else {
+							if (nb_patient_displayed==0) {
+								jQuery('#id_liste_patient_cohorte_encours'+status).html(requester);
+							}
+							jQuery(".icone_cohorte").css("display","inline");
+							
+							jQuery.ajax({
+								type:"POST",
+								url:"ajax.php",
+								async:true,
+								data: { action:'liste_patient_cohorte_encours',cohort_num_encours:cohort_num_encours,status:status,datamart_num:<? print $datamart_num; ?>,nb_patient_displayed:nb_patient_displayed},
+								beforeSend: function(requester){
+									jQuery("#id_liste_patient_cohorte_encours"+status+"_loading").css("display","block");
+									jQuery("#id_liste_patient_cohorte_encours"+status+"_loading").html("<img src='images/chargement_mac.gif'>");
+								},
+								success: function(requester){
+									if (requester=='deconnexion') {
+										afficher_connexion();
+									} else {
+										jQuery("#id_liste_patient_cohorte_encours"+status+"_loading").css("display","none");
+										jQuery("#id_tableau_patient_cohorte_encours"+status).append(requester);
+										
+										jQuery('#id_input_nb_patient_displayed_'+status).val(eval(nb_patient_displayed+100));
+										nb_patient=jQuery("#id_tableau_patient_cohorte_encours_nb_patient"+status).val();
+									        if (eval(nb_patient_displayed+100)<nb_patient) {
+									        	jQuery("#id_liste_patient_cohorte_encours"+status+"_next_patient").css("display","block");
+									        } else {
+										        jQuery("#id_liste_patient_cohorte_encours"+status+"_next_patient").css("display","none");
+									        }
+									}
+								},
+								complete: function(requester){
+								},
+								error: function(){
+								}
+							});
+						}
+					},
+					complete: function(requester){
+					},
+					error: function(){
+					}
+				});
+			
+			} else {
+				document.getElementById('id_liste_patient_cohorte_encours'+status).innerHTML='';
+			}
+		}
+	}
+	
 	function ajouter_cohorte() {
 			title_cohort=document.getElementById('id_ajouter_titre_cohorte').value;
 			description_cohort=document.getElementById('id_ajouter_description_cohort').value;
@@ -284,6 +360,11 @@
 						if (status==2) {
 							$("#id_tr_patient_"+patient_num).css("backgroundColor","#ccf2ff");
 						}
+						
+						jQuery("#id_input_nb_patient_displayed_1").val("0");
+						jQuery("#id_input_nb_patient_displayed_2").val("0");
+						jQuery("#id_input_nb_patient_displayed_0").val("0");
+						jQuery("#id_input_nb_patient_displayed_3").val("0");
 						
 						liste_patient_cohorte_encours(cohort_num_encours,1);
 						liste_patient_cohorte_encours(cohort_num_encours,0);
@@ -450,6 +531,11 @@
 					afficher_connexion("importer_patient_cohorte ('"+cohort_num+"')");
 				} else {
 					jQuery("#id_journal_import_patient").html(contenu); 
+					
+					jQuery("#id_input_nb_patient_displayed_1").val("0");
+					jQuery("#id_input_nb_patient_displayed_2").val("0");
+					jQuery("#id_input_nb_patient_displayed_0").val("0");
+					jQuery("#id_input_nb_patient_displayed_3").val("0");
 					liste_patient_cohorte_encours(cohort_num,3);
 					liste_patient_cohorte_encours(cohort_num,1);
 					liste_patient_cohorte_encours(cohort_num,2);

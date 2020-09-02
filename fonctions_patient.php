@@ -137,6 +137,8 @@ function genealogie_trouver_enfant_bis ($patient_num) {
 function affiche_tableau_biologie($patient_num) {
 	global $dbh,$thesaurus_code_labo;
 	
+	$list_thesaurus_code_labo=detect_list_query($thesaurus_code_labo);
+	
 	$i=0;
 	$tableau_date_ordre=array();
 	$liste_date=array();
@@ -147,7 +149,7 @@ function affiche_tableau_biologie($patient_num) {
 	,to_char(document_date,'YYYY') year
 	,to_char(document_date,'MM') month
 	,to_char(document_date,'DD') day
-	 from dwh_data where  patient_num=$patient_num and thesaurus_code='$thesaurus_code_labo' and val_numeric is not null order by document_date,thesaurus_data_num");
+	 from dwh_data where  patient_num=$patient_num and thesaurus_code in ($list_thesaurus_code_labo) and val_numeric is not null order by document_date,thesaurus_data_num");
 	oci_execute($req) ;
 	while ($res=oci_fetch_array($req,OCI_ASSOC)) {
 		$thesaurus_data_num=$res['THESAURUS_DATA_NUM'];
@@ -217,13 +219,13 @@ function affiche_tableau_biologie($patient_num) {
 	print "<tbody>";
 	
 	//test la presence de hierarchie dans le thesaurus labo
-	$sel_code=oci_parse($dbh,"select count(*) from dwh_thesaurus_data where  thesaurus_parent_num is not null and thesaurus_parent_num!=0  and thesaurus_code='$thesaurus_code_labo'");
+	$sel_code=oci_parse($dbh,"select count(*) from dwh_thesaurus_data where  thesaurus_parent_num is not null and thesaurus_parent_num!=0  and thesaurus_code in ($list_thesaurus_code_labo) ");
 	oci_execute($sel_code) ;
 	$r_code=oci_fetch_array($sel_code,OCI_ASSOC);
 	$test_verif_hierarchy=$r_code[0];
 
 	if ($test_verif_hierarchy>0) {
-		$sel_code=oci_parse($dbh,"select concept_str,thesaurus_data_num from dwh_thesaurus_data where thesaurus_data_num in (select thesaurus_parent_num from dwh_thesaurus_data where thesaurus_data_num in (select thesaurus_data_num from dwh_data where patient_num=$patient_num) and thesaurus_code='$thesaurus_code_labo' and thesaurus_parent_num is not null and thesaurus_parent_num!=0 ) order by concept_str ");
+		$sel_code=oci_parse($dbh,"select concept_str,thesaurus_data_num from dwh_thesaurus_data where thesaurus_data_num in (select thesaurus_parent_num from dwh_thesaurus_data where thesaurus_data_num in (select thesaurus_data_num from dwh_data where patient_num=$patient_num) and thesaurus_code in ($list_thesaurus_code_labo)  and thesaurus_parent_num is not null and thesaurus_parent_num!=0 ) order by concept_str ");
 		oci_execute($sel_code) ;
 		while ($r_code=oci_fetch_array($sel_code,OCI_ASSOC)) {
 			$code_libelle_parent=$r_code['CONCEPT_STR'];
@@ -236,7 +238,7 @@ function affiche_tableau_biologie($patient_num) {
 				}
 				print "</tr>";
 			$req=oci_parse($dbh,"select thesaurus_data_num,concept_str,info_complement,measuring_unit,value_type from dwh_thesaurus_data where thesaurus_parent_num=$thesaurus_parent_num and thesaurus_data_num in (select thesaurus_data_num from dwh_data where patient_num=$patient_num
-			and thesaurus_code='$thesaurus_code_labo' and val_numeric is not null) and thesaurus_code='$thesaurus_code_labo' order by concept_str");
+			and thesaurus_code in ($list_thesaurus_code_labo)  and val_numeric is not null) and thesaurus_code in ($list_thesaurus_code_labo)  order by concept_str");
 			oci_execute($req) ;
 			while ($res=oci_fetch_array($req,OCI_ASSOC)) {
 				$thesaurus_data_num=$res['THESAURUS_DATA_NUM'];
@@ -258,7 +260,7 @@ function affiche_tableau_biologie($patient_num) {
 		}
 	} else {
 		$req=oci_parse($dbh,"select thesaurus_data_num,concept_str,info_complement,measuring_unit,value_type from dwh_thesaurus_data where thesaurus_data_num in (select thesaurus_data_num from dwh_data where patient_num=$patient_num
-		and thesaurus_code='$thesaurus_code_labo' and val_numeric is not null) and thesaurus_code='$thesaurus_code_labo' order by concept_str");
+		and thesaurus_code in ($list_thesaurus_code_labo)  and val_numeric is not null) and thesaurus_code in ($list_thesaurus_code_labo) order by concept_str");
 		oci_execute($req) ;
 		while ($res=oci_fetch_array($req,OCI_ASSOC)) {
 			$thesaurus_data_num=$res['THESAURUS_DATA_NUM'];
@@ -286,8 +288,10 @@ function affiche_tableau_biologie($patient_num) {
 function affiche_liste_code_biologie($patient_num) {
 	global $dbh,$thesaurus_code_labo;
 	
+	$list_thesaurus_code_labo=detect_list_query($thesaurus_code_labo);
+	
 	print "<table id=\"id_tableau_liste_code_biologie\" class=\"tablefin\">";
-	$sel_code=oci_parse($dbh,"select concept_str,thesaurus_data_num from dwh_thesaurus_data where thesaurus_data_num in (select thesaurus_parent_num from dwh_thesaurus_data where thesaurus_data_num in (select thesaurus_data_num from dwh_data where patient_num=$patient_num) and thesaurus_code='$thesaurus_code_labo' and thesaurus_parent_num is not null) order by concept_str ");
+	$sel_code=oci_parse($dbh,"select concept_str,thesaurus_data_num from dwh_thesaurus_data where thesaurus_data_num in (select thesaurus_parent_num from dwh_thesaurus_data where thesaurus_data_num in (select thesaurus_data_num from dwh_data where patient_num=$patient_num) and thesaurus_code in ($list_thesaurus_code_labo)  and thesaurus_parent_num is not null) order by concept_str ");
 	oci_execute($sel_code) ;
 	while ($r_code=oci_fetch_array($sel_code,OCI_ASSOC)) {
 		$code_libelle_parent=$r_code['CONCEPT_STR'];
@@ -296,7 +300,7 @@ function affiche_liste_code_biologie($patient_num) {
 			print "<tr>
 				<td><strong>$code_libelle_parent</strong></td>
 				</tr>";
-		$req=oci_parse($dbh,"select concept_str,info_complement,measuring_unit,value_type,thesaurus_parent_num from dwh_thesaurus_data where thesaurus_parent_num=$thesaurus_parent_num and thesaurus_data_num in (select thesaurus_data_num from dwh_data where patient_num=$patient_num) and thesaurus_code='$thesaurus_code_labo' order by concept_str");
+		$req=oci_parse($dbh,"select concept_str,info_complement,measuring_unit,value_type,thesaurus_parent_num from dwh_thesaurus_data where thesaurus_parent_num=$thesaurus_parent_num and thesaurus_data_num in (select thesaurus_data_num from dwh_data where patient_num=$patient_num) and thesaurus_code in ($list_thesaurus_code_labo)  order by concept_str");
 		oci_execute($req) ;
 		while ($res=oci_fetch_array($req,OCI_ASSOC)) {
 			$concept_str=$res['CONCEPT_STR'];

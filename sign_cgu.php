@@ -23,10 +23,10 @@
 */
 include "head.php";
 
-if ($_POST['action']=='sign_cgu' && $_SESSION['dwh_user_num']!='' ) {
-	signed_cgu($_SESSION['dwh_user_num']);
-	$_SESSION['dwh_sign_cgu']='ok';
-	save_log_page($_SESSION['dwh_user_num'],'cgu');
+if ($_POST['action']=='sign_cgu' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_num']!='' ) {
+	signed_cgu($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_num']);
+	$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_sign_cgu']='ok';
+	save_log_page($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_num'],'cgu');
 	header("Location: index.php");
 	exit;
 }

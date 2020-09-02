@@ -69,7 +69,7 @@ print "<thead>
 	</thead>
 	</table>";
 
-if ($_SESSION['dwh_droit_see_debug']=='ok') {
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_debug']=='ok') {
 	print "<h2>".get_translation('GENES_IN_TEXT','Gènes dans le texte')."</h2>";
 	print "<div id=\"id_repartition_concepts_resumer_texte\"></div>";
 }

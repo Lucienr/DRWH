@@ -27,6 +27,7 @@
 <script language=javascript>
 function extract_data_ecrf_on_result (tmpresult_num,datamart_num) {
 	ecrf_num=jQuery("#id_select_ecrf").val(); 
+	ecrf_name_extraction=jQuery("#id_ecrf_name_extraction").val(); 
 	if (jQuery("#id_ecrf_option_une_ligne_par_patient").prop("checked")) {
 		option_une_ligne='patient';
 	} else {
@@ -45,7 +46,7 @@ function extract_data_ecrf_on_result (tmpresult_num,datamart_num) {
 			url:"ajax_ecrf_on_result.php",
 			async:true,
 			encoding: 'latin1',
-			data:{ action:'extract_data_ecrf_on_result',tmpresult_num:tmpresult_num,ecrf_num:ecrf_num,datamart_num:datamart_num,option_une_ligne:option_une_ligne,option_perimetre:option_perimetre},
+			data:{ action:'extract_data_ecrf_on_result',tmpresult_num:tmpresult_num,ecrf_num:ecrf_num,datamart_num:datamart_num,option_une_ligne:option_une_ligne,option_perimetre:option_perimetre,ecrf_name_extraction:escape(ecrf_name_extraction)},
 			beforeSend: function(requester){},
 			success: function(requester){
 				if (requester=='deconnexion') {
@@ -134,13 +135,16 @@ function afficher_document_ecrf(document_num) {
 	print "</select><br>";
 ?>
 
-	Résultat, avec une ligne par :<br>
-	<input type=radio value='patient' name='ecrf_option_une_ligne' id='id_ecrf_option_une_ligne_par_patient' checked> Patient<br>
-	<input type=radio value='document' name='ecrf_option_une_ligne' id='id_ecrf_option_une_ligne_par_document'> Document<br>
+	<? print get_translation('RESULT_ONE_LINE_PER',"Résultat, avec une ligne par "); ?> :<br>
+	<input type=radio value='patient' name='ecrf_option_une_ligne' id='id_ecrf_option_une_ligne_par_patient' checked> <? print get_translation('PATIENT',"Patient"); ?><br>
+	<input type=radio value='document' name='ecrf_option_une_ligne' id='id_ecrf_option_une_ligne_par_document'> <? print get_translation('DOCUMENT',"Document"); ?><br>
 	<br>
-	Résultat sur les documents trouvés ou tous les documents des patiens trouvés :<br>
-	<input type=radio value='document_tmpresult'  name='ecrf_option_perimetre' id='id_ecrf_option_perimetre_document_trouve' checked> Documents trouvés<br>
-	<input type=radio value='patient_tmpresult'  name='ecrf_option_perimetre' id='id_ecrf_option_perimetre_patient_trouve'> Tous les documents<br>
+	<? print get_translation('EXTRACTION_ON_DOCUMENTS_FOUND_OR_ALL_DOCUMENTS_OF_PATIENTS',"Résultat sur les documents trouvés ou tous les documents des patiens trouvés "); ?>:<br>
+	<input type=radio value='document_tmpresult'  name='ecrf_option_perimetre' id='id_ecrf_option_perimetre_document_trouve' checked> <? print get_translation('ALL_THE_DOCUMENTS_FOUND',"Les documents trouvés"); ?><br>
+	<input type=radio value='patient_tmpresult'  name='ecrf_option_perimetre' id='id_ecrf_option_perimetre_patient_trouve'> <? print get_translation('ALL_THE_DOCUMENTS',"Tous les documents"); ?><br>
+	<br>
+	
+	<? print get_translation('EXTRACTION_NAME',"Nom de l extraction"); ?> <input type=text size=30 value=''  name='ecrf_name_extraction' id='id_ecrf_name_extraction'><br>
 	
 	<input class="form_submit" id="id_button_extract_ecrf" type="button" value="<? print get_translation('EXTRACT','EXTRAIRE'); ?>" onclick="extract_data_ecrf_on_result('<? print $tmpresult_num; ?>','<? print $datamart_num; ?>');">
 </div>

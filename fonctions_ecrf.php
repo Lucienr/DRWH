@@ -24,6 +24,8 @@
 
 include "ecrf_manual_functions.php";
 
+include "fonctions_regexp.php";
+
 function insert_ecrf ($ecrf_num_ajout,$title_ecrf,$description_ecrf,$ecrf_url,$user_num) {
 	global $dbh;
 	$ecrf_num_ajout=get_uniqid();
@@ -63,9 +65,9 @@ function update_ecrf_item ($ecrf_num,$ecrf_item_num,$variable,$valeur) {
 	oci_execute($upd) || die ("<strong style=\"color:red\">erreur : item non modifie</strong><br>");
 }
 
-function update_ecrf_item_all ($ecrf_num,$ecrf_item_num,$item_str,$item_type,$item_list,$regexp,$regexp_index,$item_ext_name,$item_ext_code,$item_local_code,$period,$item_order,$ecrf_function,$document_origin_code) {
+function update_ecrf_item_all ($ecrf_num,$ecrf_item_num,$item_str,$item_type,$document_search,$regexp,$regexp_index,$item_ext_name,$item_ext_code,$item_local_code,$period,$item_order,$ecrf_function,$document_origin_code) {
 	global $dbh;
-	$req="update  dwh_ecrf_item  set item_str='$item_str',item_type='$item_type',item_list='$item_list',regexp='$regexp',regexp_index='$regexp_index',item_ext_name='$item_ext_name',item_ext_code='$item_ext_code',item_local_code='$item_local_code',period='$period',item_order='$item_order',ecrf_function='$ecrf_function',document_origin_code='$document_origin_code' where ecrf_item_num=$ecrf_item_num and ecrf_num=$ecrf_num ";
+	$req="update  dwh_ecrf_item  set item_str='$item_str',item_type='$item_type',document_search='$document_search',regexp='$regexp',regexp_index='$regexp_index',item_ext_name='$item_ext_name',item_ext_code='$item_ext_code',item_local_code='$item_local_code',period='$period',item_order='$item_order',ecrf_function='$ecrf_function',document_origin_code='$document_origin_code' where ecrf_item_num=$ecrf_item_num and ecrf_num=$ecrf_num ";
 	$upd=oci_parse($dbh,$req);
 	oci_execute($upd) || die ("<strong style=\"color:red\">erreur : item non modifie</strong><br>");
 }
@@ -134,18 +136,152 @@ function get_max_ecrf_item_order ($ecrf_num) {
 	return $max_item_order;
 }
 
-function insert_ecrf_item ($ecrf_num ,$item_str,$item_type,$item_list,$item_ext_name, $item_ext_code,$regexp, $item_local_code,$regexp_index,$period,$item_order,$ecrf_function,$document_origin_code) {
+function insert_ecrf_item ($ecrf_num ,$item_str,$item_type,$document_search,$item_ext_name, $item_ext_code,$regexp, $item_local_code,$regexp_index,$period,$item_order,$ecrf_function,$document_origin_code) {
 	global $dbh;
+	$ecrf_item_num='';
 	if ($ecrf_num!='') {
 		$ecrf_item_num=get_uniqid();
-	
-		$req="insert into dwh_ecrf_item  (ecrf_item_num , ecrf_num ,item_str,item_type,item_list,item_ext_name,item_ext_code,regexp,item_local_code,regexp_index,period,item_order,ecrf_function,document_origin_code) 
-					values ($ecrf_item_num,$ecrf_num,'$item_str','$item_type','$item_list','$item_ext_name','$item_ext_code','$regexp','$item_local_code','$regexp_index','$period','$item_order','$ecrf_function','$document_origin_code')";
+		$req="insert into dwh_ecrf_item  (ecrf_item_num , ecrf_num ,item_str,item_type,document_search,item_ext_name,item_ext_code,regexp,item_local_code,regexp_index,period,item_order,ecrf_function,document_origin_code) 
+					values ($ecrf_item_num,$ecrf_num,'$item_str','$item_type','$document_search','$item_ext_name','$item_ext_code','$regexp','$item_local_code','$regexp_index','$period','$item_order','$ecrf_function','$document_origin_code')";
 		$ins=oci_parse($dbh,$req);
-		oci_execute($ins) || die ("<strong style=\"color:red\">erreur : item non ajouté au formulaire</strong><br>");
+		oci_execute($ins) || die ("<strong style=\"color:red\">erreur : item non ajouté à l ecrf</strong><br>");
 	}
 	return $ecrf_item_num;
 }
+
+function get_max_event_id($ecrf_num ,$patient_num,$user_num_session) {
+	global $dbh;
+	$req="select max(event_id) as max_event_id from  dwh_ecrf_patient_event where  ecrf_num=$ecrf_num and patient_num=$patient_num ";
+	$sel = oci_parse($dbh,$req);   
+	oci_execute($sel);
+	$r = oci_fetch_array($sel, OCI_ASSOC);
+	$max_event_id=$r['MAX_EVENT_ID'];
+	return $max_event_id;
+
+}
+
+function insert_ecrf_patient_event ($ecrf_num ,$patient_num,$user_num,$event_id,$date_patient_ecrf,$nb_days_before, $nb_days_after ) {
+	global $dbh;
+	$ecrf_patient_event_num='';
+	if ($ecrf_num!='' && $patient_num!=''  ) {
+		$ecrf_patient_event_num=get_uniqid();
+		$req="insert into dwh_ecrf_patient_event  (ecrf_patient_event_num ,ecrf_num, patient_num ,user_num, event_id,date_patient_ecrf,nb_days_before, nb_days_after) 
+					values ($ecrf_patient_event_num ,$ecrf_num, $patient_num ,$user_num, '$event_id',to_date('$date_patient_ecrf','DD/MM/YYYY'),'$nb_days_before', '$nb_days_after')";
+		$ins=oci_parse($dbh,$req);
+		oci_execute($ins) || die ("<strong style=\"color:red\">erreur : event non ajouté à l ecrf</strong><br>");
+	}
+	return $ecrf_patient_event_num;
+}
+
+function update_ecrf_patient_event ($ecrf_patient_event_num,$event_id,$date_patient_ecrf,$nb_days_before,$nb_days_after){
+	global $dbh;
+	if ($ecrf_patient_event_num!=''  ) {
+		$req="update  dwh_ecrf_patient_event set 
+		event_id='$event_id',
+		date_patient_ecrf=to_date('$date_patient_ecrf','DD/MM/YYYY'),
+		nb_days_before='$nb_days_before',
+		nb_days_after='$nb_days_after' where ecrf_patient_event_num=$ecrf_patient_event_num
+		";
+		$ins=oci_parse($dbh,$req);
+		oci_execute($ins) || die ("<strong style=\"color:red\">erreur : event non modifie</strong><br>");
+	}
+}
+
+function delete_evrf_patient_event ($ecrf_patient_event_num,$user_num) {
+	global $dbh;
+	if ($ecrf_patient_event_num!=''  ) {
+		$req="delete from  dwh_ecrf_patient_event where ecrf_patient_event_num=$ecrf_patient_event_num and user_num=$user_num";
+		$ins=oci_parse($dbh,$req);
+		oci_execute($ins) || die ("<strong style=\"color:red\">erreur : event non supprime</strong><br>");
+	}
+}
+
+function get_ecrf_patient_event ($ecrf_num ,$patient_num,$ecrf_patient_event_num) {
+	global $dbh;
+	
+	$tableau_ecrf_patient_event = array();
+	$req="";
+	if ($ecrf_patient_event_num!='') {
+		$req.=" and ecrf_patient_event_num=$ecrf_patient_event_num";
+	} else {
+		$req_event=" and ecrf_patient_event_num is null ";
+	}
+	if ($patient_num!='') {
+		$req.=" and patient_num=$patient_num";
+	}
+	if ($ecrf_num!='') {
+		$req.=" and ecrf_num=$ecrf_num";
+	}
+	$sel_ecrf=oci_parse($dbh,"select ecrf_patient_event_num , ecrf_num, patient_num ,event_id, to_char(date_patient_ecrf,'DD/MM/YYYY') as date_patient_ecrf,nb_days_before, nb_days_after
+			from dwh_ecrf_patient_event where 1=1 $req order by event_id asc");
+	oci_execute($sel_ecrf);
+	while ($r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		$ecrf_patient_event_num=$r['ECRF_PATIENT_EVENT_NUM'];
+		$ecrf_num=$r['ECRF_NUM'];
+		$patient_num=$r['PATIENT_NUM'];
+		$event_id=$r['EVENT_ID'];
+		$date_patient_ecrf=$r['DATE_PATIENT_ECRF'];
+		$nb_days_before=$r['NB_DAYS_BEFORE'];
+		$nb_days_after=$r['NB_DAYS_AFTER'];
+		$tableau_ecrf_patient_event[] =array(
+	            'ecrf_patient_event_num'=> $ecrf_patient_event_num,
+	            'ecrf_num' =>  $ecrf_num,
+	            'patient_num' =>  $patient_num,
+	            'event_id' =>  $event_id,
+	            'date_patient_ecrf' =>  $date_patient_ecrf,
+	            'nb_days_before' =>  $nb_days_before,
+	            'nb_days_after' =>  $nb_days_after
+	        );
+	}
+      return  $tableau_ecrf_patient_event;
+}
+
+
+function insert_ecrf_item_from_other_ecrf ($user_num, $ecrf_num_add,$ecrf_num_duplicate) {
+	global $dbh;
+	global $dbh;
+	if ($ecrf_num_add!='' && $ecrf_num_duplicate !='' && $user_num!='') {
+		$tab_ecrf_items=get_list_ecrf_items ($ecrf_num_duplicate,"");
+		foreach ($tab_ecrf_items as $ecrf_item) {
+			$ecrf_item_num= $ecrf_item['ecrf_item_num'];
+			$ecrf_item_num_add=get_uniqid();
+			$req="insert into dwh_ecrf_item  (ecrf_item_num , ecrf_num ,item_str,item_type,document_search,item_ext_name,item_ext_code,regexp,item_local_code,regexp_index,period,item_order,ecrf_function,document_origin_code) 
+			select $ecrf_item_num_add, $ecrf_num_add,item_str,item_type,document_search,item_ext_name,item_ext_code,regexp,item_local_code,regexp_index,period,item_order,ecrf_function,document_origin_code
+			 from dwh_ecrf_item where ecrf_num=$ecrf_num_duplicate and ecrf_item_num=$ecrf_item_num";
+			$ins=oci_parse($dbh,$req);
+			oci_execute($ins) || die ("<strong style=\"color:red\">erreur : item non ajouté à l ecrf</strong><br>");
+			
+			$req="insert into dwh_ecrf_sub_item  (ecrf_sub_item_num,ecrf_item_num ,sub_item_local_str,sub_item_local_code, sub_item_ext_code,sub_item_regexp) 
+				select dwh_seq.nextval,$ecrf_item_num_add, sub_item_local_str,sub_item_local_code, sub_item_ext_code,sub_item_regexp from dwh_ecrf_sub_item 
+				where ecrf_item_num=$ecrf_item_num
+						";
+			$ins=oci_parse($dbh,$req);
+			oci_execute($ins) || die ("<strong style=\"color:red\">erreur : sub item non ajouté à l ecrf</strong><br>");
+		}
+	}
+}
+
+function insert_ecrf_item_from_other_ecrf_item ($ecrf_num,$ecrf_item_num_import) {
+	global $dbh;
+	if ($ecrf_num!='' && $ecrf_item_num_import !='') {
+		$ecrf_item_num_add=get_uniqid();
+		
+  		$max_item_order=get_max_ecrf_item_order ($ecrf_num)+1;
+		$req="insert into dwh_ecrf_item  (ecrf_item_num , ecrf_num ,item_str,item_type,document_search,item_ext_name,item_ext_code,regexp,item_local_code,regexp_index,period,item_order,ecrf_function,document_origin_code) 
+		select $ecrf_item_num_add, $ecrf_num,item_str,item_type,document_search,item_ext_name,item_ext_code,regexp,item_local_code,regexp_index,period,$max_item_order,ecrf_function,document_origin_code
+		 from dwh_ecrf_item where  ecrf_item_num=$ecrf_item_num_import";
+		$ins=oci_parse($dbh,$req);
+		oci_execute($ins) || die ("<strong style=\"color:red\">erreur : item non ajouté à l ecrf</strong><br>");
+		
+		$req="insert into dwh_ecrf_sub_item  (ecrf_sub_item_num,ecrf_item_num ,sub_item_local_str,sub_item_local_code, sub_item_ext_code,sub_item_regexp) 
+			select dwh_seq.nextval,$ecrf_item_num_add, sub_item_local_str,sub_item_local_code, sub_item_ext_code,sub_item_regexp from dwh_ecrf_sub_item 
+			where ecrf_item_num=$ecrf_item_num_import
+					";
+		$ins=oci_parse($dbh,$req);
+		oci_execute($ins) || die ("<strong style=\"color:red\">erreur : sub item non ajouté à l ecrf</strong><br>");
+	}
+}
+
 
 function delete_ecrf_item ($ecrf_num ,$ecrf_item_num) {
 	global $dbh;
@@ -156,10 +292,15 @@ function delete_ecrf_item ($ecrf_num ,$ecrf_item_num) {
 	}
 }
 
-function delete_patient_ecrf ($ecrf_num ,$patient_num,$user_num) {
+function delete_patient_ecrf ($ecrf_num ,$patient_num,$user_num,$ecrf_patient_event_num) {
 	global $dbh;
 	if ($ecrf_num!='' && $patient_num!='' && $user_num!='') {
-		$req="delete from DWH_ECRF_ANSWER where patient_num=$patient_num and ecrf_num=$ecrf_num  and user_num=$user_num ";
+		if ($ecrf_patient_event_num!='') {
+			$req_event=" and ecrf_patient_event_num=$ecrf_patient_event_num";
+		} else {
+			$req_event=" and ecrf_patient_event_num is null ";
+		}
+		$req="delete from DWH_ECRF_ANSWER where patient_num=$patient_num and ecrf_num=$ecrf_num  and user_num=$user_num $req_event";
 		$del=oci_parse($dbh,$req);
 		oci_execute($del) || die ("<strong style=\"color:red\">erreur : item non supprime</strong><br>");
 	}
@@ -173,7 +314,7 @@ function insert_ecrf_sub_item ($ecrf_item_num ,$sub_item_local_str,$sub_item_loc
 		$req="insert into dwh_ecrf_sub_item  (ecrf_sub_item_num,ecrf_item_num ,sub_item_local_str,sub_item_local_code, sub_item_ext_code,sub_item_regexp) 
 					values ($ecrf_sub_item_num,$ecrf_item_num ,'$sub_item_local_str','$sub_item_local_code', '$sub_item_ext_code','$sub_item_regexp')";
 		$ins=oci_parse($dbh,$req);
-		oci_execute($ins) || die ("<strong style=\"color:red\">erreur : sub item non ajouté au formulaire</strong><br>");
+		oci_execute($ins) || die ("<strong style=\"color:red\">erreur : sub item non ajouté à l ecrf</strong><br>");
 	}
 	return $ecrf_sub_item_num;
 }
@@ -187,10 +328,18 @@ function delete_ecrf_sub_item ($ecrf_sub_item_num) {
 	}
 }
 
-function update_result_manual_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$user_num,$final_manual_value) {
+function delete_ecrf_all_sub_items ($ecrf_item_num) {
 	global $dbh;
-	$requeteins="update  DWH_ECRF_ANSWER set user_value=:final_manual_value, user_value_date=sysdate where 
-		patient_num=$patient_num and ecrf_num=$ecrf_num and ecrf_item_num=$ecrf_item_num and user_num=$user_num ";
+	if ($ecrf_item_num!='') {
+		$req="delete from dwh_ecrf_sub_item where ecrf_item_num=$ecrf_item_num ";
+		$del=oci_parse($dbh,$req);
+		oci_execute($del) || die ("<strong style=\"color:red\">erreur : item non supprime</strong><br>");
+	}
+}
+
+function update_result_manual_ecrf ($ecrf_answer_num,$user_num,$final_manual_value) {
+	global $dbh;
+	$requeteins="update  DWH_ECRF_ANSWER set user_value=:final_manual_value, user_value_date=sysdate where ecrf_answer_num=$ecrf_answer_num and user_num=$user_num";
 	$stmt = ociparse($dbh,$requeteins);
 	$rowid = ocinewdescriptor($dbh, OCI_D_LOB);
 	ocibindbyname($stmt, ":final_manual_value",$final_manual_value);
@@ -198,12 +347,28 @@ function update_result_manual_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$user_
 	ocifreestatement($stmt);
 }
 
-function update_ecrf_validate_ecrf_item ($patient_num,$ecrf_num,$ecrf_item_num,$user_num,$validate) {
+function update_ecrf_validate_ecrf_item ($ecrf_answer_num,$user_num,$validate) {
 	global $dbh;
-	$req="update  DWH_ECRF_ANSWER set user_validation='$validate', user_validation_date=sysdate where 
-		patient_num=$patient_num and ecrf_num=$ecrf_num and ecrf_item_num=$ecrf_item_num and user_num=$user_num ";
+	$req="update  DWH_ECRF_ANSWER set user_validation='$validate', user_validation_date=sysdate where ecrf_answer_num=$ecrf_answer_num  and user_num=$user_num";
 	$upd=oci_parse($dbh,$req);
 	oci_execute($upd) || die ("<strong style=\"color:red\">erreur : item non supprime</strong><br>");
+}
+
+function get_ecrf_answer_num($user_num,$ecrf_num,$patient_num,$ecrf_patient_event_num,$ecrf_item_num) {
+	global $dbh;
+	$req_event="";
+	if ($ecrf_patient_event_num!='') {
+		$req_event=" and ecrf_patient_event_num=$ecrf_patient_event_num ";
+	} else {
+		$req_event=" and ecrf_patient_event_num is null ";
+	}
+	$sel_ecrf=oci_parse($dbh,"select ecrf_answer_num from DWH_ECRF_ANSWER where ecrf_num=$ecrf_num and patient_num=$patient_num and user_num=$user_num and ecrf_item_num=$ecrf_item_num $req_event order by ecrf_item_num ");
+	oci_execute($sel_ecrf);
+	$r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC);
+	$ecrf_answer_num=$r['ECRF_ANSWER_NUM'];
+	
+      return  $ecrf_answer_num;
+
 }
 
 function test_ecrf_item_order($ecrf_num,$item_order) {
@@ -217,7 +382,7 @@ function test_ecrf_item_order($ecrf_num,$item_order) {
 
 function get_ecrf ($ecrf_num) {
 	global $dbh;
-	$tableau_list_ecrf = array();
+	$tableau_ecrf = array();
 	$sel_ecrf=oci_parse($dbh,"select ecrf_num,title_ecrf,description_ecrf, user_num,url_ecrf,
 				to_char(ecrf_start_date,'DD/MM/YYYY') as ecrf_start_date, 
 				to_char(ecrf_end_date,'DD/MM/YYYY') as ecrf_end_date,
@@ -251,6 +416,23 @@ function get_ecrf ($ecrf_num) {
       return  $tableau_ecrf;
 }
 
+function get_list_ecrf_item_share ($user_num) {
+	global $dbh;
+	$list_ecrf=get_list_ecrf ($user_num);
+	foreach ($list_ecrf as $ecrf) {
+		$title_ecrf=$ecrf['title_ecrf'];
+		$ecrf_num=$ecrf['ecrf_num'];
+		$list_ecrf_items=get_list_ecrf_items ($ecrf_num,"");
+		foreach ($list_ecrf_items as $ecrf_item) {
+			$ecrf_item_num=$ecrf_item['ecrf_item_num'];
+			$item_str=$ecrf_item['item_str'];
+			$item_type=$ecrf_item['item_type'];
+			$result[]=array("ecrf_item_num"=>$ecrf_item_num,"title_ecrf"=>$title_ecrf,"item_str_type"=>"$item_str ($item_type)");
+		}
+	}
+	return $result;
+}
+
 function get_list_ecrf ($user_num) {
 	global $dbh;
 	$tableau_list_ecrf = array();
@@ -282,14 +464,14 @@ function get_ecrf_user_right ($ecrf_num) {
 function get_ecrf_item ($ecrf_item_num) {
 	global $dbh;
 	$tableau_list_ecrf_items = array();
-	$sel_ecrf=oci_parse($dbh,"select ecrf_item_num  ,item_str,item_type,item_list,item_ext_name,item_ext_code,regexp,item_local_code,regexp_index,period,item_order,ecrf_function,document_origin_code
+	$sel_ecrf=oci_parse($dbh,"select ecrf_item_num  ,item_str,item_type,document_search,item_ext_name,item_ext_code,regexp,item_local_code,regexp_index,period,item_order,ecrf_function,document_origin_code
 	 from dwh_ecrf_item where ecrf_item_num=$ecrf_item_num");
         oci_execute($sel_ecrf);
         $r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC);
         $ecrf_item_num=$r['ECRF_ITEM_NUM'];
         $item_str=$r['ITEM_STR'];
         $item_type=$r['ITEM_TYPE'];
-        $item_list=$r['ITEM_LIST'];
+        $document_search=$r['DOCUMENT_SEARCH'];
         $item_ext_name=$r['ITEM_EXT_NAME'];
         $item_ext_code=$r['ITEM_EXT_CODE'];
         $regexp=$r['REGEXP'];
@@ -303,7 +485,7 @@ function get_ecrf_item ($ecrf_item_num) {
             'ecrf_item_num'=> $ecrf_item_num,
             'item_str' =>  $item_str,
             'item_type' =>  $item_type,
-            'item_list' =>  $item_list,
+            'document_search' =>  $document_search,
             'item_ext_name' =>  $item_ext_name,
             'item_ext_code'=>  $item_ext_code,
             'regexp'=>  $regexp,
@@ -317,23 +499,58 @@ function get_ecrf_item ($ecrf_item_num) {
       return  $tableau_list_ecrf_items;
 }
 
-function get_list_ecrf_items ($ecrf_num) {
+function get_list_ecrf_items ($ecrf_num,$ecrf_item_num) {
 	global $dbh;
 	$tableau_list_ecrf_items = array();
-	$sel_ecrf=oci_parse($dbh,"select ecrf_item_num ,item_order from dwh_ecrf_item where ecrf_num=$ecrf_num  order by item_order,ecrf_item_num ");
+	if ($ecrf_item_num!='') {
+		$req_ecrf_item_num=" and ecrf_item_num=$ecrf_item_num ";
+	} else {
+		$req_ecrf_item_num="";
+	}
+	$sel_ecrf=oci_parse($dbh,"select  ecrf_item_num  ,item_str,item_type,document_search,item_ext_name,item_ext_code,regexp,item_local_code,regexp_index,period,item_order,ecrf_function,document_origin_code from dwh_ecrf_item where ecrf_num=$ecrf_num $req_ecrf_item_num order by item_order,ecrf_item_num ");
         oci_execute($sel_ecrf);
         while ($r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC)) {
-                $ecrf_item_num=$r['ECRF_ITEM_NUM'];
-                $tableau_list_ecrf_items[]=get_ecrf_item ($ecrf_item_num);
+               //$ecrf_item_num=$r['ECRF_ITEM_NUM'];
+               //$tableau_list_ecrf_items[]=get_ecrf_item ($ecrf_item_num);
+                       $ecrf_item_num=$r['ECRF_ITEM_NUM'];
+	        $item_str=$r['ITEM_STR'];
+	        $item_type=$r['ITEM_TYPE'];
+	        $document_search=$r['DOCUMENT_SEARCH'];
+	        $item_ext_name=$r['ITEM_EXT_NAME'];
+	        $item_ext_code=$r['ITEM_EXT_CODE'];
+	        $regexp=$r['REGEXP'];
+	        $regexp_index=$r['REGEXP_INDEX'];
+	        $item_local_code=$r['ITEM_LOCAL_CODE'];
+	        $period=$r['PERIOD'];
+	        $item_order=$r['ITEM_ORDER'];
+	        $ecrf_function=$r['ECRF_FUNCTION'];
+	        $document_origin_code=$r['DOCUMENT_ORIGIN_CODE'];
+	        $tableau =array(
+	            'ecrf_item_num'=> $ecrf_item_num,
+	            'item_str' =>  $item_str,
+	            'item_type' =>  $item_type,
+	            'document_search' =>  $document_search,
+	            'item_ext_name' =>  $item_ext_name,
+	            'item_ext_code'=>  $item_ext_code,
+	            'regexp'=>  $regexp,
+	            'regexp_index'=>  $regexp_index,
+	            'item_local_code'=>  $item_local_code,
+	            'period'=>  $period,
+	            'item_order'=>  $item_order,
+	            'ecrf_function'=>  $ecrf_function,
+	            'document_origin_code'=>  $document_origin_code
+	        );
+               $tableau_list_ecrf_items[]=$tableau;
         }
-      return  $tableau_list_ecrf_items;
+	return  $tableau_list_ecrf_items;
 }
 
 function get_list_ecrf_sub_items ($ecrf_item_num) {
 
 	global $dbh;
 	$tableau_list_ecrf_sub_items = array();
-	$sel_ecrf=oci_parse($dbh,"select ecrf_sub_item_num from dwh_ecrf_sub_item where ecrf_item_num=$ecrf_item_num  order by ecrf_sub_item_num ");
+	$sel_ecrf=oci_parse($dbh,"select ecrf_sub_item_num from dwh_ecrf_sub_item where ecrf_item_num=:ecrf_item_num  order by ecrf_sub_item_num ");
+	ocibindbyname($sel_ecrf, ":ecrf_item_num",$ecrf_item_num);
         oci_execute($sel_ecrf);
         while ($r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC)) {
                 $ecrf_sub_item_num=$r['ECRF_SUB_ITEM_NUM'];
@@ -345,7 +562,8 @@ function get_list_ecrf_sub_items ($ecrf_item_num) {
 function get_ecrf_sub_item ($ecrf_sub_item_num) {
 	global $dbh;
 	$sub_item = array();
-	$sel_ecrf=oci_parse($dbh,"select ecrf_sub_item_num,ecrf_item_num ,sub_item_local_str,sub_item_local_code, sub_item_ext_code,sub_item_regexp from dwh_ecrf_sub_item where ecrf_sub_item_num=$ecrf_sub_item_num  ");
+	$sel_ecrf=oci_parse($dbh,"select ecrf_sub_item_num,ecrf_item_num ,sub_item_local_str,sub_item_local_code, sub_item_ext_code,sub_item_regexp from dwh_ecrf_sub_item where ecrf_sub_item_num=:ecrf_sub_item_num  ");
+	ocibindbyname($sel_ecrf, ":ecrf_sub_item_num",$ecrf_sub_item_num);
         oci_execute($sel_ecrf);
         $r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC);
         $ecrf_sub_item_num=$r['ECRF_SUB_ITEM_NUM'];
@@ -373,24 +591,29 @@ function get_list_ecrf_patients ($ecrf_num,$user_num) {
 	}
 	$tableau_list_ecrf_patients = array();
 	$sel_ecrf=oci_parse($dbh," select  
-	patient_num,
-	user_num,
-	to_char(max(user_value_date),'DD/MM/YYYY HH24:MI') as  user_value_date_char,
-	to_char(max(automated_value_date),'DD/MM/YYYY HH24:MI') as  automated_value_date_char,
-	max(user_value_date) from dwh_ecrf_answer 
+		ecrf_num,
+		ecrf_patient_event_num,
+		patient_num,
+		user_num,
+		to_char(max(user_value_date),'DD/MM/YYYY HH24:MI') as  user_value_date_char,
+		to_char(max(automated_value_date),'DD/MM/YYYY HH24:MI') as  automated_value_date_char 
+	from dwh_ecrf_answer 
 	where ecrf_num=$ecrf_num $req_user_num 
-	group by patient_num, user_num
-	order by patient_num,max(user_value_date) desc ");
+	group by ecrf_num, ecrf_patient_event_num,patient_num, user_num
+	order by patient_num asc,ecrf_patient_event_num desc ");
         oci_execute($sel_ecrf);
         while ($r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC)) {
-                $ecrf_item_num=$r['ECRF_ITEM_NUM'];
                 $patient_num=$r['PATIENT_NUM'];
+                $ecrf_num=$r['ECRF_NUM'];
+                $ecrf_patient_event_num=$r['ECRF_PATIENT_EVENT_NUM'];
                 $user_num=$r['USER_NUM'];
                 $user_value_date=$r['USER_VALUE_DATE_CHAR'];
                 $automated_value_date=$r['AUTOMATED_VALUE_DATE_CHAR'];
              
 	        $tableau_list_ecrf_patients[] =array(
 	            'patient_num'=> $patient_num,
+	            'ecrf_num'=> $ecrf_num,
+	            'ecrf_patient_event_num'=> $ecrf_patient_event_num,
 	            'user_num'=> $user_num,
 	            'user_value_date' =>  $user_value_date,
 	            'automated_value_date' =>  $automated_value_date
@@ -411,11 +634,11 @@ function get_ecrf_nbpatients ($ecrf_num) {
 }
 
 
-/*function insert_ecrf_item ($ecrf_num ,$item_str,$item_type,$item_list) {
+/*function insert_ecrf_item ($ecrf_num ,$item_str,$item_type,$document_search) {
 	global $dbh;
 	if ($ecrf_num!='') {
-		$req="insert into dwh_ecrf_item  (ecrf_item_num , ecrf_num ,item_str,item_type,item_list) 
-					values (dwh_seq.nextval,$ecrf_num,'$item_str','$item_type','$item_list')";
+		$req="insert into dwh_ecrf_item  (ecrf_item_num , ecrf_num ,item_str,item_type,document_search) 
+					values (dwh_seq.nextval,$ecrf_num,'$item_str','$item_type','$document_search')";
 		$ins=oci_parse($dbh,$req);
 		oci_execute($ins) || die ("<strong style=\"color:red\">erreur : item non ajouté au formulaire</strong><br>");
 	}
@@ -472,17 +695,29 @@ function lister_mes_ecrf_tableau ($user_num) {
 }
 
 
-function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter_query) {
-	global $dbh;
-	$i_limite=1000;
+function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter_query,$ecrf_patient_event_num,$table_document_all_aff,$table_document_all_neg) {
+	global $dbh,$user_num_session,$liste_service_session,$liste_document_origin_code_session,$datamart_num,$CHEMIN_GLOBAL_LOG;
+	$nb_doc_found_limite=10;
 	
 	$ecrf=get_ecrf ($ecrf_num);
         $ecrf_start_date=$ecrf['ecrf_start_date'];
         $ecrf_end_date=$ecrf['ecrf_end_date'];
         $ecrf_start_age=$ecrf['ecrf_start_age'];
         $ecrf_end_age=$ecrf['ecrf_end_age'];
-
+        
 	$query_filter_ecrf='';
+        
+        if ($ecrf_patient_event_num!='') {
+		$ecrf_patient_event=get_ecrf_patient_event ($ecrf_num ,$patient_num,$ecrf_patient_event_num);
+		$date_patient_ecrf=$ecrf_patient_event[0]['date_patient_ecrf'];
+		$nb_days_before=$ecrf_patient_event[0]['nb_days_before'];
+		$nb_days_after=$ecrf_patient_event[0]['nb_days_after'];
+		
+		if ($date_patient_ecrf!='' && $nb_days_before!='' && $nb_days_after!='') {
+			$query_filter_ecrf.=" and document_date >= to_date('$date_patient_ecrf','DD/MM/YYYY')-$nb_days_before and  document_date <= to_date('$date_patient_ecrf','DD/MM/YYYY')+$nb_days_after  ";
+		}
+	}
+
 	if ($ecrf_start_date!='') {
 		$query_filter_ecrf.=" and document_date >= to_date('$ecrf_start_date','DD/MM/YYYY') ";
 	}
@@ -502,7 +737,7 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 	$item=get_ecrf_item ($ecrf_item_num);
         $item_str=$item['item_str'];
         $item_type=$item['item_type'];
-        //$item_list=$item['item_list'];
+        $document_search=$item['document_search'];
         $item_ext_name=$item['item_ext_name'];
         $item_ext_code=$item['item_ext_code'];
         $regexp=$item['regexp'];
@@ -513,6 +748,7 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
         $document_origin_code=$item['document_origin_code'];
         
 	$regexp=replace_accent($regexp);
+	$document_search=replace_accent($document_search);
 	
 	$array_list_yes=array('oui','yes','present','presente');
 	$array_list_no=array('non','no','absent','absente');
@@ -521,17 +757,33 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 
 	$array_list_research_on_question=array_merge($array_list_yes, $array_list_no,$array_list_unknown,$array_list_other);
 
-	//$item_list_lower=strtolower($item_list);
-	//$tab_item_list_lower=array_filter(explode(";",$item_list_lower)); //array_filter deletes empty cells
 	$table_appercu=array();
-	$table_value=array();
+	$table_value=array(); 
 	$tableau_result=array();
 	$tableau_result_str=array();
 	$option_add_item_str='';
 	
 	if ($document_origin_code!='') {
 		$query_filter_ecrf.=" and document_origin_code='$document_origin_code' ";
+		$table_document_all_aff=array();
+		$table_document_all_neg=array();
 	}
+	if ($document_search!='') {
+		$document_search_fulltext=$document_search;
+		if (preg_match("/[[|?+{]/",$document_search_fulltext)) {
+       			$document_search_fulltext=str_replace("|"," or ",$document_search_fulltext);
+       			$document_search_fulltext=preg_replace("/[a-z]\?/","%",$document_search_fulltext);
+       			$document_search_fulltext=preg_replace("/[\[\]+}{]/","",$document_search_fulltext);
+       			$document_search_fulltext=str_replace("\s"," ",$document_search_fulltext);
+       			$document_search_fulltext=str_replace("\w"," ",$document_search_fulltext);
+       			$document_search_fulltext=str_replace("\d"," ",$document_search_fulltext);
+		}
+		$document_search_fulltext=nettoyer_pour_requete ($document_search_fulltext);
+		$query_filter_ecrf.=" and document_num in (select document_num from dwh_text where contains(text,'$document_search_fulltext')>0 )";
+		$table_document_all_aff=array();
+		$table_document_all_neg=array();
+	}
+
 	
 	if ($ecrf_function!='') {
 		$tab_sub_items=get_list_ecrf_sub_items ($ecrf_item_num);
@@ -544,51 +796,135 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 	} else if ($item_str!='') {
 		// si c'est une liste d'item à cocher 
 		if ($item_type=='list' || $item_type=='radio') {
+			$sub_item_regexp_for_this_item='';
 			$tab_sub_items=get_list_ecrf_sub_items ($ecrf_item_num);
+			foreach ($tab_sub_items as $sub_item) {
+				$sub_item_regexp=$sub_item['sub_item_regexp'];
+				if ($sub_item_regexp!='') {
+					$sub_item_regexp_for_this_item='yes';
+				}
+			}
 			foreach ($tab_sub_items as $sub_item) {
 				$sub_item_local_str=strtolower(trim(replace_accent($sub_item['sub_item_local_str'])));
 				$sub_item_local_code=$sub_item['sub_item_local_code'];
 				$sub_item_regexp=$sub_item['sub_item_regexp'];
 				if ($sub_item_regexp!='') {
-				 	$tableau_result=search_patient_document ($patient_num,'regexp',$sub_item_regexp,0,'text','text',$query_filter_ecrf,$period);
-				 	$presence='';
-					foreach ($tableau_result as $tableau_result_document) {
-					 	$document_num=$tableau_result_document['document_num'];
-					 	if ($document_num!='') {
-							$document=get_document($document_num,'text');
+					// NG Sophie 2020 03 11
+					$tableau_result=array();
+					if (count($table_document_all_aff)>0) {
+						$tableau_result_temp=array();
+						$str_regexp=trim(clean_for_regexp ($sub_item_regexp));
+						foreach ($table_document_all_aff as $document_num => $document) {
 							$text=$document['text'];
-							if ($text!='') {		
-								$text=preg_replace("/\n/"," ",$text);
-								$out=array();
-								if (preg_match_all("/.{0,10}($sub_item_regexp).{0,10}/i","$text",$out,  PREG_PATTERN_ORDER )) {
-									$j=0;
-									$presence='ok';
-									$ap=$out[0];
-									$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$ap[$j], 'document_num'=>$document_num, 'query_highlight'=>$sub_item_regexp);
+							$text=clean_for_regular_expression($text);
+							if (preg_match_all("/$str_regexp/i","$text",$out, PREG_SET_ORDER)) {
+								$tableau_result_temp[]=$document;
+							}
+						}
+						if ($period=='last' && $tableau_result_temp[0]!='') {
+							$tableau_result[0]=$tableau_result_temp[0];
+						}
+						if ($period=='first' && $tableau_result_temp[count($tableau_result_temp)-1]!='') {
+							$tableau_result[0]=$tableau_result_temp[count($tableau_result_temp)-1];
+						}
+						if ($period=='all' || $period=='') {
+							$tableau_result=$tableau_result_temp;
+						}
+						
+					} else {
+				 		$tableau_result=search_patient_document_new ($patient_num,'regexp',$sub_item_regexp,1,'patient_text','text',$query_filter_ecrf,$period);
+				 	}
+				 	$presence='';
+				 	$nb_doc_found=0;
+					foreach ($tableau_result as $document) {
+					 	$document_num=$document['document_num'];
+					 	if ($document_num!='') {
+				 			$nb_doc_found++;
+				 			if ($nb_doc_found<$nb_doc_found_limite) {
+								$text=$document['text'];
+								$text=clean_for_regular_expression($text);
+								if ($text!='') {		
+									$text=preg_replace("/\n/"," ",$text);
+									$out=array();
+									$str_regexp=trim(clean_for_regexp ($sub_item_regexp));
+									if (preg_match_all("/.{0,10}($str_regexp).{0,10}/i","$text",$out,  PREG_PATTERN_ORDER )) {
+										$j=0;
+										$presence='ok';
+										$ap=$out[0];
+										$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$ap[$j], 'document_num'=>$document_num, 'query_highlight'=>$str_regexp,'certainty'=>'1');
+									}
 								}
 							}
 						}
 					}
 					if ($presence=='ok') {
-						$table_value[]=array('sous_item_value'=>$sub_item_local_str);
+						$table_value[]=array('sous_item_value'=>$sub_item['sub_item_local_str']);
+					}
+					
+					// negation detection for information 
+					$tableau_result=array();
+					if (count($table_document_all_neg)>0) {
+						$tableau_result_temp=array();
+						$str_regexp=trim(clean_for_regexp ($sub_item_regexp));
+						foreach ($table_document_all_neg as $document_num => $document) {
+							$text=$document['text'];
+							$text=clean_for_regular_expression($text);
+							if (preg_match_all("/$str_regexp/i","$text",$out, PREG_SET_ORDER)) {
+								$tableau_result_temp[]=$document;
+							}
+						}
+						if ($period=='last' && $tableau_result_temp[0]!='') {
+							$tableau_result[0]=$tableau_result_temp[0];
+						}
+						if ($period=='first' && $tableau_result_temp[count($tableau_result_temp)-1]!='') {
+							$tableau_result[0]=$tableau_result_temp[count($tableau_result_temp)-1];
+						}
+						if ($period=='all' || $period=='') {
+							$tableau_result=$tableau_result_temp;
+						}
+					} else {
+				 		$tableau_result=search_patient_document_new ($patient_num,'regexp',$sub_item_regexp,-1,'patient_text','text',$query_filter_ecrf,$period);
+				 	}
+				 	$nb_doc_found=0;
+					foreach ($tableau_result as $document) {
+					 	$document_num=$document['document_num'];
+					 	if ($document_num!='') {
+				 			$nb_doc_found++;
+				 			if ($nb_doc_found<$nb_doc_found_limite) {
+								$text=$document['text'];
+								if ($text!='') {		
+									$text=preg_replace("/\n/"," ",$text);
+									$out=array();
+									$str_regexp=trim(clean_for_regexp ($sub_item_regexp));
+									if (preg_match_all("/.{0,10}($str_regexp).{0,10}/i","$text",$out,  PREG_PATTERN_ORDER )) {
+										$j=0;
+										$ap=$out[0];
+										$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$ap[$j], 'document_num'=>$document_num, 'query_highlight'=>$str_regexp,'certainty'=>'-1');
+									}
+								}
+							}
+						}
 					}
 				}
 				if ($sub_item_local_code!='') {
+					$tableau_result=array();
 			 		$tab_sub_item_local_code=explode(";",$sub_item_local_code);
 				 	foreach ($tab_sub_item_local_code as $concept_code) {
-						$t=search_patient_document ($patient_num,'data_code',$concept_code,'','','',$query_filter_ecrf,$period);
+						$t=search_patient_document_new ($patient_num,'data_code',$concept_code,'','','',$query_filter_ecrf,$period);
 						$tableau_result=array_merge($t,$tableau_result);
 					}
-				 	foreach ($tableau_result as $tableau_result_document) {
-				 		$document_num=$tableau_result_document['document_num'];
+				 	$nb_doc_found=0;
+				 	foreach ($tableau_result as $document) {
+				 		$document_num=$document['document_num'];
 				 		if ($document_num!='') {
-				 			$i++;
-				 			if ($i<$i_limite) {
-						 		$val=$tableau_result_document['value'];
-						 		$info=$tableau_result_document['info'];
-						 		$concept_str=$tableau_result_document['concept_str'];
-						 		$concept_code=$tableau_result_document['concept_code'];
-								$document=get_document($document_num,'') ;
+				 			$nb_doc_found++;
+				 			if ($nb_doc_found<$nb_doc_found_limite) {
+						 		$val=$document['value'];
+						 		$info=$document['info'];
+						 		$concept_str=$document['concept_str'];
+						 		$concept_code=$document['concept_code'];
+						 		$concept_code=$document['concept_code'];
+								//$document=get_document($document_num,'') ;
 								$table_value[]=array('sous_item_value'=>$val,'concept_str'=>$concept_str,'concept_code'=>$concept_code,'info'=>$info,'document_date'=>$document['document_date']);
 								$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>"$concept_str $info:$val", 'document_num'=>$document_num, 'query_highlight'=>$val);
 							}
@@ -598,68 +934,68 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 				
 				if ($sub_item_regexp=='' && $sub_item_local_code=='') {
 					// If sub item like yes / no / other etc...
+					// et il n y a pas eu de regexp sur menu precedens (yes) 
 					if (in_array($sub_item_local_str,$array_list_research_on_question)) {
-						$item_str_for_query=nettoyer_pour_requete_patient($item_str) ;
-					 	$tableau_result_aff=search_patient_document ($patient_num,'text',$item_str_for_query,1,'patient_text','text',$query_filter_ecrf,$period);
-					 	if (count($tableau_result_aff)>0) {
-						 	foreach ($tableau_result_aff as $tableau_result_document) {
-							 	$document_num=$tableau_result_document['document_num'];
-						 		if ($document_num!='') {
-						 			$i++;
-						 			if ($i<$i_limite) {
-										$document=get_document($document_num,'text') ;
-										$value='';
-										$requete_json=nettoyer_pour_inserer ($item_str_for_query);
-										$requete_json=replace_accent($requete_json);
-										$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
-										$query_highlight=$item_str_for_query;
-										if ($appercu=='') {
+						if ($sub_item_regexp_for_this_item=='') {
+							$item_str_for_query=nettoyer_pour_requete_patient($item_str) ;
+						 	$tableau_result_aff=search_patient_document_new ($patient_num,'text',$item_str_for_query,1,'patient_text','text',$query_filter_ecrf,$period);
+						 	if (count($tableau_result_aff)>0) {
+					 			$nb_doc_found=0;
+							 	foreach ($tableau_result_aff as $document) {
+								 	$document_num=$document['document_num'];
+							 		if ($document_num!='') {
+							 			$nb_doc_found++;
+							 			if ($nb_doc_found<$nb_doc_found_limite) {
+											//$document=get_document($document_num,'patient_text_affirmation') ;
+											$value='';
+											$requete_json=nettoyer_pour_inserer ($item_str_for_query);
+											$requete_json=replace_accent($requete_json);
 											$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
 											$query_highlight=$item_str_for_query;
+											if ($appercu=='') {
+												$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
+												$query_highlight=$item_str_for_query;
+											}
+											$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$appercu, 'document_num'=>$document_num, 'query_highlight'=>$query_highlight,'certainty'=>'1');
+											$presence='ok';
 										}
-										$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$appercu, 'document_num'=>$document_num, 'query_highlight'=>$query_highlight);
-										$presence='ok';
+									}
+								}
+								if (count($tableau_result_aff)>0) {
+									if (in_array($sub_item_local_str,$array_list_yes) || in_array($sub_item_local_str,$array_list_other)) {
+										$table_value[]=array('sous_item_value'=>$sub_item['sub_item_local_str']);
 									}
 								}
 							}
-							if (count($tableau_result_aff)>0) {
-								if (in_array($sub_item_local_str,$array_list_yes) || in_array($sub_item_local_str,$array_list_other)) {
-									$table_value[]=array('sous_item_value'=>$sub_item_local_str);
-								}
-							}
-						}
-						if (count($tableau_result_aff)==0) {
-						 	$tableau_result_neg=search_patient_document ($patient_num,'text',$item_str_for_query,-1,'patient_text','text',$query_filter_ecrf,$period);
-						 	foreach ($tableau_result_neg as $tableau_result_document) {
-							 	$document_num=$tableau_result_document['document_num'];
-						 		if ($document_num!='') {
-						 			$i++;
-						 			if ($i<$i_limite) {
-										$document=get_document($document_num,'text') ;
-										$value='';
-										$requete_json=nettoyer_pour_inserer ($item_str_for_query);
-										$requete_json=replace_accent($requete_json);
-										$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
-										$query_highlight=$item_str_for_query;
-										if ($appercu=='') {
+							if (count($tableau_result_aff)==0) {
+							 	$tableau_result_neg=search_patient_document_new ($patient_num,'text',$item_str_for_query,-1,'patient_text','text',$query_filter_ecrf,$period);
+					 			$nb_doc_found=0;
+							 	foreach ($tableau_result_neg as $document) {
+								 	$document_num=$document['document_num'];
+							 		if ($document_num!='') {
+							 			$nb_doc_found++;
+							 			if ($nb_doc_found<$nb_doc_found_limite) {
+											//$document=get_document($document_num,'patient_text_negation') ;
+											$value='';
+											$requete_json=nettoyer_pour_inserer ($item_str_for_query);
+											$requete_json=replace_accent($requete_json);
 											$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
 											$query_highlight=$item_str_for_query;
+											if ($appercu=='') {
+												$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
+												$query_highlight=$item_str_for_query;
+											}
+											$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$appercu, 'document_num'=>$document_num, 'query_highlight'=>$query_highlight,'certainty'=>'-1');
 										}
-										$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$appercu, 'document_num'=>$document_num, 'query_highlight'=>$query_highlight);
-										$presence='ok';
 									}
-								}
-							}
-							if (count($tableau_result_neg)>0) {
-								if (in_array($sub_item_local_str,$array_list_no)) {
-									$table_value[]=array('sous_item_value'=>$sub_item_local_str);
 								}
 							}
 						}
 					} else {
 						if (count($tableau_result_str)==0) {
 							$item_str_for_query=nettoyer_pour_requete_patient($item_str) ;
-							$tableau_result_str=search_patient_document ($patient_num,'text',$item_str_for_query,0,'text','text',$query_filter_ecrf,$period);
+					// NG Sophie 2020 03 11
+							$tableau_result_str=search_patient_document_new ($patient_num,'text',$item_str_for_query,1,'patient_text','text',$query_filter_ecrf,$period);
 							if (count($tableau_result_str)>0) {
 								$option_add_item_str='add_item_str';
 							} else {
@@ -673,17 +1009,20 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 					 	}
 				 		$i=0;
 						$item_str_for_query=nettoyer_pour_requete_patient($item_str_refait) ;
-					 	$tableau_result=search_patient_document ($patient_num,'text',$item_str_for_query,0,'text','text',$query_filter_ecrf,$period);
+					// NG Sophie 2020 03 11
+						$tableau_result=array();
+					 	$tableau_result=search_patient_document_new ($patient_num,'text',$item_str_for_query,1,'patient_text','text',$query_filter_ecrf,$period);
 					 	if (count($tableau_result)==0 && $option=='add_item_str') {
 							$item_str_for_query=nettoyer_pour_requete_patient($sub_item_local_str) ;
 						 	$tableau_result=$tableau_result_str;
 					 	}
-					 	foreach ($tableau_result as $tableau_result_document) {
-					 		$document_num=$tableau_result_document['document_num'];
+				 		$nb_doc_found=0;
+					 	foreach ($tableau_result as $document) {
+					 		$document_num=$document['document_num'];
 					 		if ($document_num!='') {
-					 			$i++;
-					 			if ($i<$i_limite) {
-									$document=get_document($document_num,'text') ;
+					 			$nb_doc_found++;
+					 			if ($nb_doc_found<$nb_doc_found_limite) {
+									//$document=get_document($document_num,'patient_text_affirmation') ;
 									$requete_json=nettoyer_pour_inserer ($item_str_for_query);
 									$requete_json=replace_accent($requete_json);
 									$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
@@ -692,12 +1031,35 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 										$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
 										$query_highlight=$item_str_for_query;
 									}
-									$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$appercu, 'document_num'=>$document_num, 'query_highlight'=>$query_highlight);
+									$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$appercu, 'document_num'=>$document_num, 'query_highlight'=>$query_highlight,'certainty'=>'1');
 								}
 							}
 						}
 						if (count($tableau_result)>0) {
-							$table_value[]=array('sous_item_value'=>$sub_item_local_str);
+							$table_value[]=array('sous_item_value'=>$sub_item['sub_item_local_str']);
+						}
+						
+						
+						$tableau_result=array();
+					 	$tableau_result=search_patient_document_new ($patient_num,'text',$item_str_for_query,-1,'patient_text','text',$query_filter_ecrf,$period);
+				 		$nb_doc_found=0;
+					 	foreach ($tableau_result as $document) {
+					 		$document_num=$document['document_num'];
+					 		if ($document_num!='') {
+					 			$nb_doc_found++;
+					 			if ($nb_doc_found<$nb_doc_found_limite) {
+									//$document=get_document($document_num,'patient_text_negation') ;
+									$requete_json=nettoyer_pour_inserer ($item_str_for_query);
+									$requete_json=replace_accent($requete_json);
+									$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
+									$query_highlight=$item_str_for_query;
+									if ($appercu=='') {
+										$appercu=resumer_resultat($document['text'],"{'query':'$requete_json','type':'fulltext','synonym':''}",array(),'ecrf');
+										$query_highlight=$item_str_for_query;
+									}
+									$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$appercu, 'document_num'=>$document_num, 'query_highlight'=>$query_highlight,'certainty'=>'-1');
+								}
+							}
 						}
 					}
 				}
@@ -708,7 +1070,7 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 				foreach ($tab_sub_items as $sub_item) {
 					$sub_item_local_str=strtolower(trim(replace_accent($sub_item['sub_item_local_str'])));
 					if (in_array($sub_item_local_str,$array_list_unknown)) {
-						$table_value[]=array('sous_item_value'=>$sub_item_local_str);
+						$table_value[]=array('sous_item_value'=>$sub_item['sub_item_local_str']);
 					}
 				}
 				// si pas de champs NSP 
@@ -717,7 +1079,7 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 					foreach ($tab_sub_items as $sub_item) {
 						$sub_item_local_str=strtolower(trim(replace_accent($sub_item['sub_item_local_str'])));
 						if (in_array($sub_item_local_str,$array_list_no)) {
-							$table_value[]=array('sous_item_value'=>$sub_item_local_str);
+							$table_value[]=array('sous_item_value'=>$sub_item['sub_item_local_str']);
 						}
 					}
 				}
@@ -727,24 +1089,26 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 			
 		 	$i=0;
 			if ($item_local_code!='') {
+				$tableau_result=array();
 		 		$tab_item_local_code=explode(";",$item_local_code);
 			 	foreach ($tab_item_local_code as $concept_code) {
-					$t=search_patient_document ($patient_num,'data_code',$concept_code,'','','',$query_filter_ecrf,$period);
+					$t=search_patient_document_new ($patient_num,'data_code',$concept_code,'','','',$query_filter_ecrf,$period);
 					$tableau_result=array_merge($t,$tableau_result);
 				}
-			 	foreach ($tableau_result as $tableau_result_document) {
-				 	$document_num=$tableau_result_document['document_num'];
+				$nb_doc_found=0;
+			 	foreach ($tableau_result as $document) {
+				 	$document_num=$document['document_num'];
 				 	if ($document_num!='') {
-			 			$i++;
-			 			if ($i<$i_limite) {
-					 		$val=$tableau_result_document['value'];
-					 		$info=$tableau_result_document['info'];
-					 		$concept_str=$tableau_result_document['concept_str'];
-					 		$concept_code=$tableau_result_document['concept_code'];
-							$document=get_document($document_num,'') ;
+			 			$nb_doc_found++;
+			 			if ($nb_doc_found<$nb_doc_found_limite) {
+					 		$val=$document['value'];
+					 		$info=$document['info'];
+					 		$concept_str=$document['concept_str'];
+					 		$concept_code=$document['concept_code'];
+							//$document=get_document($document_num,'') ;
 							if ($item_type=='date') {
 								$table_value[]=array('sous_item_value'=>$document['document_date'],'document_date'=>$document['document_date']);
-							} else if (($item_type=='numeric' || $item_type=='number') && preg_match("/[^a-z]age[^a-z]/i"," $item_str ")) {
+							} else if (($item_type=='numeric' || $item_type=='number') && preg_match("/[^a-z][aâ]ge[^a-z]/i"," $item_str ")) {
 								if ($document['document_date']!='') {
 									$age_patient=get_age_patient ($patient_num, $document['document_date'],'years');
 									$table_value[]=array('sous_item_value'=>$age_patient,'document_date'=>$document['document_date']);
@@ -757,45 +1121,183 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 					}
 			 	}
 			}
-			//if (count($table_value)==0 && $regexp!='') {
+			
+
+			if ($item_local_code=='' && $regexp=='' && $document_search!='' && preg_match("/[[|?+{]/",$document_search)) {
+				$regexp=$document_search;
+		       	}
 			if ($regexp!='') {
-			 	$tableau_result=search_patient_document ($patient_num,'regexp',$regexp,0,'text','text',$query_filter_ecrf,$period);
-				foreach ($tableau_result as $tableau_result_document) {
-				 	$document_num=$tableau_result_document['document_num'];
-				 	if ($document_num!='') {
-						$document=get_document($document_num,'text');
+					// NG Sophie 2020 03 11
+				$tableau_result=array();
+				if (count($table_document_all_aff)>0) {
+					$tableau_result_temp=array();
+					$str_regexp=trim(clean_for_regexp ($regexp));
+					foreach ($table_document_all_aff as $document_num => $document) {
 						$text=$document['text'];
-						if ($text!='') {		
-							$text=preg_replace("/\n/"," ",$text);
-							$out=array();
-							
-							$regexp_clean=trim(clean_for_regexp ($regexp));
-							if (preg_match_all("/.{0,10}$regexp_clean.{0,10}/i","$text",$out,  PREG_PATTERN_ORDER )) {
-								$j=0;
-								if ($regexp_index!='') {
-									foreach ($out[$regexp_index] as $value) {
-										$table_value[]=array('sous_item_value'=>$value,'document_date'=>$document['document_date']);
-										$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$out[0][$j], 'document_num'=>$document_num, 'query_highlight'=>$regexp);
-										$j++;
+						$text=clean_for_regular_expression($text);
+						if (preg_match_all("/$str_regexp/i","$text",$out, PREG_SET_ORDER)) {
+							$tableau_result_temp[]=$document;
+						}
+					}
+					if ($period=='last' && $tableau_result_temp[0]!='') {
+						$tableau_result[0]=$tableau_result_temp[0];
+					}
+					if ($period=='first' && $tableau_result_temp[count($tableau_result_temp)-1]!='') {
+						$tableau_result[0]=$tableau_result_temp[count($tableau_result_temp)-1];
+					}
+					if ($period=='all' || $period=='') {
+						$tableau_result=$tableau_result_temp;
+					}
+				} else {
+			 		$tableau_result=search_patient_document_new ($patient_num,'regexp',$regexp,1,'patient_text','text',$query_filter_ecrf,$period);
+			 	}
+				
+				$nb_doc_found=0;
+				foreach ($tableau_result as $document) {
+				 	$document_num=$document['document_num'];
+				 	if ($document_num!='') {
+			 			$nb_doc_found++;
+			 			if ($nb_doc_found<$nb_doc_found_limite) {
+							$text=$document['text'];
+							$text=clean_for_regular_expression($text);
+							if ($text!='') {		
+								$text=preg_replace("/\n/"," ",$text);
+								$out=array();
+								
+								$regexp_clean=trim(clean_for_regexp ($regexp));
+								if (preg_match_all("/.{0,10}$regexp_clean.{0,10}/i","$text",$out,  PREG_PATTERN_ORDER )) {
+									$j=0;
+									if ($regexp_index!='') {
+										foreach ($out[$regexp_index] as $value) {
+											$table_value[]=array('sous_item_value'=>$value,'document_date'=>$document['document_date']);
+											$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$out[0][$j], 'document_num'=>$document_num, 'query_highlight'=>$regexp,'certainty'=>'1');
+											$j++;
+										}
+									} else {
+										//foreach ($out as $regexp_index => $value) {
+											if ($item_type=='date') {
+												$table_value[]=array('sous_item_value'=>$document['document_date'],'document_date'=>$document['document_date']);
+											} else if (($item_type=='numeric' || $item_type=='number') && preg_match("/[^a-z][aâ]ge[^a-z]/i"," $item_str ")) {
+												if ($document['document_date']!='') {
+													$age_patient=get_age_patient ($patient_num, $document['document_date'],'years');
+													$table_value[]=array('sous_item_value'=>$age_patient,'document_date'=>$document['document_date']);
+												}
+											} 
+											$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$out[0][0], 'document_num'=>$document_num, 'query_highlight'=>$regexp,'certainty'=>'1');
+										//}
 									}
-								} else {
-									//foreach ($out as $regexp_index => $value) {
-										if ($item_type=='date') {
-											$table_value[]=array('sous_item_value'=>$document['document_date'],'document_date'=>$document['document_date']);
-										} else if (($item_type=='numeric' || $item_type=='number') && preg_match("/[^a-z]age[^a-z]/i"," $item_str ")) {
-											if ($document['document_date']!='') {
-												$age_patient=get_age_patient ($patient_num, $document['document_date'],'years');
-												$table_value[]=array('sous_item_value'=>$age_patient,'document_date'=>$document['document_date']);
-											}
-										} 
-										$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$out[0][0], 'document_num'=>$document_num, 'query_highlight'=>$regexp);
-									//}
+								}
+							}
+						}
+					}
+				}
+				
+				// negation 
+				$tableau_result=array();
+				if (count($table_document_all_neg)>0) {
+					$tableau_result_temp=array();
+					$str_regexp=trim(clean_for_regexp ($regexp));
+					foreach ($table_document_all_neg as $document_num => $document) {
+						$text=$document['text'];
+						$text=clean_for_regular_expression($text);
+						if (preg_match_all("/$str_regexp/i","$text",$out, PREG_SET_ORDER)) {
+							$tableau_result_temp[]=$document;
+						}
+					}
+					if ($period=='last' && $tableau_result_temp[0]!='') {
+						$tableau_result[0]=$tableau_result_temp[0];
+					}
+					if ($period=='first' && $tableau_result_temp[count($tableau_result_temp)-1]!='') {
+						$tableau_result[0]=$tableau_result_temp[count($tableau_result_temp)-1];
+					}
+					if ($period=='all' || $period=='') {
+						$tableau_result=$tableau_result_temp;
+					}
+				} else {
+			 		$tableau_result=search_patient_document_new ($patient_num,'regexp',$regexp,-1,'patient_text','text',$query_filter_ecrf,$period);
+			 	}
+				$nb_doc_found=0;
+				foreach ($tableau_result as $document) {
+				 	$document_num=$document['document_num'];
+				 	if ($document_num!='') {
+			 			$nb_doc_found++;
+			 			if ($nb_doc_found<$nb_doc_found_limite) {
+							//$document=get_document($document_num,'patient_text_negation');
+							$text=$document['text'];
+							$text=clean_for_regular_expression($text);
+							if ($text!='') {		
+								$text=preg_replace("/\n/"," ",$text);
+								$out=array();
+								
+								$regexp_clean=trim(clean_for_regexp ($regexp));
+								if (preg_match_all("/.{0,10}$regexp_clean.{0,10}/i","$text",$out,  PREG_PATTERN_ORDER )) {
+									$j=0;
+									if ($regexp_index!='') {
+										foreach ($out[$regexp_index] as $value) {
+											$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$out[0][$j], 'document_num'=>$document_num, 'query_highlight'=>$regexp,'certainty'=>'-1');
+											$j++;
+										}
+									} else {
+										$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$out[0][0], 'document_num'=>$document_num, 'query_highlight'=>$regexp,'certainty'=>'-1');
+									}
 								}
 							}
 						}
 					}
 				}
 		 	}
+
+			if ($item_local_code=='' && $regexp=='' && $document_search!='') {
+					// NG Sophie 2020 03 11
+				$tableau_result=array();
+			 	$tableau_result=search_patient_document_new ($patient_num,'text_non_auto',$document_search,1,'patient_text','text',$query_filter_ecrf,$period);
+				$nb_doc_found=0;
+				foreach ($tableau_result as $document) {
+				 	$document_num=$document['document_num'];
+				 	if ($document_num!='') {
+			 			$nb_doc_found++;
+			 			if ($nb_doc_found<$nb_doc_found_limite) {
+							//$document=get_document($document_num,'patient_text_affirmation');
+							$text=$document['text'];
+							if ($text!='') {		
+								$text=preg_replace("/\n/"," ",$text);
+								$out=array();
+								
+								$j=0;
+								if ($item_type=='date') {
+									$table_value[]=array('sous_item_value'=>$document['document_date'],'document_date'=>$document['document_date']);
+								} else if (($item_type=='numeric' || $item_type=='number') && preg_match("/[^a-z]age[^a-z]/i"," $item_str ")) {
+									if ($document['document_date']!='') {
+										$age_patient=get_age_patient ($patient_num, $document['document_date'],'years');
+										$table_value[]=array('sous_item_value'=>$age_patient,'document_date'=>$document['document_date']);
+									}
+								} 
+								$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$out[0][0], 'document_num'=>$document_num, 'query_highlight'=>$document_search,'certainty'=>'1');
+							}
+						}
+					}
+				}
+				
+				
+				$tableau_result=array();
+			 	$tableau_result=search_patient_document_new ($patient_num,'text_non_auto',$document_search,-1,'patient_text','text',$query_filter_ecrf,$period);
+				$nb_doc_found=0;
+				foreach ($tableau_result as $document) {
+				 	$document_num=$document['document_num'];
+				 	if ($document_num!='') {
+			 			$nb_doc_found++;
+			 			if ($nb_doc_found<$nb_doc_found_limite) {
+							$text=$document['text'];
+							if ($text!='') {		
+								$text=preg_replace("/\n/"," ",$text);
+								$out=array();
+								
+								$table_appercu[]=array('document_date'=>$document['document_date'], 'appercu'=>$out[0][0], 'document_num'=>$document_num, 'query_highlight'=>$document_search,'certainty'=>'-1');
+							}
+						}
+					}
+				}
+			}
 		 	
 		 	if ($period=='last') {
 		 		if (count($table_value)==2) {
@@ -846,17 +1348,18 @@ function extract_information_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$filter
 		 	}
 			
 			if (count($table_value)==0) {
-				$tableau_data_struct=search_patient_document ($patient_num,'data',$item_str,'','','',$query_filter_ecrf,$period);
-			 	foreach ($tableau_data_struct as $tableau_result_document) {
-				 	$document_num=$tableau_result_document['document_num'];
+				$tableau_data_struct=search_patient_document_new ($patient_num,'data',$item_str,'','','',$query_filter_ecrf,$period);
+				$nb_doc_found=0;
+			 	foreach ($tableau_data_struct as $document) {
+				 	$document_num=$document['document_num'];
 				 	if ($document_num!='') {
-			 			$i++;
-			 			if ($i<$i_limite) {
-							$document=get_document($document_num,'') ;
-					 		$value=$tableau_result_document['value'];
-					 		$concept_str=$tableau_result_document['concept_str'];
-					 		$concept_code=$tableau_result_document['concept_code'];
-					 		$info=$tableau_result_document['info'];
+			 			$nb_doc_found++;
+			 			if ($nb_doc_found<$nb_doc_found_limite) {
+							//$document=get_document($document_num,'') ;
+					 		$value=$document['value'];
+					 		$concept_str=$document['concept_str'];
+					 		$concept_code=$document['concept_code'];
+					 		$info=$document['info'];
 							//$value_global.="data:".$document['document_date'].":$info:$val;";
 							if ($item_type=='date') {
 								$table_value[]=array('sous_item_value'=>$document['document_date'],'document_date'=>$document['document_date']);
@@ -959,45 +1462,71 @@ function html_replace_supinf($str) {
 	return $str;
 }
 
-function list_ecrf_item ($ecrf_num,$user_num) {
+function list_ecrf_item ($ecrf_num,$ecrf_item_num_specific,$user_num,$option) {
 	global $dbh,$tableau_global_document_origin_code;
 	$table_of_ecrf_functions=get_table_of_ecrf_functions ();
 
+	$list_regexp=get_list_regexp_user($user_num);
+	$list_regexp_select="<option>".get_translation('SELECT_A_PATTERN','Selectionner un pattern')."</option><optgroup label='My Patterns'>";
+	foreach ($list_regexp as $regexp)  {
+		$description=preg_replace("/\n\r/"," ",$regexp['DESCRIPTION']);
+		$description=preg_replace("/\"/"," ",$description);
+		$title=preg_replace("/\"/"," ",$regexp['TITLE']);
+		$regexp_num=$regexp['REGEXP_NUM'];
+		$list_regexp_select.="<option value='$regexp_num'>$title </option>";
+	}
+	$list_regexp_select.="</optgroup>";
+	$list_regexp_select.="<optgroup label='Other Patterns'>";
+	$list_regexp_not_mine=get_list_regexp_shared_not_mine($user_num);
+	foreach ($list_regexp_not_mine as $regexp)  {
+		$regexp_num=$regexp['REGEXP_NUM'];
+		$description=preg_replace("/\n\r/"," ",$regexp['DESCRIPTION']);
+		$description=preg_replace("/\"/"," ",$description);
+		$title=preg_replace("/\"/"," ",$regexp['TITLE']);
+		$user=get_user_info ($regexp['USER_NUM_CREATION']);
+		$nom_prenom_creation=$user['lastname']." ".$user['firstname'];
+		$list_regexp_select.="<option value='$regexp_num'>$title ($nom_prenom_creation)</option>";
+	}
+	$list_regexp_select.="</optgroup>";
+	
+	
+	$list_ecrf_item_div="";
 	$list_ecrf_item="";
 	if ($ecrf_num!='') {
 		$autorisation_ecrf_voir=autorisation_ecrf_voir ($ecrf_num,$user_num);
 		$autorisation_ecrf_modifier=autorisation_ecrf_modifier ($ecrf_num,$user_num);
 		
 		if ($autorisation_ecrf_voir=='ok') {
-			$list_ecrf_item.= "<table border=\"0\" id=\"id_tableau_user_ecrf\" class=\"tablefin\" cellpadding=\"3\">
-			<thead>
-			<tr>
-			<th>".get_translation('ORDER','Ordre')."</th>
-			<th>".get_translation('QUESTION','Question')."</th>
-			<th>".get_translation('TYPE','Type')."</th>
-			<th>".get_translation('VALUE','Valeurs')."</th>
-			<th>".get_translation('PATTERN','Pattern')."</th>
-			<th>".get_translation('PATTERN_INDEX','Pattern Index')."</th>
-			<th>".get_translation('EXISTING_FUNCTIONS','Fonctions existantes')."</th>
-			<th>".get_translation('DOCUMENT_SOURCE','Source de document')."</th>
-			<th>".get_translation('LOCAL_CODES','Local Codes')."<br><a href=\"outils.php?action=outil_thesaurus\" target=\"_blank\">".get_translation('SEARCH_FOR_A_CODE','Rechercher un code')."</a></th>
-			<th>".get_translation('EXT_NAME','Noms Externes')."</th>
-			<th>".get_translation('EXT_CODES','Codes Externes')."</th>
-			<th>".get_translation('PERIOD','Période')."</th>
-			";
-			if ($autorisation_ecrf_modifier=='ok') {
-				$list_ecrf_item.= "<th>Save</th>";
-				$list_ecrf_item.= "<th>X</th>";
+			if ($option=='display_ecrf_all_items') {
+				$list_ecrf_item.= "<table border=\"0\" id=\"id_tableau_ecrf_list_item\" class=\"tablefin\" cellpadding=\"3\">
+				<thead>
+				<tr>
+				<th>".get_translation('ORDER','Ordre')."</th>
+				<th>".get_translation('ITEM_NAME',"Nom de l'item")."</th>
+				<th>".get_translation('TYPE','Type')."</th>
+				<th>".get_translation('FILTER_DOCUMENT','Filtre document')."</th>
+				<th>".get_translation('VALUE','Valeurs')."</th>
+				<th>".get_translation('PATTERN','Pattern')."</th>
+				<th>".get_translation('PATTERN_INDEX','Pattern Index')."</th>
+				<th>".get_translation('EXISTING_FUNCTIONS','Fonctions existantes')."</th>
+				<th>".get_translation('DOCUMENT_SOURCE','Source de document')."</th>
+				<th>".get_translation('LOCAL_CODES','Local Codes')."<br><a href=\"outils.php?action=outil_thesaurus\" target=\"_blank\">".get_translation('SEARCH_FOR_A_CODE','Rechercher un code')."</a></th>
+				<th>".get_translation('EXT_NAME','Noms Externes')."</th>
+				<th>".get_translation('EXT_CODES','Codes Externes')."</th>
+				<th>".get_translation('PERIOD','Période')."</th>
+				";
+				if ($autorisation_ecrf_modifier=='ok') {
+					$list_ecrf_item.= "<th>X</th>";
+				}
+				$list_ecrf_item.= "</tr></thead><tbody>";
 			}
-			$list_ecrf_item.= "</tr></thead>";
 		
-		
-			$list_ecrf_items=get_list_ecrf_items($ecrf_num);
+			$list_ecrf_items=get_list_ecrf_items($ecrf_num,$ecrf_item_num_specific);
 			foreach ($list_ecrf_items as $item) {
 				$ecrf_item_num=$item['ecrf_item_num'];
 				$item_str=$item['item_str'];
 				$item_type=$item['item_type'];
-				$item_list=$item['item_list'];
+				$document_search=$item['document_search'];
 				$item_ext_name=$item['item_ext_name'];
 				$item_ext_code=$item['item_ext_code'];
 				$regexp=$item['regexp'];
@@ -1022,7 +1551,8 @@ function list_ecrf_item ($ecrf_num,$user_num) {
 				$list_input_sub_item_local_code='';
 				$list_input_sub_item_regexp='';
 				$list_input_sub_item_ext_code='';
-				$list_select_ecrf_function="<select id=\"id_select_ecrf_function_$ecrf_item_num\" name=\"ecrf_function\"><option value=''>".get_translation('NO_FUNCTION','Pas de fonction')."</option>";	
+				$list_select_ecrf_function="<select id=\"id_select_ecrf_function_$ecrf_item_num\" name=\"ecrf_function\" onchange=\"delete_ecrf_all_sub_items('$ecrf_num','$ecrf_item_num');get_automatic_javascript_ecrf_functions('$ecrf_num','$ecrf_item_num');
+		\"><option value=''>".get_translation('NO_FUNCTION','Pas de fonction')."</option>";	
 				foreach ($table_of_ecrf_functions as $function => $libelle) {
 					if ($ecrf_function==$function) {
 						$select='selected';
@@ -1064,9 +1594,8 @@ function list_ecrf_item ($ecrf_num,$user_num) {
 				$select_item_type[$item_type]="selected";
 
 				$regexp_encode_html=html_replace_supinf($regexp);
-					
-
-				if ($autorisation_ecrf_modifier=='ok') {
+				$option_display='under';
+				if ($autorisation_ecrf_modifier=='ok' && $option_display=='inside') {
 					$list_ecrf_item.= "<tr id=\"id_tr_ecrf_item_$ecrf_item_num\">";
 					
 					$list_ecrf_item.= "<td  style=\"vertical-align:top;\" onclick=\"modify_ecrf_item($ecrf_num,$ecrf_item_num);\">
@@ -1099,19 +1628,22 @@ function list_ecrf_item ($ecrf_num,$user_num) {
 							</span>
 						</td>";
 					
-					// sub_item_local_str / item_list
+					// document_search
 					$list_ecrf_item.= "<td style=\"width:265px;vertical-align:top;\"  onclick=\"modify_ecrf_item($ecrf_num,$ecrf_item_num);\">
-							<span id=\"id_span_item_list_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$item_list</span>
-							<span id=\"id_span_sub_item_local_str_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$list_sub_item_local_str</span>
-							
-							<span id=\"id_span_modif_item_list_$ecrf_item_num\" style=\"display:none;\" class=\"id_span_modif_ecrf_item_$ecrf_item_num\">
-								<textarea class='form' cols=\"30\" rows=\"2\" id=\"id_input_item_list_$ecrf_item_num\" onkeypress=\"if(event.keyCode==13) {save_ecrf_item_all($ecrf_num,$ecrf_item_num);return false;}\">$item_list</textarea>
+							<span id=\"id_span_document_search_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$document_search</span>
+							<span id=\"id_span_modif_document_search_$ecrf_item_num\" style=\"display:none;\" class=\"id_span_modif_ecrf_item_$ecrf_item_num\">
+								<textarea class='form' cols=\"30\" rows=\"2\" id=\"id_input_document_search_$ecrf_item_num\" onkeypress=\"if(event.keyCode==13) {save_ecrf_item_all($ecrf_num,$ecrf_item_num);return false;}\">$document_search</textarea>
 							</span>
+						</td>";		
+						
+					// sub_item_local_str 
+					$list_ecrf_item.= "<td style=\"width:265px;vertical-align:top;\"  onclick=\"modify_ecrf_item($ecrf_num,$ecrf_item_num);\">
+							<span id=\"id_span_sub_item_local_str_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$list_sub_item_local_str</span>
 							<span id=\"id_span_modif_sub_item_local_str_$ecrf_item_num\" style=\"display:none;\" class=\"id_span_modif_ecrf_item_$ecrf_item_num\">
 								<div id=\"id_div_modif_sub_item_local_str_$ecrf_item_num\">
 									$list_input_sub_item_local_str
 								</div>
-								<span onclick=\"add_sub_item('$ecrf_num','$ecrf_item_num');\" class=\"link\">+ Ajouter un sous item</span>
+								<span onclick=\"add_sub_item('$ecrf_num','$ecrf_item_num','');\" class=\"link span_ecrf_link_add_subitem\" id=\"id_span_link_ecrf_$ecrf_item_num\">+ Ajouter un sous item</span>
 							</span>
 						</td>";		
 						
@@ -1210,12 +1742,242 @@ function list_ecrf_item ($ecrf_num,$user_num) {
 					
 					$list_ecrf_item.= "<td><img src=\"images/mini_poubelle.png\" onclick=\"delete_item_ecrf($ecrf_num,$ecrf_item_num);\" style=\"cursor:pointer;\"></td>";
 					$list_ecrf_item.= "</tr>";	
+				} else 	if ($autorisation_ecrf_modifier=='ok' && $option_display=='under') {
+				
+				
+					$list_ecrf_item.= "<tr id=\"id_tr_ecrf_item_$ecrf_item_num\" class=\"ecrf_list_item\">";
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+							<a name=\"anchor_ecrf_item_$ecrf_item_num\"></a>
+							<div id=\"id_span_item_order_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$item_order</div>
+							</td>";
+						
+					// item_str 
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\" style=\"width:265px;\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+							<span id=\"id_span_item_str_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$item_str</span>
+						</td>";
+					
+					$item_type_str="";
+					// item_type 
+					if ($item_type=='radio') {
+						$item_type_str=get_translation('UNIQUE_CHOICE','Choix unique');
+					}
+					if ($item_type=='numeric') {
+						$item_type_str=get_translation('NUMBER','Nombre');
+					}
+					if ($item_type=='text') {
+						$item_type_str=get_translation('TEXT','Texte libre');
+					}
+					if ($item_type=='list') {
+						$item_type_str=get_translation('MULTIPLE_CHOICE','Choix multiple');
+					}
+					if ($item_type=='date') {
+						$item_type_str=get_translation('DATE','Date');
+					}
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\" style=\"width:147px;\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+							<span id=\"id_span_item_type_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$item_type_str</span>
+						</td>";
+					
+					// document_search
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\" style=\"width:265px;\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+							<span id=\"id_span_document_search_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$document_search</span>
+						</td>";		
+					
+					// sub_item_local_str 
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\" style=\"width:265px;\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+							<span id=\"id_span_sub_item_local_str_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$list_sub_item_local_str</span>
+						</td>";		
+						
+					// regexp / sub_item_regexp
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\" style=\"width:265px;\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+							<span id=\"id_span_regexp_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$regexp_encode_html</span>
+							<span id=\"id_span_sub_item_regexp_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$list_sub_item_regexp</span>
+						</td>";
+						
+					// regexp_index
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+							<span id=\"id_span_regexp_index_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$regexp_index</span>
+						</td>";
+						
+					// ecrf_function
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\" style=\"width:265px;\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+							<span id=\"id_span_ecrf_function_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$ecrf_function_label</span>
+						</td>";
+						
+					// document_origin_code
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\" style=\"width:265px;\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+							<span id=\"id_span_document_origin_code_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$document_origin_code_label</span>
+						</td>";
+								
+					// sub_item_local_code
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\" style=\"width:265px;\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+							<span id=\"id_span_item_local_code_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$item_local_code</span>
+							<span id=\"id_span_sub_item_local_code_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$list_sub_item_local_code</span>
+						</td>";
+						
+					// item_ext_name						
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\" style=\"width:265px;\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+							<span id=\"id_span_item_ext_name_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$item_ext_name</span>
+						</td>";
+
+					// item_ext_code		
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\" style=\"width:265px;\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+							<span id=\"id_span_item_ext_code_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$item_ext_code</span>
+							<span id=\"id_span_sub_item_ext_code_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$list_sub_item_ext_code</span>
+						</td>";
+						
+					// period	
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\" style=\"width:265px;\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+							<span id=\"id_span_period_$ecrf_item_num\" class=\"id_span_ecrf_item_$ecrf_item_num\">$period</span>
+						</td>";
+					
+					$list_ecrf_item.= "<td class=\"ecrf_list_item\"><img src=\"images/mini_poubelle.png\" onclick=\"delete_item_ecrf($ecrf_num,$ecrf_item_num);\" style=\"cursor:pointer;\"></td>";
+					$list_ecrf_item.= "</tr>";	
+					
+					
+					$list_ecrf_item_div.= "
+					<div id=\"id_div_ecrf_item_modify_$ecrf_item_num\" class=\"class_div_ecrf_item_modify\"> 
+						<table border='0' class=\"form_ecrf\">
+							<tr><td><strong>".get_translation('ORDER','Ordre')."</strong></td><td><input type='text' class='form' size=\"2\" value=\"$item_order\" id=\"id_input_item_order_$ecrf_item_num\" /></td></tr>
+							
+							<tr class=\"tr_ecrf_item_existing_functions\"><td><strong>".get_translation('EXISTING_FUNCTIONS','Fonctions existantes')."</strong></td><td>$list_select_ecrf_function
+							</td></tr>
+							
+							<tr class=\"tr_ecrf_item_name\"><td><strong>".get_translation('ITEM_NAME',"Nom de l'item")."</strong></td><td>
+							<textarea class='form' cols=\"60\" rows=\"2\" id=\"id_input_item_str_$ecrf_item_num\">$item_str</textarea>
+							</td></tr>
+		
+							<tr class=\"tr_ecrf_item_type\"><td><strong>".get_translation('ITEM_TYPE',"Type de l'item")."</strong> </td><td>
+									<select id=\"id_input_item_type_$ecrf_item_num\" class=\"form\" onchange=\"adapt_ecrf_form($ecrf_item_num);\">
+										<option value='numeric' ".$select_item_type['numeric'].">".get_translation('NUMBER','Nombre')."</option>
+										<option value='text' ".$select_item_type['text'].">".get_translation('TEXT','Texte libre')."</option>
+										<option value='list' ".$select_item_type['list'].">".get_translation('MULTIPLE_CHOICE','Choix multiple')."</option>
+										<option value='radio' ".$select_item_type['radio'].">".get_translation('UNIQUE_CHOICE','Choix unique')."</option>
+										<option value='date' ".$select_item_type['date'].">".get_translation('DATE','Date')."</option>
+									</select>
+							</td></tr>
+							
+							<tr class=\"tr_ecrf_item_document_search\"><td><strong>".get_translation('DOCUMENT_SEARCH','Dans les documents contenant')."</strong>
+							<br><i>".get_translation('SEARCH_ENGINE_SYNTAX','Syntaxe du moteur de recherche')."</i></td><td>
+									<span id=\"id_span_modif_document_search_$ecrf_item_num\">
+										<textarea class='form' cols=\"60\" rows=\"2\" id=\"id_input_document_search_$ecrf_item_num\">$document_search</textarea>
+									</span>
+									</td>
+							</tr>
+							<tr class=\"tr_ecrf_item_value tr_ecrf_item_multiple\"><td><strong>".get_translation('VALUE','Valeurs')."</strong></td><td>
+									<span id=\"id_span_modif_sub_item_local_str_$ecrf_item_num\">
+									<table border=0>
+										<tr>
+										<td>".get_translation('ITEMS','Items')."<br>
+											<div id=\"id_div_modif_sub_item_local_str_$ecrf_item_num\">
+												$list_input_sub_item_local_str
+											</div>
+											<span onclick=\"add_sub_item('$ecrf_num','$ecrf_item_num','');\" class=\"link span_ecrf_link_add_subitem\" id=\"id_span_link_ecrf_$ecrf_item_num\">+ Ajouter un sous item</span>
+										</td>
+										<td class=\"td_ecrf_sub_item_pattern\">".get_translation('PATTERN','Pattern')."<br>
+											<span id=\"id_span_modif_sub_item_regexp_$ecrf_item_num\">
+												<div id=\"id_div_modif_sub_item_regexp_$ecrf_item_num\">
+													$list_input_sub_item_regexp
+												</div>
+											</span>
+										</td>
+										<td class=\"td_ecrf_sub_item_local_codes\">".get_translation('LOCAL_CODES','Local Codes')." (<a href=\"outils.php?action=outil_thesaurus\" target=\"_blank\">".get_translation('SEARCH_FOR_A_CODE','Rechercher un code')."</a>)<br>
+											<span id=\"id_span_modif_sub_item_local_code_$ecrf_item_num\">
+												<div id=\"id_div_modif_sub_item_local_code_$ecrf_item_num\">
+													$list_input_sub_item_local_code
+												</div>
+											</span>
+										</td>
+										<td class=\"td_ecrf_sub_item_ext_codes\">
+											".get_translation('EXT_CODES','Codes Externes')."<br>
+											<span id=\"id_span_modif_sub_item_ext_code_$ecrf_item_num\">
+												<div id=\"id_div_modif_sub_item_ext_code_$ecrf_item_num\">
+													$list_input_sub_item_ext_code
+												</div>
+											</span>
+										</td>
+										</tr>
+									</table>
+									</span>
+									
+							</td></tr>
+							
+							<tr class=\"tr_ecrf_item_pattern tr_ecrf_item_notmultiple\"><td><strong>".get_translation('PATTERN','Pattern')."</strong></td><td>
+									<span id=\"id_span_modif_regexp_$ecrf_item_num\">
+										<textarea class='form' cols=\"60\" rows=\"2\" id=\"id_input_regexp_$ecrf_item_num\">$regexp</textarea>
+									</span>
+							</td></tr>
+							
+							<tr class=\"tr_ecrf_item_pattern_index tr_ecrf_item_notmultiple\"><td><strong>".get_translation('PATTERN_INDEX','Pattern Index')."</strong></td><td>
+								<span id=\"id_span_modif_regexp_index_$ecrf_item_num\">
+									<input type='text' class='form' size=\"2\" value=\"$regexp_index\" id=\"id_input_regexp_index_$ecrf_item_num\" />
+								</span> (Numéro de parenthèse contenant la valeur à extraire)
+							</td></tr>
+							
+							<tr class=\"tr_ecrf_item_document_source\"><td><strong>".get_translation('DOCUMENT_SOURCE','Source de document')."</strong></td><td>$list_select_document_origin_code
+							</td></tr>
+							
+							<tr class=\"tr_ecrf_item_local_code tr_ecrf_item_notmultiple\"><td><strong>".get_translation('LOCAL_CODES','Local Codes')."</strong> <a href=\"outils.php?action=outil_thesaurus\" target=\"_blank\">".get_translation('SEARCH_FOR_A_CODE','Rechercher un code')."</a>
+								</td><td><span id=\"id_span_modif_item_local_code_$ecrf_item_num\">
+									<input type=\"text\" class='form' cols=\"15\" value=\"$item_local_code\" id=\"id_input_item_local_code_$ecrf_item_num\">
+								</span>
+							</td></tr>
+							
+							<tr class=\"tr_ecrf_item_extern_name\"><td><strong>".get_translation('EXT_NAME','Noms Externes')."</strong></td><td><input type=\"text\" class='form' cols=\"15\" value=\"$item_ext_name\" id=\"id_input_item_ext_name_$ecrf_item_num\">
+							</td></tr>
+									
+							<tr class=\"tr_ecrf_item_notmultiple\"><td><strong>".get_translation('EXT_CODES','Codes Externes')."</strong>
+								</td><td><span id=\"id_span_modif_item_ext_code_$ecrf_item_num\">
+									<input type=\"text\" class='form' cols=\"15\" value=\"$item_ext_code\" id=\"id_input_item_ext_code_$ecrf_item_num\" >
+								</span>
+							</td></tr>
+							<tr class=\"tr_ecrf_item_period\"><td><strong>".get_translation('PERIOD','Période')."</strong> </td><td>
+							<select id=\"id_input_period_$ecrf_item_num\" class='form'>
+								<option value='last' ".$select_period['last'].">".get_translation('LAST_VALUE','Dernière valeur')."</option>
+								<option value='first' ".$select_period['first'].">".get_translation('FIRST_VALUE','Première valeur')."</option>
+								<option value='all' ".$select_period['all'].">".get_translation('ALL_VALUES','Toutes les valeurs')."</option>
+							</select>
+							</td></tr>
+							
+							<tr><td colspan=2><hr></td></tr>
+							<tr class=\"tr_ecrf_item_existing_pattern\"><td><strong>".get_translation('COPY_PAST_EXISTING_PATTERN','Copier-coller un pattern existant')."</strong> </td><td>
+									<select onchange=\"put_regexp_in_field('id_copy_past_regexp_$ecrf_item_num',this.value);\">$list_regexp_select</select><br>
+									<span id=\"id_span_copy_past_regexp_$ecrf_item_num\">
+										<textarea class='form' cols=\"60\" rows=\"2\" id=\"id_copy_past_regexp_$ecrf_item_num\"></textarea><br>
+										".get_translation('SENTENCE_COPY_PAST_PATTERN',"Vous pouvez copier coller la regexp ci dessus dans un des patterns de votre ecrf").". <br>
+										".get_translation('SENTENCE_TEST_REGEXP_ON_PATIENT',"Vous pouvez aussi la tester directement dans le moteur de recherche dans le dossier d'un patient").".
+									</span>
+							</td></tr>
+							
+						</table>
+					<br>
+					<input class=\"form_submit\" type=\"button\" value=\"".get_translation('SAVE','Sauver')."\" onclick=\"save_ecrf_item_all($ecrf_num,$ecrf_item_num);\"> 
+					<input class=\"form_cancel\" type=\"button\" value=\"".get_translation('CANCEL','Annuler')."\" onclick=\"modify_ecrf_item_under($ecrf_num,$ecrf_item_num);\">
+					</div>
+					";
+				
 				} else {
+					$item_type_str="";
+					// item_type 
+					if ($item_type=='radio') {
+						$item_type_str=get_translation('UNIQUE_CHOICE','Choix unique');
+					}
+					if ($item_type=='numeric') {
+						$item_type_str=get_translation('NUMBER','Nombre');
+					}
+					if ($item_type=='text') {
+						$item_type_str=get_translation('TEXT','Texte libre');
+					}
+					if ($item_type=='list') {
+						$item_type_str=get_translation('MULTIPLE_CHOICE','Choix multiple');
+					}
+					if ($item_type=='date') {
+						$item_type_str=get_translation('DATE','Date');
+					}
 					$list_ecrf_item.= "<tr>
 						<td>$item_order</td>
 						<td>$item_str</td>
-						<td>$item_type</td>
-						<td>$item_list $list_sub_item_local_str</td>
+						<td>$item_type_str</td>
+						<td>$document_search $list_sub_item_local_str</td>
 						<td>$regexp_encode_html $list_sub_item_regexp</td>
 						<td>$regexp_index</td>
 						<td>$item_local_code</td>
@@ -1225,16 +1987,31 @@ function list_ecrf_item ($ecrf_num,$user_num) {
 					</tr>";	
 				}			
 			}
-			$list_ecrf_item.= "</table>";
+			if ($option=='display_ecrf_all_items') {
+				$list_ecrf_item.= "</tbody></table>";
+			}
 		}
 	}
-	return $list_ecrf_item;
+	if ($option=='display_ecrf_all_items') {
+		$res="<div id=\"id_div_ecrf_item_modify\">$list_ecrf_item_div</div>$list_ecrf_item";
+	}
+	if ($option=='get_ecrf_item_tr') {
+		$res="$list_ecrf_item";
+	}
+	if ($option=='get_ecrf_item_div_modify') {
+		$res="$list_ecrf_item_div";
+	}
+	
+	if ($ecrf_item_num_specific!='') {
+	//	$res=$list_ecrf_item;
+	}
+	return $res;
 }
 
 function get_patient_ecrf_data_from_ext_database ($user_num,$ecrf_num,$patient_num) {
 	global $dbh;
 	$res_patient_ecrf=array();
-	$tableau_list_ecrf_items=get_list_ecrf_items ($ecrf_num);
+	$tableau_list_ecrf_items=get_list_ecrf_items ($ecrf_num,"");
 	$tab_token = get_ecrf_token($user_num,$ecrf_num);
 	$token_ecrf=$tab_token['token_ecrf'];
 	if ($token_ecrf!='') {
@@ -1268,12 +2045,12 @@ function get_patient_ecrf_data_from_ext_database ($user_num,$ecrf_num,$patient_n
 	return $res_patient_ecrf;
 }
 
-function get_patient_ecrf_data_from_manual ($user_num,$ecrf_num,$patient_num) {
+function get_patient_ecrf_data_from_manual ($user_num,$ecrf_num,$patient_num,$ecrf_patient_event_num) {
 	global $dbh;
 	$res_patient_ecrf=array();
-	$tableau_list_ecrf_items=get_list_ecrf_items ($ecrf_num);
+	$tableau_list_ecrf_items=get_list_ecrf_items ($ecrf_num,"");
 	
-	$patient_ecrf_data_manual = get_ecrf_patient_manual_data($user_num,$ecrf_num, $patient_num);
+	$patient_ecrf_data_manual = get_ecrf_patient_manual_data($user_num,$ecrf_num, $patient_num,$ecrf_patient_event_num);
 	foreach ($tableau_list_ecrf_items as $item) {
                 $ecrf_item_num=$item['ecrf_item_num'];
 	        $item_type=$item['item_type'];
@@ -1329,12 +2106,19 @@ function getPatientDataFromREDCap($user_num, $ecrf_num, $ecrf_id) {
 	}
 }
 
-function get_ecrf_patient_manual_data($user_num,$ecrf_num, $patient_num) {
+function get_ecrf_patient_manual_data($user_num,$ecrf_num, $patient_num,$ecrf_patient_event_num) {
 	global $dbh;
 	$patient_ecrf_data_manual = array();
-	$sel_ecrf=oci_parse($dbh,"select ecrf_item_num,user_num,user_value from DWH_ECRF_ANSWER where ecrf_num=$ecrf_num and patient_num=$patient_num and user_num=$user_num order by ecrf_item_num ");
+	$req_event="";
+	if ($ecrf_patient_event_num!='') {
+		$req_event=" and ecrf_patient_event_num=$ecrf_patient_event_num ";
+	} else {
+		$req_event=" and ecrf_patient_event_num is null ";
+	}
+	$sel_ecrf=oci_parse($dbh,"select ecrf_answer_num,ecrf_item_num,user_num,user_value from DWH_ECRF_ANSWER where ecrf_num=$ecrf_num and patient_num=$patient_num and user_num=$user_num $req_event order by ecrf_item_num ");
 	oci_execute($sel_ecrf);
 	while ($r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		$ecrf_answer_num=$r['ECRF_ANSWER_NUM'];
 		$ecrf_item_num=$r['ECRF_ITEM_NUM'];
 		$user_value=$r['USER_VALUE'];
 		$user_validation=$r['USER_VALIDATION'];
@@ -1346,56 +2130,57 @@ function get_ecrf_patient_manual_data($user_num,$ecrf_num, $patient_num) {
       return  $patient_ecrf_data_manual;
 }
 
-function get_ecrf_patient_validation_answer ($patient_num,$ecrf_num,$ecrf_item_num,$user_num) {
+function get_ecrf_patient_validation_answer ($ecrf_answer_num) {
 	global $dbh;
 	$res = array();
-	$sel_ecrf=oci_parse($dbh,"select ecrf_item_num,user_num,user_value,user_validation,to_char(user_validation_date,'DD/MM/YYYY HH24:MI') as user_validation_date from DWH_ECRF_ANSWER where ecrf_num=$ecrf_num and ecrf_item_num=$ecrf_item_num and patient_num=$patient_num and user_num=$user_num  ");
-	oci_execute($sel_ecrf);
-	$r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC);
-	$ecrf_item_num=$r['ECRF_ITEM_NUM'];
-	$user_value=$r['USER_VALUE'];
-	$res['user_validation']=$r['USER_VALIDATION'];
-	$res['user_validation_date']=$r['USER_VALIDATION_DATE'];
+	if ($ecrf_answer_num!='') {
+		$sel_ecrf=oci_parse($dbh,"select ecrf_answer_num,ecrf_item_num,user_num,user_value,user_validation,to_char(user_validation_date,'DD/MM/YYYY HH24:MI') as user_validation_date from DWH_ECRF_ANSWER where ecrf_answer_num=$ecrf_answer_num  ");
+		oci_execute($sel_ecrf);
+		$r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC);
+		$ecrf_answer_num=$r['ECRF_ANSWER_NUM'];
+		$ecrf_item_num=$r['ECRF_ITEM_NUM'];
+		$user_value=$r['USER_VALUE'];
+		$res['user_validation']=$r['USER_VALIDATION'];
+		$res['user_validation_date']=$r['USER_VALIDATION_DATE'];
+	}
 	return  $res;
 }
 
-function get_ecrf_patient_max_user_date($user_num,$ecrf_num, $patient_num) {
-	global $dbh;
-	$sel_ecrf=oci_parse($dbh,"select to_char(max(user_value_date),'DD/MM/YYYY HH24:MI') as max_date from DWH_ECRF_ANSWER where ecrf_num=$ecrf_num and patient_num=$patient_num and user_num=$user_num  and user_value_date is not null ");
-	oci_execute($sel_ecrf);
-	$r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC);
-	$max_date=$r['MAX_DATE'];
-	return  $max_date;
-}
 
-function get_ecrf_patient_automated_data($user_num,$ecrf_num, $patient_num) {
+function get_ecrf_patient_automated_data($user_num,$ecrf_num, $patient_num,$ecrf_patient_event_num) {
 	global $dbh;
 	$patient_ecrf_data_auto = array();
-	$sel_ecrf=oci_parse($dbh,"select ecrf_item_num,user_num,automated_value from DWH_ECRF_ANSWER where ecrf_num=$ecrf_num and patient_num=$patient_num and user_num=$user_num order by ecrf_item_num ");
+	$req_event="";
+	if ($ecrf_patient_event_num!='') {
+		$req_event=" and ecrf_patient_event_num=$ecrf_patient_event_num ";
+	} else {
+		$req_event=" and ecrf_patient_event_num is null ";
+	}
+	$sel_ecrf=oci_parse($dbh,"select ecrf_item_num,user_num,automated_value,ecrf_item_extract from DWH_ECRF_ANSWER where ecrf_num=$ecrf_num and patient_num=$patient_num and user_num=$user_num $req_event order by ecrf_item_num ");
 	oci_execute($sel_ecrf);
 	while ($r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$ecrf_item_num=$r['ECRF_ITEM_NUM'];
-		$automated_value=$r['AUTOMATED_VALUE'];
-		if ($automated_value!='') {
-			$patient_ecrf_data_auto[$ecrf_item_num]=$automated_value;
+		if ($r['AUTOMATED_VALUE']!='') {
+			$patient_ecrf_data_auto['automated_value'][$ecrf_item_num]=$r['AUTOMATED_VALUE'];
+		}
+		if ($r['ECRF_ITEM_EXTRACT']) {
+			$patient_ecrf_data_auto['ecrf_item_extract'][$ecrf_item_num]=$r['ECRF_ITEM_EXTRACT']->load();
 		}
 	}
       return  $patient_ecrf_data_auto;
 }
 
- function insert_result_auto_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$user_num,$table_value,$table_appercu,$final_automatic_value) {
+ function insert_result_auto_ecrf ($patient_num,$ecrf_num,$ecrf_item_num,$user_num,$ecrf_patient_event_num,$table_value,$table_appercu,$final_automatic_value) {
 	global $dbh;
 
 	$table_final=array("value"=>$table_value,"overview"=>$table_appercu);
 	$json_final=serialize($table_final);
 	
-	$sel_ecrf=oci_parse($dbh,"select count(*) as verif from DWH_ECRF_ANSWER where ecrf_num=$ecrf_num and patient_num=$patient_num and ecrf_item_num=$ecrf_item_num and user_num=$user_num");
-	oci_execute($sel_ecrf);
-	$r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC);
-	$verif=$r['VERIF'];
-	if ($verif==0) {
-		$requeteins="insert into DWH_ECRF_ANSWER (patient_num,ecrf_num,ecrf_item_num,user_num,automated_value, ecrf_item_extract ,automated_value_date) values 
-					($patient_num,$ecrf_num,$ecrf_item_num,$user_num,:final_automatic_value,:json_final,sysdate) ";
+	$already_done=test_ecrf_result_already_done($ecrf_num,$patient_num,$user_num,$ecrf_patient_event_num,$ecrf_item_num);
+	if ($already_done=='false') {
+		$ecrf_answer_num=get_uniqid();
+		$requeteins="insert into DWH_ECRF_ANSWER (ecrf_answer_num,patient_num,ecrf_num,ecrf_item_num,user_num,ecrf_patient_event_num,automated_value, ecrf_item_extract ,automated_value_date) values 
+					($ecrf_answer_num,$patient_num,$ecrf_num,$ecrf_item_num,$user_num,'$ecrf_patient_event_num',:final_automatic_value,:json_final,sysdate) ";
                 $stmt = ociparse($dbh,$requeteins);
                 $rowid = ocinewdescriptor($dbh, OCI_D_LOB);
                 ocibindbyname($stmt, ":json_final",$json_final);
@@ -1403,8 +2188,8 @@ function get_ecrf_patient_automated_data($user_num,$ecrf_num, $patient_num) {
                 $execState = ociexecute($stmt);
                 ocifreestatement($stmt);
 	} else {
-		$requeteins="update  DWH_ECRF_ANSWER set automated_value=:final_automatic_value,ecrf_item_extract=:json_final ,automated_value_date=sysdate where 
-			patient_num=$patient_num and ecrf_num=$ecrf_num and ecrf_item_num=$ecrf_item_num and user_num=$user_num ";
+		$ecrf_answer_num=get_ecrf_answer_num($user_num,$ecrf_num,$patient_num,$ecrf_patient_event_num,$ecrf_item_num);
+		$requeteins="update  DWH_ECRF_ANSWER set automated_value=:final_automatic_value,ecrf_item_extract=:json_final ,automated_value_date=sysdate where ecrf_answer_num=$ecrf_answer_num ";
                 $stmt = ociparse($dbh,$requeteins);
                 $rowid = ocinewdescriptor($dbh, OCI_D_LOB);
                 ocibindbyname($stmt, ":json_final",$json_final);
@@ -1412,8 +2197,36 @@ function get_ecrf_patient_automated_data($user_num,$ecrf_num, $patient_num) {
                 $execState = ociexecute($stmt);
                 ocifreestatement($stmt);
 	}
+        return $ecrf_answer_num;
 }
 
+function test_ecrf_result_already_done($ecrf_num,$patient_num,$user_num,$ecrf_patient_event_num,$ecrf_item_num) {
+	global $dbh;
+
+	$req_event='';
+	if ($ecrf_patient_event_num!='') {
+		$req_event=" and ecrf_patient_event_num=$ecrf_patient_event_num";
+	}  else {
+		$req_event=" and ecrf_patient_event_num is null ";
+	}
+	
+	if ($ecrf_item_num!='') {
+		$req_event_item_num=" and ecrf_item_num=$ecrf_item_num";
+	}  else {
+		$req_event_item_num="";
+	}
+	
+	$sel_ecrf=oci_parse($dbh,"select count(*) as verif from DWH_ECRF_ANSWER where ecrf_num=$ecrf_num and patient_num=$patient_num and user_num=$user_num $req_event $req_event_item_num");
+	oci_execute($sel_ecrf);
+	$r=oci_fetch_array($sel_ecrf,OCI_RETURN_NULLS+OCI_ASSOC);
+	$verif=$r['VERIF'];
+	if ($verif>0) {
+		$already_done='true';
+	} else {
+		$already_done='false';
+	}
+        return $already_done;
+}
 
 function affiche_liste_document_patient_ecrf($patient_num,$requete) {
 	global $dbh,$datamart_num,$user_num_session,$document_origin_code_labo;
@@ -1468,7 +2281,11 @@ function affiche_liste_document_patient_ecrf($patient_num,$requete) {
 			$author=$document['author'];
 			$text=$document['text'];    
 	                if ($text!='') {
-				if ($_SESSION['dwh_droit_fuzzy_display']=='ok') {
+				if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_fuzzy_display']=='ok') {
+					$author='[AUTHOR]';
+					$document_date='[DATE]';
+				}
+				if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_anonymized']=='ok') {
 					$author='[AUTHOR]';
 					$document_date='[DATE]';
 				}
@@ -1551,13 +2368,16 @@ function display_table_ecrf_patient_answer ($ecrf_num,$user_num,$option_excel) {
 	print "<table class=\"tablefin\" $border><thead>
 	<tr>
 	$thead_link
-	<th>IPP</th>
-	<th>Lastname</th>
-	<th>Firstname</th>
-	<th>Birth date</th>
-	<th>User</th>";
+        <th>".get_translation('HOSPITAL_PATIENT_ID','IPP')."</th>
+        <th>".get_translation('LASTNAME','Lastname')."</th>
+        <th>".get_translation('FIRSTNAME','Prénom')."</th>
+        <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
+	<th>".get_translation('SEX','Sexe')."</th>
+	<th>User</th>
+	<th>Suivi</th>
+	";
 	
-	$tableau_list_ecrf_items=get_list_ecrf_items ($ecrf_num);
+	$tableau_list_ecrf_items=get_list_ecrf_items ($ecrf_num,"");
 	foreach ($tableau_list_ecrf_items as $item) {
                 $ecrf_item_num=$item['ecrf_item_num'];
 	        $item_str=$item['item_str'];
@@ -1567,54 +2387,76 @@ function display_table_ecrf_patient_answer ($ecrf_num,$user_num,$option_excel) {
 	
 	print "
 	</thead>
-	<tbody>";		
+	<tbody>";
+	$tab_patient=get_list_patient ("select  patient_num from dwh_ecrf_answer  where ecrf_num=$ecrf_num");
 	foreach ($tableau_list_ecrf_patients_user as $ecrf_patient) {
 		$patient_num=$ecrf_patient['patient_num'];
 		$user_value_date=$ecrf_patient['user_value_date'];
 		$automated_value_date=$ecrf_patient['automated_value_date'];
 		$user_num_ecrf=$ecrf_patient['user_num'];
+		$ecrf_patient_event_num=$ecrf_patient['ecrf_patient_event_num'];
 		
-		$tab_patient=get_patient ($patient_num,'');
-		$lastname=$tab_patient['LASTNAME'];
-		$firstname=$tab_patient['FIRSTNAME'];
-		$birth_date=$tab_patient['BIRTH_DATE'];
-		$hospital_patient_id=$tab_patient['HOSPITAL_PATIENT_ID'];
+		$event="";
+		if ($ecrf_patient_event_num!='') {
+			$ecrf_patient_event=get_ecrf_patient_event ($ecrf_num ,$patient_num,$ecrf_patient_event_num);
+			if (is_array($ecrf_patient_event[0])) {
+				$date_patient_ecrf=$ecrf_patient_event[0]['date_patient_ecrf'];
+				$nb_days_before=$ecrf_patient_event[0]['nb_days_before'];
+				$nb_days_after=$ecrf_patient_event[0]['nb_days_after'];
+				$event_id=$ecrf_patient_event[0]['event_id'];
+				$event="Suivi $event_id ($date_patient_ecrf -$nb_days_before j/+$nb_days_after)";
+			}
+		}
 		
-		$firstname_lastname= get_user_information ($user_num_ecrf,'pn');
+		//$tab_patient=get_patient ($patient_num,'');
+		$lastname=$tab_patient[$patient_num]['LASTNAME'];
+		$firstname=$tab_patient[$patient_num]['FIRSTNAME'];
+		$birth_date=$tab_patient[$patient_num]['BIRTH_DATE'];
+		$hospital_patient_id=$tab_patient[$patient_num]['HOSPITAL_PATIENT_ID'];
+		$sex=$tab_patient[$patient_num]['SEX'];
 		
-		print "<tr id=\"id_tr_ecrf_patient_".$ecrf_num."_".$patient_num."_".$user_num_ecrf."\">";
+		$user_firstname_lastname= get_user_information ($user_num_ecrf,'pn');
+		
+		print "<tr id=\"id_tr_ecrf_patient_".$ecrf_num."_".$patient_num."_".$user_num_ecrf."_$ecrf_patient_event_num\">";
 		if ($option_excel=='') {
-			print "<th><a href=\"patient.php?patient_num=$patient_num&ecrf_num=$ecrf_num\" target=\"blank\"><img src=\"images/dossier_patient.png\" alt=\"Dossier du patient\" title=\"Dossier du patient\" height=\"15px\" border=\"0\"></a></th>";
+			print "<th><a href=\"patient.php?patient_num=$patient_num&ecrf_num_open=$ecrf_num&ecrf_patient_event_num_open=$ecrf_patient_event_num\" target=\"_blank\"><img src=\"images/dossier_patient.png\" alt=\"Dossier du patient\" title=\"Dossier du patient\" height=\"15px\" border=\"0\"></a></th>";
 			print "<th>";
 			if ($user_num_ecrf==$user_num) {
-				print "<img src=\"images/mini_poubelle.png\" onclick=\"delete_patient_ecrf($ecrf_num,$patient_num,$user_num_ecrf);\" style=\"cursor:pointer;\">";
+				print "<img src=\"images/mini_poubelle.png\" onclick=\"delete_patient_ecrf($ecrf_num,$patient_num,$user_num_ecrf,'$ecrf_patient_event_num');\" style=\"cursor:pointer;\">";
 			}
 			print "</th>";
 		}
 		print "$tbody_link";
-		print "<td>$hospital_patient_id</td><td>$lastname</td><td>$firstname </td><td>$birth_date</td>";
+		print "<td>$hospital_patient_id</td><td>$lastname</td><td>$firstname </td><td>$birth_date</td><td>$sex</td>";
+		print "<td>$user_firstname_lastname</td>";
+		print "<td>$event</td>";
 		
-			print "<td>$firstname_lastname</td>";
 		//$max_user_value_date=get_ecrf_patient_max_user_date($user_num,$ecrf_num, $patient_num);
 		//if ($max_user_value_date!='') {
-			$patient_ecrf_data_manual=get_ecrf_patient_manual_data($user_num_ecrf,$ecrf_num, $patient_num);
+			$patient_ecrf_data_manual=get_ecrf_patient_manual_data($user_num_ecrf,$ecrf_num, $patient_num,$ecrf_patient_event_num);
 			$backgroundcolor_global='#f0dea2';
 		//} else {
-			$patient_ecrf_data_auto=get_ecrf_patient_automated_data($user_num_ecrf,$ecrf_num, $patient_num);
+			$patient_ecrf_data_auto=get_ecrf_patient_automated_data($user_num_ecrf,$ecrf_num, $patient_num,$ecrf_patient_event_num);
 			$backgroundcolor_global='#ffcbcb';
 		//}
 		foreach ($tableau_list_ecrf_items as $item) {
 	                $ecrf_item_num=$item['ecrf_item_num'];
-	                if ($patient_ecrf_data_manual[$ecrf_item_num]!='') {
-	                	$value=$patient_ecrf_data_manual[$ecrf_item_num];
-	                } else {
-	                	$value=$patient_ecrf_data_auto[$ecrf_item_num];
-	                }
-	                $ecrf_patient_validation_answer=get_ecrf_patient_validation_answer ($patient_num,$ecrf_num,$ecrf_item_num,$user_num_ecrf);
+	                //if ($patient_ecrf_data_manual[$ecrf_item_num]!='') {
+	                //	$value=$patient_ecrf_data_manual[$ecrf_item_num];
+	                //} else {
+	                //	$value=$patient_ecrf_data_auto[$ecrf_item_num];
+	                //}
+			$ecrf_answer_num=get_ecrf_answer_num($user_num_ecrf,$ecrf_num,$patient_num,$ecrf_patient_event_num,$ecrf_item_num);
+	                $ecrf_patient_validation_answer=get_ecrf_patient_validation_answer ($ecrf_answer_num);
 	                if ($ecrf_patient_validation_answer['user_validation']==1) {
 	                	$backgroundcolor='#bfe6bf';
+	                	$value=$patient_ecrf_data_manual[$ecrf_item_num];
 	                } else {
 	                	$backgroundcolor=$backgroundcolor_global;
+	                	$value=$patient_ecrf_data_auto['automated_value'][$ecrf_item_num];
+	                	if ($option_excel=='excel_validated') {
+	                		$value='';
+	                	}
 	                }
 			 print "<td style=\"background-color:$backgroundcolor\">$value</td>";
 		}

@@ -39,7 +39,7 @@ if ($_POST['action']=='connexion') {
 	exit;
 }
 
-if ($_SESSION['dwh_login']=='') {
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']=='') {
 	print "deconnexion";
 	exit;
 } else {
@@ -57,17 +57,20 @@ if ($_POST['action']=='extract_data_ecrf_on_result') {
 	$datamart_num=$_POST['datamart_num'];
 	$option_perimetre=$_POST['option_perimetre'];
 	$option_une_ligne=$_POST['option_une_ligne'];
-	$filter_query_user_right=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+	$ecrf_name_extraction=urldecode($_POST['ecrf_name_extraction']);
+	$ecrf_name_extraction=str_replace('"'," ",$ecrf_name_extraction);
+	$filter_query_user_right=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
 
 	$process_num=get_uniqid();
-	passthru( "php exec_extract_data_ecrf_on_result.php \"$user_num_session\" \"$tmpresult_num\" \"$process_num\" \"$datamart_num\" \"$ecrf_num\" \"$filter_query_user_right\" \"$option_perimetre\" \"$option_une_ligne\">> $CHEMIN_GLOBAL_LOG/log_ecrf_$process_num.txt 2>&1 &");
+
+	passthru( "php exec_extract_data_ecrf_on_result.php \"$user_num_session\" \"$tmpresult_num\" \"$process_num\" \"$datamart_num\" \"$ecrf_num\" \"$filter_query_user_right\" \"$option_perimetre\" \"$option_une_ligne\" \"\" \"$ecrf_name_extraction\">> $CHEMIN_GLOBAL_LOG/log_ecrf_$process_num.txt 2>&1 &");
 	print "$process_num";
 	save_log_page($user_num_session,"extract_data_ecrf_on_result");
 }
 
 if ($_POST['action']=='verif_process_execute_extract_data_ecrf_on_result') {
 	$process_num=$_POST['process_num'];
-	$process=get_process ($process_num);
+	$process=get_process ($process_num,'dontget_result');
 	$status=$process['STATUS'];
 	$commentary=$process['COMMENTARY'];
 	print "$status;$commentary";
@@ -76,10 +79,18 @@ if ($_POST['action']=='verif_process_execute_extract_data_ecrf_on_result') {
 
 if ($_POST['action']=='get_data_ecrf_on_result') {
 	$process_num=$_POST['process_num'];
-	$process=get_process ($process_num);
+	$process=get_process ($process_num,'get_result');
 	$status=$process['STATUS'];
 	$commentary=$process['COMMENTARY'];
-	print $process['RESULT'];
+	$res = '';
+	if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_export_anonymized']) {
+		$anonymous_export_url=make_anonymous_export_url("process", $process_num, "");
+		$res .= "<form accept-charset=\"utf-8\" target=\"_blank\" action=\"$anonymous_export_url\" method=\"post\">";
+		$res .= "<button type=\"submit\" class=\"btn btn-link p-0\">Anonymiser les données </button> ";
+		$res .= "</form>";
+	}
+	$res .= $process['RESULT'];
+	print $res;
 }
 
 oci_close ($dbh);

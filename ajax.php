@@ -43,7 +43,7 @@ if ($_POST['action']=='connexion') {
 	exit;
 }
 
-if ($_SESSION['dwh_login']=='') {
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']=='') {
 	print "deconnexion";
 	exit;
 } else {
@@ -54,13 +54,13 @@ if ($_SESSION['dwh_login']=='') {
 	}
 }
 if ($_POST['action']=='choose_lang') {
-	if($_SESSION['DWH_LANG']=='') {
-		$_SESSION['DEFAULT_DWH_LANG']=$JSON_TRANSLATION_FILE;
+	if($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_DWH_LANG']=='') {
+		$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_DEFAULT_DWH_LANG']=$JSON_TRANSLATION_FILE;
 	}
 	if (is_file($_POST['lang'].".json")) {
-		$_SESSION['DWH_LANG']=$_POST['lang'].".json";
+		$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_DWH_LANG']=$_POST['lang'].".json";
 	} else {
-		$_SESSION['DWH_LANG']=$JSON_TRANSLATION_FILE;
+		$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_DWH_LANG']=$JSON_TRANSLATION_FILE;
 	}
 }
 
@@ -124,6 +124,7 @@ if ($_POST['action']=='calcul_nb_resultat_filtre_passthru') {
 		$agemois_deb_document=urldecode(trim($_POST['agemois_deb_document']));
 		$agemois_fin_document=urldecode(trim($_POST['agemois_fin_document']));
 		$document_origin_code=urldecode(trim($_POST['document_origin_code']));
+		$document_type=urldecode(trim($_POST['document_type']));
 		$liste_department_num='';
 		if ($hospital_department_list!='') {
 			$tableau_unite_heberg=explode(',',$hospital_department_list);
@@ -148,6 +149,18 @@ if ($_POST['action']=='calcul_nb_resultat_filtre_passthru') {
 				$liste_document_origin_code=substr($liste_document_origin_code,0,-1);
 			}
 		}
+		$liste_document_type='';
+		if ($document_type!='') {
+			$tableau_document_type=explode(',',$document_type);
+			if (is_array($tableau_document_type)) {
+				foreach ($tableau_document_type as $document_type) {
+					if ($document_type!='') {
+						$liste_document_type.="$document_type,";
+					}
+				}
+				$liste_document_type=substr($liste_document_type,0,-1);
+			}
+		}
 		$xml="<text_filter>
 <text>$text</text>
 <synonym_expansion>$etendre_syno</synonym_expansion>
@@ -166,6 +179,7 @@ if ($_POST['action']=='calcul_nb_resultat_filtre_passthru') {
 <document_agemonth_start>$agemois_deb_document</document_agemonth_start>
 <document_agemonth_end>$agemois_fin_document</document_agemonth_end>
 <document_origin_code>$liste_document_origin_code</document_origin_code>
+<document_type>$liste_document_type</document_type>
 <context>$context</context>
 <certainty>$certainty</certainty>
 <hospital_department_list>$liste_department_num</hospital_department_list>
@@ -289,6 +303,7 @@ if ($_POST['action']=='calcul_nb_resultat_filtre') {
 	$agemois_deb_document=urldecode(trim($_POST['agemois_deb_document']));
 	$agemois_fin_document=urldecode(trim($_POST['agemois_fin_document']));
 	$document_origin_code=urldecode(trim($_POST['document_origin_code']));
+	$document_type=urldecode(trim($_POST['document_type']));
 	$datamart_num=trim($_POST['datamart_num']);
 	$liste_department_num='';
 	if ($hospital_department_list!='') {
@@ -314,6 +329,18 @@ if ($_POST['action']=='calcul_nb_resultat_filtre') {
 			$liste_document_origin_code=substr($liste_document_origin_code,0,-1);
 		}
 	}
+	$liste_document_type='';
+	if ($document_type!='') {
+		$tableau_document_type=explode(',',$document_type);
+		if (is_array($tableau_document_type)) {
+			foreach ($tableau_document_type as $document_type) {
+				if ($document_type!='') {
+					$liste_document_type.="$document_type,";
+				}
+			}
+			$liste_document_type=substr($liste_document_type,0,-1);
+		}
+	}
 	$xml="<text_filter>
 <text>$text</text>
 <synonym_expansion>$etendre_syno</synonym_expansion>
@@ -332,6 +359,7 @@ if ($_POST['action']=='calcul_nb_resultat_filtre') {
 <document_agemonth_start>$agemois_deb_document</document_agemonth_start>
 <document_agemonth_end>$agemois_fin_document</document_agemonth_end>
 <document_origin_code>$liste_document_origin_code</document_origin_code>
+<document_type>$liste_document_type</document_type>
 <context>$context</context>
 <certainty>$certainty</certainty>
 <hospital_department_list>$liste_department_num</hospital_department_list>
@@ -433,7 +461,7 @@ if ($_POST['action']=='afficher_document_patient_popup') {
 
 if ($_POST['action']=='charger_moteur_recherche') {
 	$query_num=$_POST['query_num'];
-	if ($_SESSION['dwh_droit_admin']=='ok') {
+	if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 		$autorisation_requete_voir="ok";
 	} else {
 		$autorisation_requete_voir=autorisation_requete_voir ($query_num,$user_num_session);
@@ -454,7 +482,7 @@ if ($_POST['action']=='charger_moteur_recherche') {
 
 if ($_POST['action']=='peupler_moteur_recherche') {
 	$query_num=$_POST['query_num'];
-	if ($_SESSION['dwh_droit_admin']=='ok') {
+	if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 		$autorisation_requete_voir="ok";
 	} else {
 		$autorisation_requete_voir=autorisation_requete_voir ($query_num,$user_num_session);
@@ -473,6 +501,7 @@ if ($_POST['action']=='peupler_moteur_recherche') {
 			peupler_filtre_texte($xml_query);
 			peupler_filtre_mvt($xml_query);
 			peupler_contrainte_temporelle($xml_query);
+			peupler_filtre_logical_constraint($xml_query);
 			peupler_filtre_patient($xml_query);
 		       	print "jQuery('#id_input_max_num_filtre').val(\"$max_num_filtre\");";
 		}
@@ -523,31 +552,21 @@ if ($_POST['action']=='punaiser_requete') {
 
 
 /////////////////// ADMINISTRATION //////////// ANNUAIRE //////////////////
-if ($_POST['action']=='modifier_libelle_service' ) {
-	$department_str=nettoyer_pour_inserer(urldecode($_POST['department_str']));
-	$department_code=urldecode($_POST['department_code']);
-	$department_num=$_POST['department_num'];
-	if ($_SESSION['dwh_droit_admin']=='ok') {
-		$req_user="update dwh_thesaurus_department set department_str='$department_str', department_code='$department_code' where department_num=$department_num ";
-		$sel_user = oci_parse($dbh,$req_user);
-		oci_execute($sel_user);
-	}
-}
 
 if ($_GET['action']=='autocomplete_rech_rapide_utilisateur') {
 	$term=urldecode($_GET['term']);
 	if ($term!='') {
 		$resultat=rechercher_ldap_user_name_tableau($term,$grp);
-		$tableau_res=explode('-separateur-',$resultat);
+		//$tableau_res=explode('-separateur-',$resultat);
 		$i=0;
-		foreach ($tableau_res as $k) {
+		foreach ($resultat as $ident) {
 			$i++;
-			$t=explode(';',$k);
-			$login_local=$t[0];
-			$label_affiche=$t[1];
-			$label_value=$t[2];
+			$login_local=$ident['login'];
+			$lastname=$ident['lastname'];
+			$firstname=$ident['firstname'];
+			$mail=$ident['mail'];
 			if ($i<100) {
-				$json.="{\"id\":\"$login_local\",\"label\":\"$label_affiche\",\"value\":\"$label_value\"},";
+				$json.="{\"id\":\"$login_local\",\"label\":\"$lastname $firstname ($login_local)\",\"value\":\"$lastname,$firstname,$mail\"},";
 			}
 		}
 		
@@ -567,7 +586,7 @@ if ($_POST['action']=='ajouter_user') {
 	oci_execute($sel_var);
 	$r=oci_fetch_array($sel_var);
 	$manager_department_groupe=$r[0];
-	if ($_SESSION['dwh_droit_admin']=='ok' || $manager_department_groupe==1) {
+	if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok' || $manager_department_groupe==1) {
 		$tableau_login=preg_split("/[,;\n]/",$liste_login);
 		foreach ($tableau_login as $login_user) {
 			$login_user=trim($login_user);
@@ -578,12 +597,11 @@ if ($_POST['action']=='ajouter_user') {
 			} 
 			$login_user=trim($login_user);
 			if ($login_user!='') {
-				$nomfirstname=ldap_user_name($login_user);
-				$ident=preg_split("/,/",$nomfirstname);
-				$lastname=$ident[0];
-				$firstname=$ident[1];
-				$mail=$ident[2];
-			
+				$tab_id=ldap_user_name_new($login_user);
+				$lastname=$tab_id['lastname'];
+				$firstname=$tab_id['firstname'];
+				$mail=$tab_id['mail'];
+	 	
 				$user_num=ajouter_user ($login_user,$lastname,$firstname,$mail,'',$user_profile,$liste_services,'ok') ;
 								
 			        $sel_var=oci_parse($dbh,"select count(*) from dwh_user_department where department_num=$department_num and  user_num =$user_num ");
@@ -655,7 +673,7 @@ if ($_POST['action']=='supprimer_user' ) {
 	oci_execute($sel_var);
 	$r=oci_fetch_array($sel_var);
 	$manager_department_groupe=$r[0];
-	if ($_SESSION['dwh_droit_admin']=='ok' || $manager_department_groupe==1) {
+	if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok' || $manager_department_groupe==1) {
 		$req_user="delete dwh_user_department where department_num=$department_num and user_num=$user_num ";
 		$sel_user = oci_parse($dbh,$req_user);
 		oci_execute($sel_user);
@@ -667,16 +685,16 @@ if ($_GET['action']=='autocomplete_rech_rapide_utilisateur_ajout') {
 	$term=urldecode($_GET['term']);
 	if ($term!='') {
 		$resultat=rechercher_ldap_user_name_tableau($term,$grp);
-		$tableau_res=explode('-separateur-',$resultat);
+		//$tableau_res=explode('-separateur-',$resultat);
 		$i=0;
-		foreach ($tableau_res as $k) {
+		foreach ($resultat as $ident) {
 			$i++;
-			$t=explode(';',$k);
-			$login_local=$t[0];
-			$label_affiche=$t[1];
-			$label_value=$t[2];
+			$login_local=$ident['login'];
+			$lastname=$ident['lastname'];
+			$firstname=$ident['firstname'];
+			$mail=$ident['mail'];
 			if ($i<100) {
-				$json.="{\"id\":\"$login_local\",\"label\":\"$label_affiche\",\"value\":\"$label_value\"},";
+				$json.="{\"id\":\"$login_local\",\"label\":\"$lastname $firstname ($login_local)\",\"value\":\"$lastname,$firstname,$mail\"},";
 			}
 		}
 		$json=substr($json,0,-1);
@@ -691,7 +709,7 @@ if ($_GET['action']=='recherche_annuaire_interne') {
 	$term=trim(urldecode($_GET['term']));
 	if ($term!='') {
 		$i=0;
-		$sel=oci_parse($dbh,"select login,lastname,firstname,mail,dwh_user.user_num from dwh_user where 
+		$sel=oci_parse($dbh,"select login,lastname,firstname,mail,dwh_user.user_num,to_char(expiration_date,'DD/MM/YYYY')  as expiration_date from dwh_user where 
 		login='$term' or 
 		lower(lastname) like lower('%$term%') or 
 		lower(lastname||' '||firstname) like lower('%$term%') or 
@@ -703,24 +721,25 @@ if ($_GET['action']=='recherche_annuaire_interne') {
 			$firstname=$r['FIRSTNAME'];
 			$mail=$r['MAIL'];
 			$user_num=$r['USER_NUM'];
+			$expiration_date=$r['EXPIRATION_DATE'];
 			$i++;
 			if ($i<100) {
-				$json.="{\"id\":\"$login\",\"label\":\"$lastname $firstname\",\"value\":\"$lastname,$firstname,$mail,$user_num\"},";
+				$json.="{\"id\":\"$login\",\"label\":\"$lastname $firstname ($login)\",\"value\":\"$lastname,$firstname,$mail,$user_num,$expiration_date\"},";
 			}
 		}
 		
 		if ($json=='') {
 			$resultat=rechercher_ldap_user_name_tableau($term,$grp);
-			$tableau_res=explode('-separateur-',$resultat);
+			//$tableau_res=explode('-separateur-',$resultat);
 			$i=0;
-			foreach ($tableau_res as $k) {
+			foreach ($resultat as $ident) {
 				$i++;
-				$t=explode(';',$k);
-				$login_local=$t[0];
-				$label_affiche=$t[1];
-				$label_value=$t[2];
+				$login_local=$ident['login'];
+				$lastname=$ident['lastname'];
+				$firstname=$ident['firstname'];
+				$mail=$ident['mail'];
 				if ($i<100) {
-					$json.="{\"id\":\"$login_local\",\"label\":\"$label_affiche\",\"value\":\"$label_value,\"},";
+					$json.="{\"id\":\"$login_local\",\"label\":\"$lastname $firstname ($login_local)\",\"value\":\"$lastname,$firstname,$mail,\"},";
 				}
 			}
 		}
@@ -731,7 +750,7 @@ if ($_GET['action']=='recherche_annuaire_interne') {
 	}
 }
 
-if ($_POST['action']=='ajouter_datamart' && $_SESSION['dwh_droit_admin_datamart0']=='ok') {
+if ($_POST['action']=='ajouter_datamart' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin_datamart0']=='ok') {
 	$title_datamart=nettoyer_pour_insert(urldecode(trim($_POST['title_datamart'])));
 	$description_datamart=nettoyer_pour_insert(urldecode(trim($_POST['description_datamart'])));
 	$date_start=trim($_POST['date_start']);
@@ -763,7 +782,7 @@ if ($_POST['action']=='ajouter_datamart' && $_SESSION['dwh_droit_admin_datamart0
 	afficher_datamart_ligne($num_datamart_admin);
 }
 
-if ($_POST['action']=='supprimer_datamart' && $_SESSION['dwh_droit_admin_datamart0']=='ok') {
+if ($_POST['action']=='supprimer_datamart' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin_datamart0']=='ok') {
 	$num_datamart_admin=trim($_POST['num_datamart_admin']);
 	
 	delete_datamart_resultat ($num_datamart_admin,$sql);
@@ -782,7 +801,7 @@ if ($_POST['action']=='supprimer_datamart' && $_SESSION['dwh_droit_admin_datamar
 }
 
 
-if ($_POST['action']=='afficher_formulaire_modifier_datamart' && $_SESSION['dwh_droit_admin_datamart0']=='ok') {
+if ($_POST['action']=='afficher_formulaire_modifier_datamart' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin_datamart0']=='ok') {
 	$num_datamart_admin=trim($_POST['num_datamart_admin']);
 	
 	$sel_vardroit=oci_parse($dbh,"select title_datamart,description_datamart,to_char(date_start,'DD/MM/YYYY') as date_start,to_char(end_date,'DD/MM/YYYY') as end_date ,datamart_num from dwh_datamart where datamart_num=$num_datamart_admin ");
@@ -887,7 +906,7 @@ if ($_POST['action']=='afficher_formulaire_modifier_datamart' && $_SESSION['dwh_
 	
 }
 
-if ($_POST['action']=='modifier_datamart' && $_SESSION['dwh_droit_admin_datamart0']=='ok') {
+if ($_POST['action']=='modifier_datamart' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin_datamart0']=='ok') {
 	$num_datamart_admin=trim($_POST['num_datamart_admin']);
 	$title_datamart=nettoyer_pour_insert(urldecode(trim($_POST['title_datamart'])));
 	$description_datamart=nettoyer_pour_insert(urldecode(trim($_POST['description_datamart'])));
@@ -932,12 +951,12 @@ if ($_POST['action']=='modifier_datamart' && $_SESSION['dwh_droit_admin_datamart
 	afficher_datamart_ligne($num_datamart_admin);
 }
 
-if ($_POST['action']=='afficher_datamart_select' && $_SESSION['dwh_droit_admin_datamart0']=='ok') {
+if ($_POST['action']=='afficher_datamart_select' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin_datamart0']=='ok') {
 	$id=trim($_POST['id']);
 	afficher_datamart_select($id);
 }
 
-if ($_POST['action']=='ajouter_patient_datamart' && $_SESSION['dwh_droit_admin_datamart0']=='ok') {
+if ($_POST['action']=='ajouter_patient_datamart' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin_datamart0']=='ok') {
 	$num_datamart_admin=trim($_POST['num_datamart_admin']);
 	$tmpresult_num=trim($_POST['tmpresult_num']);
 	
@@ -951,7 +970,7 @@ if ($_POST['action']=='ajouter_patient_datamart' && $_SESSION['dwh_droit_admin_d
 	print "<strong style=\"color:green\"><br>$nb ".get_translation('PATIENTS_ADDED_TO_DATAMART','patients ajoutés dans le datamart')."</strong><br>";
 }
 
-if ($_POST['action']=='supprimer_patient_datamart' && $_SESSION['dwh_droit_admin_datamart0']=='ok') {
+if ($_POST['action']=='supprimer_patient_datamart' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin_datamart0']=='ok') {
 	$num_datamart_admin=trim($_POST['num_datamart_admin']);
 	$tmpresult_num=trim($_POST['tmpresult_num']);
 	
@@ -992,7 +1011,7 @@ if ($_POST['action']=='ajouter_cohorte') {
 			
 		if ($num_datamart_cohorte==0) {
 			foreach ($tableau_cohorte_droit as $right) {
-				if ($_SESSION['dwh_droit_'.$right.'0']=='ok') {
+				if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_'.$right.'0']=='ok') {
 					$req="insert into dwh_cohort_user_right  (cohort_num , user_num ,right) values ($cohort_num_admin,$user_num_session,'$right')";
 					$ins=oci_parse($dbh,$req);
 					oci_execute($ins) || die ("<strong style=\"color:red\">erreur : user et right non sauvé</strong><br>");
@@ -1191,13 +1210,42 @@ if ($_POST['action']=='liste_patient_cohorte_encours') {
 	$cohort_num_encours=$_POST['cohort_num_encours'];
 	$datamart_num=$_POST['datamart_num'];
 	$status=$_POST['status'];
+	$nb_patient_displayed=$_POST['nb_patient_displayed'];
 	$verif_autorisation_voir_patient_cohorte=verif_autorisation_voir_patient_cohorte ($cohort_num_encours,$user_num_session);
 	if ($verif_autorisation_voir_patient_cohorte=='ok') {
-		print liste_patient_cohorte_encours($cohort_num_encours,$status);
+		print liste_patient_cohorte_encours($cohort_num_encours,$status,$nb_patient_displayed);
 	}
 }
 
 
+if ($_POST['action']=='liste_patient_cohorte_encours_header') {
+	$cohort_num_encours=$_POST['cohort_num_encours'];
+	$datamart_num=$_POST['datamart_num'];
+	$status=$_POST['status'];
+	$nb_patient_displayed=$_POST['nb_patient_displayed'];
+	if ($nb_patient_displayed==0) {
+		$verif_autorisation_voir_patient_cohorte=verif_autorisation_voir_patient_cohorte ($cohort_num_encours,$user_num_session);
+		if ($verif_autorisation_voir_patient_cohorte=='ok') {
+			print "<a href=\"export_excel.php?cohort_num=$cohort_num_encours&status=$status\"><img src=\"images/excel_noir.png\" style=\"cursor:pointer;width:25px;\" title=\"Export Excel\" alt=\"Export Excel\" border=\"0\"></a>";
+			//$res.= "<img src=\"images/copier_coller.png\" onclick=\"plier_deplier('id_div_tableau_patient_cohorte_encours$status');plier_deplier('id_div_textarea_patient_cohorte_encours$status');fnSelect('id_div_textarea_patient_cohorte_encours$status');\" style=\"cursor:pointer;\" title=\"Copier Coller pour exporter dans Gecko\" alt=\"Copier Coller pour exporter dans Gecko\"> ";
+			if($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_export_anonymized']=='ok') {
+				$anonymous_export_url=make_anonymous_export_url("cohort", $cohort_num_encours, "status=$status");
+				print "<form class=\"form-inline\" target=\"_blank\" action=\"$anonymous_export_url\" method=\"post\">";
+				print "<button type=\"submit\" class=\"btn btn-link pl-0\"><i class=\"fa fa-mask\" style=\"color: black;\"> </i></button> ";
+				print "</form>";	
+			}
+			$nb_patient=get_nb_patient_cohort ($cohort_num_encours,$status);
+			print "<div id=\"id_div_tableau_patient_cohorte_encours$status\" style=\"display:block;\">";
+			print "<input type=hidden id=\"id_tableau_patient_cohorte_encours_nb_patient$status\" value=\"$nb_patient\">";
+		        print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
+		        print "</table>";
+		        print "<span id=\"id_liste_patient_cohorte_encours".$status."_next_patient\"><br><a href=\"#\" onclick=\"liste_patient_cohorte_encours('$cohort_num_encours','$status');return false;\">afficher les patients suivants </a><span>";
+		        print "</div>";
+		}
+	}
+}
+			        
+			        
 if ($_POST['action']=='tout_inclure_exclure') {
 	$cohort_num_encours=$_POST['cohort_num_encours'];
 	$tmpresult_num=$_POST['tmpresult_num'];
@@ -1213,7 +1261,7 @@ if ($_POST['action']=='tout_inclure_exclure') {
 			$filtre_sql=" and patient_num not in (select patient_num from dwh_cohort_result where cohort_num=$cohort_num_encours and status in (0,1)) ";
 		}
 		
-		$filter_query_user_right=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+		$filter_query_user_right=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
 	
 		$sel_varpatient_num=oci_parse($dbh,"select patient_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and user_num=$user_num_session $filter_query_user_right $filtre_sql");
 		oci_execute($sel_varpatient_num);
@@ -1303,9 +1351,15 @@ if ($_POST['action']=='supprimer_commentaire_cohorte') {
 if ($_POST['action']=='afficher_document_patient') {
 	$document_num=$_POST['document_num'];
 	$datamart_num=$_POST['datamart_num'];
-	$requete=nettoyer_pour_requete(urldecode($_POST['requete']));
-	$requete_json=nettoyer_pour_inserer ($requete);
-	$requete_json=replace_accent($requete_json);
+	
+	$requete=urldecode($_POST['requete']);
+	if (preg_match("/[[|?+(]/",$requete)) {
+		$requete_json=clean_for_regexp ($requete);
+	} else {
+		$requete_json=nettoyer_pour_requete ($requete);
+		$requete_json=nettoyer_pour_inserer ($requete_json);
+		$requete_json=replace_accent($requete_json);
+	}
 	print afficher_document_patient($document_num,$requete_json,$user_num_session);
 }
 
@@ -1405,7 +1459,7 @@ if ($_POST['action']=='calcul_nb_patient_resultat') {
                 $filtre_sql.=" and document_num in  (select document_num from dwh_text where document_num in (select document_num from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num and object_type='document') and  contains (enrich_text,'$filtre_resultat_texte')>0 and context='patient_text' and certainty=1) ";
         }
         
-	$filter_query_user_right=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+	$filter_query_user_right=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
 	
         $sel = oci_parse($dbh,"select count(distinct patient_num) nb from dwh_tmp_result_$user_num_session where tmpresult_num=$tmpresult_num $filter_query_user_right $filtre_sql ");   
         oci_execute($sel);
@@ -1456,9 +1510,11 @@ if ($_POST['action']=='afficher_cohorte_nb_patient_statut') {
 
 if ($_GET['action']=='patient_quick_access') {
 	$json='';
-	if ($_SESSION['dwh_droit_patient_quick_access0']=='ok' && $_SESSION['dwh_droit_anonymized0']=='') {
+	if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_patient_quick_access0']=='ok' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_anonymized0']=='') {
 		$term=supprimer_apost(trim(utf8_decode($_GET['term'])));
 		$term=replace_accent($term);	
+		$term=preg_replace("/[\t;,.:]/"," ",$term);
+		$term=preg_replace("/ +/"," ",$term);
 		$json="";
 		$i=0;
 		$req_date_nais='';
@@ -1597,19 +1653,29 @@ if ($_GET['action']=='patient_quick_access') {
 if ($_POST['action']=='rechercher_code') {
 	$num_filtre=$_POST['num_filtre'];
 	$requete_texte=nettoyer_pour_requete(trim(urldecode($_POST['requete_texte'])));
+	$sans_filtre=$_POST['sans_filtre'];
 	//$requete_texte=trim($requete_texte);
 	//$requete_texte=preg_replace("/\"/"," ",$requete_texte);
 	//$requete_texte=preg_replace("/'/","''",$requete_texte);
 	//$requete_texte=preg_replace("/-/","\-",$requete_texte);
 	$thesaurus_code=$_POST['thesaurus_code'];
 	
-	$sans_filtre=$_POST['sans_filtre'];
 	$thesaurus_data_father_num=$_POST['thesaurus_data_father_num'];
 	if ($thesaurus_data_father_num=='') {
 		$thesaurus_data_father_num=0;
-		print "<hr>";
+		print "<div style=\"position:absolute;left:390px;z-index:22;top:-6;color:grey;cursor:pointer;\" onclick=\"plier('id_div_resultat_recherche_code_$num_filtre');\">x</div>
+		<hr>";
 	}
-	rechercher_examen_thesaurus ($requete_texte,$num_filtre,$thesaurus_code,$thesaurus_data_father_num,$sans_filtre);
+	rechercher_examen_thesaurus ($requete_texte,$num_filtre,$thesaurus_code,"$thesaurus_data_father_num",$sans_filtre);
+}
+
+if ($_POST['action']=='display_hierarchy_thesaurus') {
+	$num_filtre=$_POST['num_filtre'];
+	$thesaurus_data_num=$_POST['thesaurus_data_num'];
+	$requete_texte=nettoyer_pour_requete(trim(urldecode($_POST['requete_texte'])));
+	print "<div style=\"position:absolute;left:390px;z-index:22;top:-6;color:grey;cursor:pointer;\" onclick=\"plier('id_div_resultat_recherche_code_$num_filtre');\">x</div>";
+	print "<hr>";
+	display_hierarchy_thesaurus($num_filtre,$thesaurus_data_num,$requete_texte);
 }
 
 
@@ -2138,7 +2204,7 @@ if ($_POST['action']=='afficher_repartition_par_pays') {
 }
 
 if ($_POST['action']=='modify_hospital_patient_id') {
-	if ($_SESSION['dwh_droit_modify_patient']=='ok') {
+	if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_modify_patient']=='ok') {
 		$patient_num=$_POST['patient_num'];
 		$hospital_patient_id_new=$_POST['hospital_patient_id_new'];
 		$hospital_patient_id_ancien=$_POST['hospital_patient_id'];
@@ -2411,7 +2477,7 @@ if ($_POST['action']=='open_notification') {
 			$notification.="</a>";
 		}
 		if ($notification_type=='process') {
-			$process=get_process($shared_element_num);
+			$process=get_process($shared_element_num,'dontget_result');
 			$user_num=$process['USER_NUM'];
 			if ($user_num==$user_num_session) {
 				$file_name=$process['COMMENTARY'];
@@ -2480,7 +2546,7 @@ if ($_POST['action']=='envoyer_message_prive') {
 }
 
 
-if ($_POST['action']=='insert_outil' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='insert_outil' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$tableau['TITLE']=urldecode($_POST['title']);
 	$tableau['DESCRIPTION']=urldecode($_POST['description']);
 	$tableau['AUTHORS']=urldecode($_POST['authors']);
@@ -2489,7 +2555,7 @@ if ($_POST['action']=='insert_outil' && $_SESSION['dwh_droit_admin']=='ok') {
 	admin_lister_outil () ;
 }
 
-if ($_POST['action']=='update_outil' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='update_outil' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$tableau['TOOL_NUM']=urldecode($_POST['tool_num']);
 	$tableau['TITLE']=urldecode($_POST['title']);
 	$tableau['DESCRIPTION']=urldecode($_POST['description']);
@@ -2498,7 +2564,7 @@ if ($_POST['action']=='update_outil' && $_SESSION['dwh_droit_admin']=='ok') {
 	update_outil($tableau);
 }
 
-if ($_POST['action']=='delete_outil' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='delete_outil' && $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
 	$tool_num=$_POST['tool_num'];
 	delete_outil($tool_num);
 }
@@ -2554,7 +2620,7 @@ if ($_POST['action']=='create_process' ) {
 
 if ($_POST['action']=='check_process_status' ) {
 	$process_num=$_POST['process_num'];
-	$process=get_process  ($process_num);
+	$process=get_process  ($process_num,'dontget_result');
 	print $process['STATUS'].";".$process['COMMENTARY'];
 }
 

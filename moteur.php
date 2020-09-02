@@ -64,7 +64,19 @@ if ($_POST['action']=='rechercher') {
 	$full_text_query="";
 	$json_ft_query='';
 	for ($i=1;$i<=$max_num_filtre;$i++) {
-		if ($_POST['text_'.$i]!='' && strlen(trim($_POST['text_'.$i]))>1 || $_POST['chaine_requete_code_'.$i]!='') {
+		if (
+		$_POST['text_'.$i]!='' && strlen(trim($_POST['text_'.$i]))>1 || $_POST['chaine_requete_code_'.$i]!=''
+			|| $_POST['hospital_department_list_'.$i]!='' 
+			|| $_POST['document_origin_code_'.$i]!='' 
+			|| $_POST['document_type_'.$i]!='' 
+			|| $_POST['title_document_'.$i]!='' 
+			|| ($_POST['date_deb_document_'.$i]!='' && $_POST['date_fin_document_'.$i]!='' )
+			|| $_POST['document_last_nb_days_'.$i]!='' 
+			|| $_POST['periode_document_'.$i]!='' 
+			|| ($_POST['age_deb_document_'.$i]!='' && $_POST['age_fin_document_'.$i]!='' )
+			|| ($_POST['stay_length_min_'.$i]!='' && $_POST['stay_length_max_'.$i]!='' )
+			|| ($_POST['agemois_deb_document_'.$i]!='' && $_POST['agemois_fin_document_'.$i]!='' )
+		) {
 			$xml_unitaire="<text_filter>";
 			
 			
@@ -82,13 +94,47 @@ if ($_POST['action']=='rechercher') {
 			
 			//// code
 			if (trim($_POST['thesaurus_data_num_'.$i])!='') {
-				$libelle_code=nettoyer_pour_insert(get_data_concept_str (trim($_POST['thesaurus_data_num_'.$i])));
-				$requete_full_text=analyse_chaine_requete_code (trim($_POST['thesaurus_data_num_'.$i]),trim($_POST['chaine_requete_code_'.$i]),'surligner',$i);
-				$concept_code=analyse_chaine_requete_code (trim($_POST['thesaurus_data_num_'.$i]),trim($_POST['chaine_requete_code_'.$i]),'get_concept_code',$i);
-				$thesaurus_code=analyse_chaine_requete_code (trim($_POST['thesaurus_data_num_'.$i]),trim($_POST['chaine_requete_code_'.$i]),'get_thesaurus_code',$i);
-				$requete_json=nettoyer_pour_inserer ($requete_full_text);
-				$requete_json=replace_accent($requete_json);
-				$json_ft_query.="{'query':'$requete_json','type':'data','concept_code':'$concept_code','thesaurus_code':'$thesaurus_code','synonym':''},";
+				$thesaurus_data_num=preg_replace("/;$/","",$_POST['thesaurus_data_num_'.$i]);
+	                	$thesaurus_data_num=preg_replace("/^;/","",$thesaurus_data_num);
+	                	$chaine_requete_code=preg_replace("/;separator;$/","",$_POST['chaine_requete_code_'.$i]);
+	                	$chaine_requete_code=preg_replace("/^;separator;/","",$chaine_requete_code);
+	                	
+	                	$tab_thesaurus_data_num=explode(";",$thesaurus_data_num);
+	                	if ($tab_thesaurus_data_num==1) {
+	                	// si recherche unique : 
+	                		$thesaurus_data=get_thesaurus_data(trim($_POST['thesaurus_data_num_'.$i]));
+					$concept_str=nettoyer_pour_insert($thesaurus_data['CONCEPT_STR']);
+					$concept_code=nettoyer_pour_insert($thesaurus_data['CONCEPT_CODE']);
+					$thesaurus_code=nettoyer_pour_insert($thesaurus_data['THESAURUS_CODE']);
+					$requete_full_text="$concept_str and $concept_code";
+					
+	                		$tab=explode(";",$chaine_requete_code);
+					if (count($tab)==9) { // ancien version, la derniere position (8) était thesaurus_data_num //
+						$requete_full_text.=" and ".$tab[8];
+					}
+					
+					$requete_json=nettoyer_pour_inserer ($requete_full_text);
+					$requete_json=replace_accent($requete_json);
+					$json_ft_query.="{'query':'$requete_json','type':'data','concept_code':'$concept_code','thesaurus_code':'$thesaurus_code','synonym':''},";
+	                	} else {
+	                	// si recherche multiple : 
+	                		$tab_chaine_requete_code=explode(";separator;",$chaine_requete_code);
+	                		foreach ($tab_chaine_requete_code as $sous_chaine_requete_code) {
+	                			$tab=explode(";",$sous_chaine_requete_code);
+	                			$thesaurus_data_num=$tab[count($tab)-1];
+		                		$thesaurus_data=get_thesaurus_data(trim($thesaurus_data_num));
+						$concept_str=nettoyer_pour_insert($thesaurus_data['CONCEPT_STR']);
+						$concept_code=nettoyer_pour_insert($thesaurus_data['CONCEPT_CODE']);
+						$thesaurus_code=nettoyer_pour_insert($thesaurus_data['THESAURUS_CODE']);
+						$requete_full_text="$concept_str and $concept_code";
+						if (count($tab)==9) { // ancien version, la derniere position (8) était thesaurus_data_num //
+							$requete_full_text.=" and ".$tab[8];
+						}
+						$requete_json=nettoyer_pour_inserer ($requete_full_text);
+						$requete_json=replace_accent($requete_json);
+						$json_ft_query.="{'query':'$requete_json','type':'data','concept_code':'$concept_code','thesaurus_code':'$thesaurus_code','synonym':''},";
+	                		}
+	                	}
 			}
 			$xml_unitaire.="<thesaurus_data_num>".trim($_POST['thesaurus_data_num_'.$i])."</thesaurus_data_num>";
 			$xml_unitaire.="<str_structured_query>".trim($_POST['chaine_requete_code_'.$i])."</str_structured_query>";
@@ -133,6 +179,17 @@ if ($_POST['action']=='rechercher') {
 				$liste_document_origin_code=substr($liste_document_origin_code,0,-1);
 			}
 			$xml_unitaire.="<document_origin_code>".trim($liste_document_origin_code)."</document_origin_code>";
+			
+			$liste_document_type='';
+			if (is_array($_POST['document_type_'.$i])) {
+				foreach ($_POST['document_type_'.$i] as $val) {
+					if ($val!='') {
+						$liste_document_type.="$val,";
+					}
+				}
+				$liste_document_type=substr($liste_document_type,0,-1);
+			}
+			$xml_unitaire.="<document_type>".trim($liste_document_type)."</document_type>";
 			
 			if ($_POST['texte_nbresult_'.$i]=='') {
 				$requete_sql_filtre_texte=creer_requete_sql_filtre("$xml_unitaire</text_filter>","patient_num");
@@ -235,6 +292,9 @@ if ($_POST['action']=='rechercher') {
 	
 	$json_full_text_queries=substr($json_ft_query,0,-1);
 	
+	
+	$xml.="<logical_constraint>".trim($_POST['logical_constraint'])."</logical_constraint>";
+	
 	$xml.="<datamart_num>$datamart_num</datamart_num>";
 	$xml.="<sex>".trim($_POST['sex'])."</sex>";
 	$xml.="<age_start>".trim($_POST['age_deb'])."</age_start>";
@@ -246,6 +306,10 @@ if ($_POST['action']=='rechercher') {
 	
 	$xml.="<first_stay_date_start>".trim($_POST['date_deb_1ervenue'])."</first_stay_date_start>";
 	$xml.="<first_stay_date_end>".trim($_POST['date_fin_1ervenue'])."</first_stay_date_end>";
+	
+	$xml.="<lastdoc_date_start>".trim($_POST['lastdoc_date_start'])."</lastdoc_date_start>";
+	$xml.="<lastdoc_date_end>".trim($_POST['lastdoc_date_end'])."</lastdoc_date_end>";
+	
 	$xml.="<minimum_period_folloup>".trim($_POST['duree_minimum_prise_en_charge'])."</minimum_period_folloup>";
 	
 	$liste_cohorte_exclue='';
@@ -271,6 +335,7 @@ if ($_POST['action']=='rechercher') {
 			$xml_unitaire.="<str_structured_query></str_structured_query>";
 			$xml_unitaire.="<exclude></exclude>";
 			$xml_unitaire.="<document_origin_code></document_origin_code>";
+			$xml_unitaire.="<document_type></document_type>";
 			$xml_unitaire.="<context></context>";
 			$xml_unitaire.="<certainty></certainty>";
 			$xml_unitaire.="<document_date_start></document_date_start>";
@@ -290,6 +355,7 @@ if ($_POST['action']=='rechercher') {
 		
 		$xml="<query>";
 		$xml.="$xml_unitaire<datamart_num>$datamart_num</datamart_num>";
+		$xml.="<logical_constraint></logical_constraint>";
 		$xml.="<sex></sex>";
 		$xml.="<age_start></age_start>";
 		$xml.="<age_end></age_end>";
@@ -298,6 +364,8 @@ if ($_POST['action']=='rechercher') {
 		$xml.="<age_death_end></age_death_end>";
 		$xml.="<first_stay_date_start></first_stay_date_start>";
 		$xml.="<first_stay_date_end></first_stay_date_end>";
+		$xml.="<lastdoc_date_start></lastdoc_date_start>";
+		$xml.="<lastdoc_date_end></lastdoc_date_end>";
 		$xml.="<minimum_period_folloup></minimum_period_folloup>";
 		$xml.="<list_excluded_cohort></list_excluded_cohort>";
 		$xml.="</query>";
@@ -332,6 +400,13 @@ if ($_POST['action']=='rechercher') {
 			<div id="id_div_formulaire_contrainte_temporelle" class="div_filtre" style="display:none;">
 				<?
 					selection_contrainte_temporelle();
+				?>
+			</div>
+			
+			<h2 style="cursor:pointer;" onclick="plier_deplier('id_div_formulaire_logical_constraint');"><span id="plus_id_div_formulaire_logical_constraint">+</span> <? print get_translation('LOGICAL_CONSTRAINT','Contraintes logiques'); ?></h2>
+			<div id="id_div_formulaire_logical_constraint" class="div_filtre" style="display:none;">
+				<?
+					add_logical_constraint();
 				?>
 			</div>
 			
@@ -418,6 +493,7 @@ if ($_POST['action']=='rechercher') {
 			peupler_filtre_texte($xml);
 			peupler_filtre_mvt($xml);
 			peupler_contrainte_temporelle($xml);
+			peupler_filtre_logical_constraint($xml);
 			peupler_filtre_patient($xml);
        			print "jQuery('#id_input_max_num_filtre').val(\"$max_num_filtre\");";
 			print "</script>";
@@ -441,17 +517,17 @@ if ($_POST['action']=='rechercher') {
 		$afficher_result="
 		generer_resultat('$query_num','$tmpresult_num','$datamart_num') ;
 		";
-		if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') {
+		if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_detailed'.$datamart_num]=='ok') {
 			$display_detail='block';
 			$class_menu_detail=' current ';
 			$initiate_result="voir_detail_dwh('resultat_detail');";
 		} else {
-			if ($_SESSION['dwh_droit_see_stat'.$datamart_num]=='ok') {
+			if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_stat'.$datamart_num]=='ok') {
 				$display_stat='block';
 				$class_menu_stat=' current ';
 				$initiate_result="voir_detail_dwh('stat');affiche_onglet_stat( $tmpresult_num);";
 			} else {
-				if ($_SESSION['dwh_droit_see_drg'.$datamart_num]=='ok') {
+				if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_drg'.$datamart_num]=='ok') {
 					$display_pmsi='block';
 					$class_menu_pmsi=' current ';
 					$initiate_result="voir_detail_dwh('pmsi');affiche_onglet_pmsi($tmpresult_num,'sejour','ok','$thesaurus_code_pmsi');";
@@ -461,13 +537,13 @@ if ($_POST['action']=='rechercher') {
 	?>
 		<div id="tabs" style="width:100%">
 			<ul id="tab-links">
-			<? if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
 					<li class="<? print $class_menu_detail; ?> color-bullet" id="id_bouton_resultat_detail"><span class="li-content"><img src="images/detail.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('resultat_detail');return false;"><? print get_translation('RESULT','Résultat'); ?></a></span></li>
 			<? } ?>
-			<? if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
 				<? //	<li class="color-bullet" id="id_bouton_cohorte"><span class="li-content"><img src="images/cohorte.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('cohorte');return false;">Cohortes</a></span></li> ?>
 			<? } ?>
-			<? if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') {
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_detailed'.$datamart_num]=='ok') {
 				if ($cohort_num_encours!='') { 
 					list($titre_cohorte_encours,$nb_patient_cohorte_encours)=recup_titre_cohorte($cohort_num_encours);
 					$style_display='block';
@@ -480,37 +556,37 @@ if ($_POST['action']=='rechercher') {
 					<span id="id_nb_patient_cohorte_inclu" style="color: red; font-weight: bold; left: 0px; position: relative;top: -11px; display: inline;"><? print $nb_patient_cohorte_encours; ?></span>
 					<span style="color: black; font-weight: bold; left: 0px; position: relative;top: -11px; display: inline;cursor:pointer;" alt="fermer" title="fermer" onclick="fermer_cohorte_encours();">x</span></li>
 			<? } ?>
-			<? if ($_SESSION['dwh_droit_see_stat'.$datamart_num]=='ok') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_stat'.$datamart_num]=='ok') { ?>
 					<li class="<? print $class_menu_stat; ?> color-bullet" id="id_bouton_stat"><span class="li-content"><img src="images/graph.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('stat');affiche_onglet_stat(<? print $tmpresult_num; ?>);return false;"><? print get_translation('STATISTICAL_DATA','Données stat'); ?></a></span></li>
 			<? }?>
-			<? if ($_SESSION['dwh_droit_see_concept'.$datamart_num]=='ok') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_concept'.$datamart_num]=='ok') { ?>
 					<li class="color-bullet" id="id_bouton_concepts"><span class="li-content"><img src="images/flow2.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('concepts');affiche_onglet_concepts (<? print $tmpresult_num; ?>,'','');return false;"><? print get_translation('PHENOTYPES','Phenotypes'); ?></a></span></li>
 			<? }?>
-			<? if ($_SESSION['dwh_droit_see_drg'.$datamart_num]=='ok') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_drg'.$datamart_num]=='ok') { ?>
 					<li class="<? print $class_menu_pmsi; ?> color-bullet" id="id_bouton_pmsi"><span class="li-content"><img src="images/flow2.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('pmsi');affiche_onglet_pmsi (<? print $tmpresult_num; ?>,'sejour','','<? print $thesaurus_code_pmsi; ?>');return false;"><? print get_translation('HOSPITAL_DRG','PMSI'); ?></a></span></li>
 			<? } ?>
-			<? if ($_SESSION['dwh_droit_see_biology'.$datamart_num]=='ok') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_biology'.$datamart_num]=='ok') { ?>
 					<li class="color-bullet" id="id_bouton_labo"><span class="li-content"><img src="images/chemistry21.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('labo');affiche_onglet_labo (<? print $tmpresult_num; ?>);return false;"><? print get_translation('BIOLOGY','Biologie'); ?></a></span></li>
 			<? } ?>
-			<? if ($_SESSION['dwh_droit_see_genetic'.$datamart_num]=='ok') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_genetic'.$datamart_num]=='ok') { ?>
 					<li class="color-bullet" id="id_bouton_genes"><span class="li-content"><img src="images/adn2.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('genes'); affiche_onglet_genes(<? print $tmpresult_num; ?>);return false;"><? print get_translation('GENES','Genes'); ?></a></span></li>
 			<? } ?>
-			<? if ($_SESSION['dwh_droit_see_map'.$datamart_num]=='ok') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_map'.$datamart_num]=='ok') { ?>
 					<li class="color-bullet" id="id_bouton_map"><span class="li-content"><img src="images/map.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('map');generer_map(<? print $tmpresult_num; ?>);return false;"><? print get_translation('MAP','Map'); ?></a></span></li>
 			<? } ?>
-			<? if ($_SESSION['dwh_droit_see_clustering'.$datamart_num]=='ok') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_clustering'.$datamart_num]=='ok') { ?>
 					<li class="color-bullet" id="id_bouton_clustering"><span class="li-content"><img src="images/clustering.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('clustering'); return false;"><? print get_translation('CLUSTERING','Clustering'); ?></a></span></li>
 			<? } ?>
-			<? if ($_SESSION['dwh_droit_admin_datamart0']=='ok') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin_datamart0']=='ok') { ?>
 					<li class="color-bullet" id="id_bouton_admin_datamart"><span class="li-content"><img src="images/datamart.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('admin_datamart');return false;"><? print get_translation('DATAMART','Datamart'); ?></a></span></li>
 			<? } ?>
-			<? if ($_SESSION['dwh_droit_export_data']=='ok') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_export_data']=='ok') { ?>
 			<li class="color-bullet" id="id_bouton_export_data"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('export_data');return false;"><? print get_translation('EXPORT_DATA','Export données'); ?></a></span></li>
 			<? } ?>
-			<? if ($_SESSION['dwh_droit_regexp']=='ok') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_regexp']=='ok') { ?>
 			<li class="color-bullet" id="id_bouton_regexp"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('regexp');return false;"><? print get_translation('EXTRACTION','Extraction'); ?></a></span></li>
 			<? } ?>
-			<? if ($_SESSION['dwh_droit_extract_ecrf_on_result']=='ok') { ?>
+			<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_extract_ecrf_on_result']=='ok') { ?>
 			<li class="color-bullet" id="id_bouton_extract_ecrf_on_result"><span class="li-content"><img src="images/download.png" border="0" style="vertical-align:middle"> <a href="#" onclick="voir_detail_dwh('extract_ecrf_on_result');return false;"><? print get_translation('ECRF','ECRF'); ?></a></span></li>
 			<? } ?>
 			</ul>
@@ -521,9 +597,9 @@ if ($_POST['action']=='rechercher') {
 	?>
 	
 	<?
-		if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='' || !preg_match("/'tout'/i","$liste_document_origin_code_session"))  {
+		if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num]=='' || !preg_match("/'tout'/i","$liste_document_origin_code_session"))  {
 			$phrase_nb_patient_detail='';
-			if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='') { 
+			if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num]=='') { 
 				$phrase_nb_patient_detail.= "<strong>".get_translation('ON_YOUR_HOSPITAL_DEPARTMENTS','Sur Vos services')."</strong> <br>";
 			} 
 			if (!preg_match("/'tout'/i","$liste_document_origin_code_session"))  {
@@ -550,9 +626,9 @@ if ($_POST['action']=='rechercher') {
 		
 		
 		
-		 print $phrase_nb_patient_detail; 
+		 print "<br><div id=\"id_div_detail_nb_result_motor\" style=\"clear:both\" >$phrase_nb_patient_detail</div>"; 
 		?>
-		<? if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_resultat_detail" class="div_result">
 				
 				<table border="0">
@@ -696,76 +772,76 @@ if ($_POST['action']=='rechercher') {
 			</div>
 		<? } ?>
 		
-		<? if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_cohorte_encours" style="display:none;" class="div_result">
 				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_cohorte_encours.php"; ?>
 			</div>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_see_stat'.$datamart_num]=='ok') { ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_stat'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_stat" style="display:<? print $display_stat; ?>;" class="div_result">
 				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_stat.php"; ?>
 			</div>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_see_concept'.$datamart_num]=='ok') { ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_concept'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_concepts" style="display:none;" class="div_result">
 				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_concepts.php"; ?>
 			</div>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_see_drg'.$datamart_num]=='ok') { ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_drg'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_pmsi" style="display:<? print $display_pmsi; ?>;" class="div_result">
 				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_pmsi.php"; ?>
 			</div>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_see_biology'.$datamart_num]=='ok') { ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_biology'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_labo" style="display:none;" class="div_result">
 				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_labo.php"; ?>
 			</div>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_see_genetic'.$datamart_num]=='ok') { ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_genetic'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_genes" style="display:none;" class="div_result">
 				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_genes.php"; ?>
 			</div>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_see_clustering'.$datamart_num]=='ok') { ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_clustering'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_clustering" style="display:none;" class="div_result">
 				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_clustering.php"; ?>
 			</div>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_see_map'.$datamart_num]=='ok') { ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_map'.$datamart_num]=='ok') { ?>
 			<div id="id_div_dwh_map" style="display:none;" class="div_result">
 				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_map.php"; ?>
 			</div>
 		<? } ?>
-		<? if ($_SESSION['dwh_droit_admin_datamart0']=='ok') { ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin_datamart0']=='ok') { ?>
 			<div id="id_div_dwh_admin_datamart" style="display:none;" class="div_result">
 				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_datamart.php"; ?>
 			</div>
 		<? } ?>
 		
-		<? if ($_SESSION['dwh_droit_export_data']=='ok') { ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_export_data']=='ok') { ?>
 			<div id="id_div_dwh_export_data" style="display:none;" class="div_result">
 				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_export_data.php"; ?>
 			</div>
 		<? } ?>
 		
-		<? if ($_SESSION['dwh_droit_regexp']=='ok') { ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_regexp']=='ok') { ?>
 			<div id="id_div_dwh_regexp" style="display:none;" class="div_result">
 				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_regexp.php"; ?>
 			</div>
 		<? } ?>
 		
-		<? if ($_SESSION['dwh_droit_extract_ecrf_on_result']=='ok') { ?>
+		<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_extract_ecrf_on_result']=='ok') { ?>
 			<div id="id_div_dwh_extract_ecrf_on_result" style="display:none;" class="div_result">
 				<? //print $phrase_nb_patient_total; ?>
 				<? include "include_extract_ecrf_on_result.php"; ?>

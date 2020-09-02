@@ -112,44 +112,63 @@ function calcul_nb_resultat_filtre(num_filtre,val_async) {
 			chaine_requete_code=jQuery('#id_input_chaine_requete_code_'+num_filtre).val();
 			thesaurus_data_num=jQuery('#id_input_thesaurus_data_num_'+num_filtre).val();
 			textetrim=text.replace(/^\s+|\s+$/g, ''); 
-			if (textetrim.length>1 || chaine_requete_code!='') {
-				jQuery('#id_span_nbresult_atomique_'+num_filtre).html('');
-				tab_service= $( "#id_select_filtre_unite_heberg_"+num_filtre).val() || [] ;
-				if( typeof tab_service === 'string' ) {
-					hospital_department_list=tab_service;
-				} else {
-					hospital_department_list=tab_service.join( "," );
-				}
-				tab_document_origin_code= $( "#id_select_filtre_document_origin_code_"+num_filtre).val() || [] ;
-				if( typeof tab_document_origin_code === 'string' ) {
-					document_origin_code=tab_document_origin_code;
-				} else {
-					document_origin_code=tab_document_origin_code.join( "," );
-				}
-				title_document=jQuery('#id_input_filtre_title_document_'+num_filtre).val();
-				date_deb_document=jQuery('#id_input_filtre_date_deb_document_'+num_filtre).val();
-				date_fin_document=jQuery('#id_input_filtre_date_fin_document_'+num_filtre).val();
-				document_last_nb_days=jQuery('#id_input_filtre_document_last_nb_days_'+num_filtre).val();
-				periode_document=jQuery('#id_input_filtre_periode_document_'+num_filtre).val();
-				age_deb_document=jQuery('#id_input_filtre_age_deb_document_'+num_filtre).val();
-				age_fin_document=jQuery('#id_input_filtre_age_fin_document_'+num_filtre).val();
-				stay_length_min=jQuery('#id_input_filtre_stay_length_min_'+num_filtre).val();
-				stay_length_max=jQuery('#id_input_filtre_stay_length_max_'+num_filtre).val();
-				agemois_deb_document=jQuery('#id_input_filtre_agemois_deb_document_'+num_filtre).val();
-				agemois_fin_document=jQuery('#id_input_filtre_agemois_fin_document_'+num_filtre).val();
-				context=jQuery('#id_select_filtre_contexte_'+num_filtre).val();
-				certainty=jQuery('#id_select_filtre_certitude_'+num_filtre).val();
-				if (jQuery('#id_select_filtre_certitude_'+num_filtre).prop('checked')==true) {
-					exclure=1;
-				} else {
-					exclure='';
-				}
-				if (jQuery('#id_checkbox_etendre_syno_'+num_filtre).prop('checked')==true) {
-					etendre_syno=1;
-				} else {
-					etendre_syno='';
-				}
+			
+			jQuery('#id_span_nbresult_atomique_'+num_filtre).html('?');
+			tab_service= $( "#id_select_filtre_unite_heberg_"+num_filtre).val() || [] ;
+			if( typeof tab_service === 'string' ) {
+				hospital_department_list=tab_service;
+			} else {
+				hospital_department_list=tab_service.join( "," );
+			}
+			tab_document_origin_code= $( "#id_select_filtre_document_origin_code_"+num_filtre).val() || [] ;
+			if( typeof tab_document_origin_code === 'string' ) {
+				document_origin_code=tab_document_origin_code;
+			} else {
+				document_origin_code=tab_document_origin_code.join( "," );
+			}
+			tab_document_type= $( "#id_select_filtre_document_type_"+num_filtre).val() || [] ;
+			if( typeof tab_document_type === 'string' ) {
+				document_type=tab_document_type;
+			} else {
+				document_type=tab_document_type.join( "," );
+			}
+			title_document=jQuery('#id_input_filtre_title_document_'+num_filtre).val();
+			date_deb_document=jQuery('#id_input_filtre_date_deb_document_'+num_filtre).val();
+			date_fin_document=jQuery('#id_input_filtre_date_fin_document_'+num_filtre).val();
+			document_last_nb_days=jQuery('#id_input_filtre_document_last_nb_days_'+num_filtre).val();
+			periode_document=jQuery('#id_input_filtre_periode_document_'+num_filtre).val();
+			age_deb_document=jQuery('#id_input_filtre_age_deb_document_'+num_filtre).val();
+			age_fin_document=jQuery('#id_input_filtre_age_fin_document_'+num_filtre).val();
+			stay_length_min=jQuery('#id_input_filtre_stay_length_min_'+num_filtre).val();
+			stay_length_max=jQuery('#id_input_filtre_stay_length_max_'+num_filtre).val();
+			agemois_deb_document=jQuery('#id_input_filtre_agemois_deb_document_'+num_filtre).val();
+			agemois_fin_document=jQuery('#id_input_filtre_agemois_fin_document_'+num_filtre).val();
+			context=jQuery('#id_select_filtre_contexte_'+num_filtre).val();
+			certainty=jQuery('#id_select_filtre_certitude_'+num_filtre).val();
+			if (jQuery('#id_select_filtre_certitude_'+num_filtre).prop('checked')==true) {
+				exclure=1;
+			} else {
+				exclure='';
+			}
+			if (jQuery('#id_checkbox_etendre_syno_'+num_filtre).prop('checked')==true) {
+				etendre_syno=1;
+			} else {
+				etendre_syno='';
+			}
 				
+			if (textetrim.length>1 || chaine_requete_code!=''
+			|| hospital_department_list!='' 
+			|| document_origin_code!='' 
+			|| document_type!='' 
+			|| title_document!='' 
+			|| (date_deb_document!='' && date_fin_document!='' )
+			|| document_last_nb_days!='' 
+			|| periode_document!='' 
+			|| (age_deb_document!='' && age_fin_document!='' )
+			|| (stay_length_min!='' && stay_length_max!='' )
+			|| (agemois_deb_document!='' && agemois_fin_document!='' )
+			) {
+			
 				datamart_num=jQuery('#id_num_datamart').val();
 				plier('id_bouton_submit_moteur');
 				deplier('id_bouton_attendre_moteur','block');
@@ -159,7 +178,7 @@ function calcul_nb_resultat_filtre(num_filtre,val_async) {
 					url:"ajax.php",
 					async:val_async,
 					encoding: 'latin1',
-					data:{ action:'calcul_nb_resultat_filtre_passthru',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,query_type:query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document),document_last_nb_days:escape(document_last_nb_days),stay_length_min:escape(stay_length_min),stay_length_max:escape(stay_length_max)},
+					data:{ action:'calcul_nb_resultat_filtre_passthru',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,query_type:query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),document_type:escape(document_type),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document),document_last_nb_days:escape(document_last_nb_days),stay_length_min:escape(stay_length_min),stay_length_max:escape(stay_length_max)},
 					beforeSend: function(requester){
 						jQuery('#id_span_nbresult_atomique_chargement_'+num_filtre).html('<img src="images/chargement_mac.gif" width="10px">');
 						jQuery('#id_span_nbresult_atomique_'+num_filtre).css('color','red');
@@ -192,7 +211,7 @@ function calcul_nb_resultat_filtre_mvt(num_filtre,val_async) {
 		query_type=jQuery('#id_query_type_'+num_filtre).val();
 		
 		if (query_type=='mvt') {
-			jQuery('#id_span_nbresult_atomique_'+num_filtre).html('');
+			jQuery('#id_span_nbresult_atomique_'+num_filtre).html('?');
 			
 			mvt_department=jQuery('#id_select_filtre_mvt_department_'+num_filtre).val();
 			mvt_unit=jQuery('#id_select_filtre_mvt_unit_'+num_filtre).val();
@@ -212,65 +231,85 @@ function calcul_nb_resultat_filtre_mvt(num_filtre,val_async) {
 			mvt_ageyear_end=jQuery('#id_input_filtre_mvt_ageyear_end_'+num_filtre).val();
 			mvt_agemonth_start=jQuery('#id_input_filtre_mvt_agemonth_start_'+num_filtre).val();
 			mvt_agemonth_end=jQuery('#id_input_filtre_mvt_agemonth_end_'+num_filtre).val();
-		
-			if (jQuery('#id_select_filtre_certitude_'+num_filtre).prop('checked')==true) {
-				exclure=1;
-			} else {
-				exclure='';
-			}
-			datamart_num=jQuery('#id_num_datamart').val();
-			plier('id_bouton_submit_moteur');
-			deplier('id_bouton_attendre_moteur','block');
-			nb_num_filtre_en_cours++;
-			jQuery.ajax({
-				type:"POST",
-				url:"ajax.php",
-				async:val_async,
-				encoding: 'latin1',
-				data:{ action:'calcul_nb_resultat_filtre_mvt_passthru',
-				num_filtre:num_filtre,
-				query_type:query_type,
-				mvt_department:escape(mvt_department),
-				mvt_unit:escape(mvt_unit),
-				type_mvt:escape(type_mvt),
-				encounter_duration_min:escape(encounter_duration_min),
-				encounter_duration_max:escape(encounter_duration_max),
-				mvt_duration_min:escape(mvt_duration_min),
-				mvt_duration_max:escape(mvt_duration_max),
-				mvt_nb_min:escape(mvt_nb_min),
-				mvt_nb_max:escape(mvt_nb_max),
-				stay_nb_min:escape(stay_nb_min),
-				stay_nb_max:escape(stay_nb_max),
-				mvt_last_nb_days:escape(mvt_last_nb_days),
-				mvt_date_start:escape(mvt_date_start),
-				mvt_date_end:escape(mvt_date_end),
-				mvt_ageyear_start:escape(mvt_ageyear_start),
-				mvt_ageyear_end:escape(mvt_ageyear_end),
-				mvt_agemonth_start:escape(mvt_agemonth_start),
-				mvt_agemonth_end:escape(mvt_agemonth_end),
-				datamart_num:datamart_num,
-				exclure:exclure
-				},
-				beforeSend: function(requester){
-					jQuery('#id_span_nbresult_atomique_chargement_'+num_filtre).html('<img src="images/chargement_mac.gif" width="10px">');
-					jQuery('#id_span_nbresult_atomique_'+num_filtre).css('color','red');
-				},
-				success: function(requester){
-					var contenu=requester;
-					if (contenu=='deconnexion') {
-						afficher_connexion("calcul_nb_resultat_filtre_mvt("+num_filtre+","+val_async+")");
-					} else { 
-						jQuery('#id_query_key_'+num_filtre).val(contenu);
-						setTimeout("calcul_nb_resultat_final_passthru('"+num_filtre+"','"+contenu+"')",1000);
-					}
-				},
-				complete: function(requester){
-					
-				},
-				error: function(){
-					jQuery('#id_span_nbresult_atomique_chargement_'+num_filtre).html('');
+			
+			if (mvt_department!='' ||
+				mvt_unit!='' ||
+				type_mvt!='' ||
+				encounter_duration_min!='' ||
+				encounter_duration_max!='' ||
+				mvt_duration_min!='' ||
+				mvt_duration_max!='' ||
+				mvt_nb_min!='' ||
+				mvt_nb_max!='' ||
+				stay_nb_min!='' ||
+				stay_nb_max!='' ||
+				mvt_last_nb_days!='' ||
+				mvt_date_start!='' ||
+				mvt_date_end!='' ||
+				mvt_ageyear_start!='' ||
+				mvt_ageyear_end!='' ||
+				mvt_agemonth_start!='' ||
+				mvt_agemonth_end!='') {
+	
+				if (jQuery('#id_select_filtre_certitude_'+num_filtre).prop('checked')==true) {
+					exclure=1;
+				} else {
+					exclure='';
 				}
-			});
+				datamart_num=jQuery('#id_num_datamart').val();
+				plier('id_bouton_submit_moteur');
+				deplier('id_bouton_attendre_moteur','block');
+				nb_num_filtre_en_cours++;
+				jQuery.ajax({
+					type:"POST",
+					url:"ajax.php",
+					async:val_async,
+					encoding: 'latin1',
+					data:{ action:'calcul_nb_resultat_filtre_mvt_passthru',
+					num_filtre:num_filtre,
+					query_type:query_type,
+					mvt_department:escape(mvt_department),
+					mvt_unit:escape(mvt_unit),
+					type_mvt:escape(type_mvt),
+					encounter_duration_min:escape(encounter_duration_min),
+					encounter_duration_max:escape(encounter_duration_max),
+					mvt_duration_min:escape(mvt_duration_min),
+					mvt_duration_max:escape(mvt_duration_max),
+					mvt_nb_min:escape(mvt_nb_min),
+					mvt_nb_max:escape(mvt_nb_max),
+					stay_nb_min:escape(stay_nb_min),
+					stay_nb_max:escape(stay_nb_max),
+					mvt_last_nb_days:escape(mvt_last_nb_days),
+					mvt_date_start:escape(mvt_date_start),
+					mvt_date_end:escape(mvt_date_end),
+					mvt_ageyear_start:escape(mvt_ageyear_start),
+					mvt_ageyear_end:escape(mvt_ageyear_end),
+					mvt_agemonth_start:escape(mvt_agemonth_start),
+					mvt_agemonth_end:escape(mvt_agemonth_end),
+					datamart_num:datamart_num,
+					exclure:exclure
+					},
+					beforeSend: function(requester){
+						jQuery('#id_span_nbresult_atomique_chargement_'+num_filtre).html('<img src="images/chargement_mac.gif" width="10px">');
+						jQuery('#id_span_nbresult_atomique_'+num_filtre).css('color','red');
+					},
+					success: function(requester){
+						var contenu=requester;
+						if (contenu=='deconnexion') {
+							afficher_connexion("calcul_nb_resultat_filtre_mvt("+num_filtre+","+val_async+")");
+						} else { 
+							jQuery('#id_query_key_'+num_filtre).val(contenu);
+							setTimeout("calcul_nb_resultat_final_passthru('"+num_filtre+"','"+contenu+"')",1000);
+						}
+					},
+					complete: function(requester){
+						
+					},
+					error: function(){
+						jQuery('#id_span_nbresult_atomique_chargement_'+num_filtre).html('');
+					}
+				});
+			}
 		}
 	}
 }
@@ -303,7 +342,7 @@ function calcul_nb_resultat_contrainte_temporelle(num_filtre,val_async) {
 		}
 		
 		if (query_key_contrainte_temporelle!='' && query_key_a!='' && query_key_b!='') {
-			jQuery('#id_span_nbresult_atomique_'+num_filtre).html('');
+			jQuery('#id_span_nbresult_atomique_'+num_filtre).html('?');
 			plier('id_bouton_submit_moteur');
 			deplier('id_bouton_attendre_moteur','block');
 			nb_num_filtre_en_cours++;
@@ -383,6 +422,22 @@ function calcul_nb_resultat_final_passthru(num_filtre,query_key) {
 								}
 								if (nb_patient_total=='') {
 									jQuery('#id_span_nbresult_atomique_'+num_filtre).html('?');								
+								}
+								// verification si num filtre utiliser dans contrainte temporelle
+								
+								num_filtre_max=eval(jQuery('#id_input_max_num_filtre').val());
+								for (num_filtre_i=1;num_filtre_i<=num_filtre_max;num_filtre_i++) {
+									if (jQuery('#id_div_filtre_contrainte_temporelle_'+num_filtre_i).length) {
+										if (jQuery('#id_div_filtre_contrainte_temporelle_'+num_filtre_i).html()!='') {
+											query_key_contrainte_temporelle=jQuery('#id_query_key_contrainte_temporelle_'+num_filtre_i).val();
+											tab=query_key_contrainte_temporelle.split(';');
+											num_filtre_a=tab[1];
+											num_filtre_b=tab[2];
+											if (num_filtre==num_filtre_a || num_filtre==num_filtre_b) {
+												calcul_nb_resultat_contrainte_temporelle(num_filtre_i,true);
+											}
+										}
+									}
 								}
 								
 							} else {
@@ -478,6 +533,12 @@ function calcul_nb_resultat_filtre_notpassthru(num_filtre,val_async) {
 			} else {
 				document_origin_code=tab_document_origin_code.join( "," );
 			}
+			tab_document_type= $( "#id_select_filtre_document_type_"+num_filtre).val() || [] ;
+			if( typeof tab_document_type === 'string' ) {
+				document_type=tab_document_type;
+			} else {
+				document_type=tab_document_type.join( "," );
+			}
 			title_document=jQuery('#id_input_filtre_title_document_'+num_filtre).val();
 			date_deb_document=jQuery('#id_input_filtre_date_deb_document_'+num_filtre).val();
 			date_fin_document=jQuery('#id_input_filtre_date_fin_document_'+num_filtre).val();
@@ -511,7 +572,7 @@ function calcul_nb_resultat_filtre_notpassthru(num_filtre,val_async) {
 				url:"ajax.php",
 				async:val_async,
 				encoding: 'latin1',
-				data:{ action:'calcul_nb_resultat_filtre',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,id_query_type:id_query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document),document_last_nb_days:escape(document_last_nb_days),stay_length_min:escape(stay_length_min),stay_length_max:escape(stay_length_max)},
+				data:{ action:'calcul_nb_resultat_filtre',num_filtre:num_filtre,text:escape(text),etendre_syno:etendre_syno,id_query_type:id_query_type,thesaurus_data_num:thesaurus_data_num,chaine_requete_code:chaine_requete_code,hospital_department_list:escape(hospital_department_list),date_deb_document:escape(date_deb_document),date_fin_document:escape(date_fin_document),periode_document:periode_document,age_deb_document:escape(age_deb_document),age_fin_document:escape(age_fin_document),agemois_deb_document:escape(agemois_deb_document),agemois_fin_document:escape(agemois_fin_document),context:escape(context),certainty:escape(certainty),document_origin_code:escape(document_origin_code),document_type:escape(document_type),datamart_num:datamart_num,exclure:exclure,title_document:escape(title_document),document_last_nb_days:escape(document_last_nb_days),stay_length_min:escape(stay_length_min),stay_length_max:escape(stay_length_max)},
 				beforeSend: function(requester){
 					jQuery('#id_span_nbresult_atomique_chargement_'+num_filtre).html('<img src="images/chargement_mac.gif" width="10px">');
 				},
@@ -539,7 +600,16 @@ function calcul_nb_resultat_filtre_notpassthru(num_filtre,val_async) {
 }
 
 function add_atomic_query(query_type) {
-	num_filtre=eval(document.getElementById('id_input_max_num_filtre').value);
+	num_filtre=eval(jQuery('#id_input_max_num_filtre').val());
+	for (num_filtre_i=1;num_filtre_i<=num_filtre;num_filtre_i++) {
+		if (jQuery('#id_div_filtre_texte_'+num_filtre_i).length) {
+			calcul_nb_resultat_filtre (num_filtre_i,true);
+		}
+		if (jQuery('#id_div_filtre_mvt_'+num_filtre_i).length) {
+			calcul_nb_resultat_filtre_mvt (num_filtre_i,true);
+		}
+	}
+	
 	num_filtre=eval(num_filtre+1);
 	jQuery('#id_input_max_num_filtre').val(num_filtre);
 	
@@ -572,6 +642,14 @@ function add_atomic_query(query_type) {
 
 function add_atomic_query_mvt() {
 	num_filtre=eval(jQuery('#id_input_max_num_filtre').val());
+	for (num_filtre_i=1;num_filtre_i<=num_filtre;num_filtre_i++) {
+		if (jQuery('#id_div_filtre_texte_'+num_filtre_i).length) {
+			calcul_nb_resultat_filtre (num_filtre_i,true);
+		}
+		if (jQuery('#id_div_filtre_mvt_'+num_filtre_i).length) {
+			calcul_nb_resultat_filtre_mvt (num_filtre_i,true);
+		}
+	}
 	num_filtre=eval(num_filtre+1);
 	jQuery('#id_input_max_num_filtre').val(num_filtre);
 	
@@ -663,10 +741,10 @@ function ajouter_contrainte_temporelle () {
 		return false;
 	}
 
-	num_filtre=eval(document.getElementById('id_input_max_num_filtre').value);
+	num_filtre=eval(jQuery('#id_input_max_num_filtre').val());
+
 	num_filtre=eval(num_filtre+1);
 	jQuery('#id_input_max_num_filtre').val(num_filtre);
-	
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax.php",
@@ -681,7 +759,14 @@ function ajouter_contrainte_temporelle () {
 				afficher_connexion("ajouter_contrainte_temporelle()");
 			} else {
 				$("#id_div_formulaire_document").append(contenu);
-				
+					for (num_filtre_i=1;num_filtre_i<=num_filtre;num_filtre_i++) {
+						if (jQuery('#id_div_filtre_texte_'+num_filtre_i).length) {
+							calcul_nb_resultat_filtre (num_filtre_i,true);
+						}
+						if (jQuery('#id_div_filtre_mvt_'+num_filtre_i).length) {
+							calcul_nb_resultat_filtre_mvt (num_filtre_i,true);
+						}
+					}
 				
 			}
 		},
@@ -1152,6 +1237,13 @@ function positionner(id,ancre) {
 	
 }
 
+function positionner_v2(id,ancre,option_left,option_top) {
+	var val_left= getLeft(document.getElementById( ancre));
+	var val_top= getTop(document.getElementById( ancre));
+	jQuery('#'+id).css('left',val_left+option_left);
+	jQuery('#'+id).css('top',val_top+option_top);
+}
+
 function getLeft(MyObject) {
 	if (MyObject.offsetParent) {
 		return (MyObject.offsetLeft + getLeft(MyObject.offsetParent));
@@ -1261,12 +1353,12 @@ function fermer_document(id) {
 
 function rechercher_code (num_filtre) {
 
-
+	deplier('id_div_resultat_recherche_code_'+num_filtre,'block');
 	requete_texte=jQuery('#id_rechercher_code_'+num_filtre).val();
 	thesaurus_code=jQuery('#id_select_thesaurus_data_'+num_filtre).val();
 	
 	jQuery('#id_div_resultat_recherche_code_'+num_filtre).html("<img src=images/chargement_mac.gif>");
-	if (requete_texte!='' && thesaurus_code!='') {
+	if (thesaurus_code!='') {
 		jQuery.ajax({
 			type:"POST",
 			url:"ajax.php",
@@ -1331,13 +1423,43 @@ function rechercher_code_sous_thesaurus (num_filtre,thesaurus_data_father_num,sa
 	}
 }
 
+
+function display_hierarchy_thesaurus (num_filtre,thesaurus_data_num,requete_texte,thesaurus_code) {
+	jQuery('#id_select_thesaurus_data_'+num_filtre).val(thesaurus_code);
+	id='id_div_resultat_recherche_code_'+num_filtre;
+	if (jQuery('#'+id).length) {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax.php",
+			async:false,
+			encoding: 'latin1',
+			data:{ action:'display_hierarchy_thesaurus',num_filtre:num_filtre,thesaurus_data_num:thesaurus_data_num,requete_texte:escape(requete_texte)},
+			beforeSend: function(requester){
+				jQuery('#'+id).css('display','block');
+				jQuery('#'+id).html("<img src=images/chargement_mac.gif>");
+			},
+			success: function(requester){
+				if (requester=='deconnexion') {
+					afficher_connexion("display_hierarchy_thesaurus('"+num_filtre+"','"+thesaurus_data_num+"','"+requete_texte+"','"+thesaurus_code+"')");
+				} else {
+					jQuery('#'+id).html(requester);
+				}
+			},
+			complete: function(requester){
+			},
+			error: function(){
+					}
+		});
+	}
+}
+
 function ajouter_formulaire_code(num_filtre,thesaurus_data_num) {
-	jQuery('#id_span_nbresult_atomique_'+num_filtre).html('');
-	jQuery('#id_input_thesaurus_data_num_'+num_filtre).val('');
-	jQuery('#id_input_chaine_requete_code_'+num_filtre).val('');
-	jQuery('#id_query_key_'+num_filtre).val('');
-	jQuery('#id_input_nbresult_atomique_'+num_filtre).val('');
-	if (thesaurus_data_num!='') {
+	if (thesaurus_data_num!='' && jQuery("#id_div_selection_code_"+num_filtre+"_"+thesaurus_data_num).length==0) {
+		jQuery('#id_span_nbresult_atomique_'+num_filtre).html('?');
+		jQuery('#id_input_thesaurus_data_num_'+num_filtre).val('');
+		jQuery('#id_input_chaine_requete_code_'+num_filtre).val('');
+		jQuery('#id_query_key_'+num_filtre).val('');
+		jQuery('#id_input_nbresult_atomique_'+num_filtre).val('');
 		jQuery.ajax({
 			type:"POST",
 			url:"ajax.php",
@@ -1350,9 +1472,15 @@ function ajouter_formulaire_code(num_filtre,thesaurus_data_num) {
 				if (requester=='deconnexion') {
 					afficher_connexion("ajouter_formulaire_code('"+num_filtre+"','"+thesaurus_data_num+"')");
 				} else {
-					jQuery('#id_div_selection_code_'+num_filtre).html(requester);
-					jQuery('#id_input_thesaurus_data_num_'+num_filtre).val(thesaurus_data_num);
+					jQuery('#id_div_selection_code_'+num_filtre).append(requester);
+					jQuery('#id_input_thesaurus_data_num_'+num_filtre).val("");
+					list_thesaurus_data_num="";
+					jQuery(".class_selection_code_"+num_filtre).each(function() {
+						list_thesaurus_data_num+=jQuery(this).attr("thesaurus_data_num")+";";
+					});
+					jQuery('#id_input_thesaurus_data_num_'+num_filtre).val(list_thesaurus_data_num);
 					creer_chaine_requete_code(num_filtre);
+					$(".chosen-select").chosen({width: "250px",max_selected_options: 50,allow_single_deselect: true,search_contains:true}); 
 				}
 			},
 			complete: function(requester){
@@ -1363,90 +1491,157 @@ function ajouter_formulaire_code(num_filtre,thesaurus_data_num) {
 	}
 }
 
-function vider_items_code (num_filtre,type_item) {
-	if (type_item=='hors_borne') {
-		jQuery('#id_select_operateur_'+num_filtre).val('');
-		jQuery('#id_input_valeur_'+num_filtre).val('');
-		jQuery('#id_input_valeur_deb_'+num_filtre).val('');
-		jQuery('#id_input_valeur_fin_'+num_filtre).val('');
-		jQuery('#id_input_valeur_sup_n_x_borne_sup_'+num_filtre).val('');
-		jQuery('#id_input_valeur_inf_n_x_borne_inf_'+num_filtre).val('');
+function delete_sub_query_coded (id,num_filtre) {
+	jQuery("#"+id).remove();
+	jQuery('#id_input_thesaurus_data_num_'+num_filtre).val("");
+	list_thesaurus_data_num="";
+	jQuery(".class_selection_code_"+num_filtre).each(function() {
+		list_thesaurus_data_num+=jQuery(this).attr("thesaurus_data_num")+";";
+	});
+	jQuery('#id_input_thesaurus_data_num_'+num_filtre).val(list_thesaurus_data_num);
+	creer_chaine_requete_code(num_filtre);
+}
+
+function vider_items_code (num_filtre_thesaurus_data_num,type_item) {
+	if (type_item=='hors_borne' && jQuery('#id_select_hors_borne_'+num_filtre_thesaurus_data_num).val()!='') {
+		jQuery('#id_select_operateur_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_deb_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_fin_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_sup_n_x_borne_sup_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_inf_n_x_borne_inf_'+num_filtre_thesaurus_data_num).val('');
+		//jQuery('#id_input_checkbox_presence_'+num_filtre_thesaurus_data_num).prop('checked',false);
 	}
-	if (type_item=='operateur') {
-		jQuery('#id_select_hors_borne_'+num_filtre).val('');
-		jQuery('#id_input_valeur_deb_'+num_filtre).val('');
-		jQuery('#id_input_valeur_fin_'+num_filtre).val('');
-		jQuery('#id_input_valeur_sup_n_x_borne_sup_'+num_filtre).val('');
-		jQuery('#id_input_valeur_inf_n_x_borne_inf_'+num_filtre).val('');
+	if (type_item=='operateur' && jQuery('#id_select_operateur_'+num_filtre_thesaurus_data_num).val()!='') {
+		jQuery('#id_select_hors_borne_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_deb_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_fin_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_sup_n_x_borne_sup_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_inf_n_x_borne_inf_'+num_filtre_thesaurus_data_num).val('');
+		//jQuery('#id_input_checkbox_presence_'+num_filtre_thesaurus_data_num).prop('checked',false);
 	}
-	if (type_item=='valeur') {
-		jQuery('#id_select_hors_borne_'+num_filtre).val('');
-		jQuery('#id_select_operateur_'+num_filtre).val('');
-		jQuery('#id_input_valeur_'+num_filtre).val('');
-		jQuery('#id_input_valeur_sup_n_x_borne_sup_'+num_filtre).val('');
-		jQuery('#id_input_valeur_inf_n_x_borne_inf_'+num_filtre).val('');
+	if (type_item=='valeur' && jQuery('#id_input_valeur_deb_'+num_filtre_thesaurus_data_num).val()!='') {
+		jQuery('#id_select_hors_borne_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_select_operateur_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_sup_n_x_borne_sup_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_inf_n_x_borne_inf_'+num_filtre_thesaurus_data_num).val('');
+		//jQuery('#id_input_checkbox_presence_'+num_filtre_thesaurus_data_num).prop('checked',false);
 	}
-	if (type_item=='n_x_borne') {
-		jQuery('#id_select_hors_borne_'+num_filtre).val('');
-		jQuery('#id_select_operateur_'+num_filtre).val('');
-		jQuery('#id_input_valeur_'+num_filtre).val('');
-		jQuery('#id_input_valeur_deb_'+num_filtre).val('');
-		jQuery('#id_input_valeur_fin_'+num_filtre).val('');
+	if (type_item=='n_x_borne' && jQuery('#id_input_valeur_inf_n_x_borne_inf_'+num_filtre_thesaurus_data_num).val()!='') {
+		jQuery('#id_select_hors_borne_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_select_operateur_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_deb_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_fin_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_sup_n_x_borne_sup_'+num_filtre_thesaurus_data_num).val('');
+		//jQuery('#id_input_checkbox_presence_'+num_filtre_thesaurus_data_num).prop('checked',false);
 	}
+	if (type_item=='n_x_borne' && jQuery('#id_input_valeur_sup_n_x_borne_sup_'+num_filtre_thesaurus_data_num).val()!='') {
+		jQuery('#id_select_hors_borne_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_select_operateur_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_deb_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_fin_'+num_filtre_thesaurus_data_num).val('');
+		jQuery('#id_input_valeur_inf_n_x_borne_inf_'+num_filtre_thesaurus_data_num).val('');
+		//jQuery('#id_input_checkbox_presence_'+num_filtre_thesaurus_data_num).prop('checked',false);
+	}
+	//if (type_item=='presence' && jQuery('#id_input_checkbox_presence_'+num_filtre_thesaurus_data_num).is(':checked')) {
+	//	jQuery('#id_select_hors_borne_'+num_filtre_thesaurus_data_num).val('');
+	//	jQuery('#id_select_operateur_'+num_filtre_thesaurus_data_num).val('');
+	//	jQuery('#id_input_valeur_'+num_filtre_thesaurus_data_num).val('');
+	//	jQuery('#id_input_valeur_deb_'+num_filtre_thesaurus_data_num).val('');
+	//	jQuery('#id_input_valeur_fin_'+num_filtre_thesaurus_data_num).val('');
+	//	jQuery('#id_input_valeur_inf_n_x_borne_inf_'+num_filtre_thesaurus_data_num).val('');
+	//	jQuery('#id_input_valeur_sup_n_x_borne_sup_'+num_filtre_thesaurus_data_num).val('');
+	//	jQuery('.class_input_checkbox_'+num_filtre_thesaurus_data_num).prop('checked',false);
+	//}
+	if (type_item=='list_values') {
+		jQuery('#id_input_data_textual_research_'+num_filtre_thesaurus_data_num).val('');
+	}
+	if (type_item=='data_textual_research') {
+		jQuery( "#id_list_checkbox_thesaurus_data_"+num_filtre_thesaurus_data_num).val("");
+	}
+	
+	
 }
 
 function creer_chaine_requete_code (num_filtre) {
+	chaine_requete_code_final='';
 	chaine_requete_code_preced=jQuery('#id_input_chaine_requete_code_'+num_filtre).val();
-	
-	hors_borne='';
-	operateur='';
-	valeur='';
-	valeur_deb='';
-	valeur_fin='';
-	valeur_sup_n_x_borne_sup='';
-	valeur_inf_n_x_borne_inf='';
-	liste_valeur_checked='';
-	
-	if (document.getElementById('id_select_hors_borne_'+num_filtre)) {
-		hors_borne=jQuery('#id_select_hors_borne_'+num_filtre).val();
-		operateur=jQuery('#id_select_operateur_'+num_filtre).val();
-		valeur=jQuery('#id_input_valeur_'+num_filtre).val();
-		valeur_deb=jQuery('#id_input_valeur_deb_'+num_filtre).val();
-		valeur_fin=jQuery('#id_input_valeur_fin_'+num_filtre).val();
-		valeur_sup_n_x_borne_sup=jQuery('#id_input_valeur_sup_n_x_borne_sup_'+num_filtre).val();
-		valeur_inf_n_x_borne_inf=jQuery('#id_input_valeur_inf_n_x_borne_inf_'+num_filtre).val();
+	jQuery(".class_selection_code_"+num_filtre).each(function() {
+		thesaurus_data_num=jQuery(this).attr("thesaurus_data_num");
+		num_filtre_thesaurus_data_num=num_filtre+"_"+thesaurus_data_num;
 		
-		if (valeur=='') {
-			operateur='';
+		hors_borne='';
+		operateur='';
+		valeur='';
+		valeur_deb='';
+		valeur_fin='';
+		valeur_sup_n_x_borne_sup='';
+		valeur_inf_n_x_borne_inf='';
+		liste_valeur_checked='';
+		data_textual_research='';
+		
+		if (document.getElementById('id_select_hors_borne_'+num_filtre_thesaurus_data_num)) {
+			hors_borne=jQuery('#id_select_hors_borne_'+num_filtre_thesaurus_data_num).val();
+			operateur=jQuery('#id_select_operateur_'+num_filtre_thesaurus_data_num).val();
+			valeur=jQuery('#id_input_valeur_'+num_filtre_thesaurus_data_num).val();
+			valeur_deb=jQuery('#id_input_valeur_deb_'+num_filtre_thesaurus_data_num).val();
+			valeur_fin=jQuery('#id_input_valeur_fin_'+num_filtre_thesaurus_data_num).val();
+			valeur_sup_n_x_borne_sup=jQuery('#id_input_valeur_sup_n_x_borne_sup_'+num_filtre_thesaurus_data_num).val();
+			valeur_inf_n_x_borne_inf=jQuery('#id_input_valeur_inf_n_x_borne_inf_'+num_filtre_thesaurus_data_num).val();
+			
+			if (valeur=='') {
+				operateur='';
+			}
+			if (operateur=='') {
+				valeur='';
+			}
+			//if (jQuery('#id_input_checkbox_presence_'+num_filtre_thesaurus_data_num).is(':checked')) {
+				liste_valeur_checked=1;
+			//}
+		} else {
+		
+			tab_liste_valeur_checked= $( "#id_list_checkbox_thesaurus_data_"+num_filtre_thesaurus_data_num).val() || [] ;
+			if( typeof tab_service === 'string' ) {
+				liste_valeur_checked=tab_liste_valeur_checked;
+			} else {
+				liste_valeur_checked=tab_liste_valeur_checked.join( "^" );
+			}
+			//$('#id_div_list_checkbox_thesaurus_data_'+num_filtre_thesaurus_data_num+' :checked').each(function() {
+			//	liste_valeur_checked=liste_valeur_checked+"^"+$(this).val();
+			//});
+			if (liste_valeur_checked=='') {
+				liste_valeur_checked=1;
+			}
 		}
-		if (operateur=='') {
-			valeur='';
+		if (document.getElementById('id_input_data_textual_research_'+num_filtre_thesaurus_data_num)) {
+			data_textual_research=jQuery('#id_input_data_textual_research_'+num_filtre_thesaurus_data_num).val();
 		}
-	} else {
-		$('#id_div_list_checkbox_thesaurus_data_'+num_filtre+' :checked').each(function() {
-			liste_valeur_checked=liste_valeur_checked+"^"+$(this).val();
-		});
-		if (liste_valeur_checked=='') {
-			liste_valeur_checked=1;
+		chaine_requete_code=hors_borne+";"+operateur+";"+valeur+";"+valeur_deb+";"+valeur_fin+";"+valeur_sup_n_x_borne_sup+";"+valeur_inf_n_x_borne_inf+";"+liste_valeur_checked+";"+data_textual_research;
+		
+		if (  chaine_requete_code.match(/^;+$/)) {
+		//if (chaine_requete_code==';;;;;;;;') {
+			alert('vide');
+			chaine_requete_code='';
+		} else {
+			chaine_requete_code_final=chaine_requete_code_final+";separator;"+chaine_requete_code+";"+thesaurus_data_num;
 		}
-	}
+		
+	});
 	
-	
-	chaine_requete_code=hors_borne+";"+operateur+";"+valeur+";"+valeur_deb+";"+valeur_fin+";"+valeur_sup_n_x_borne_sup+";"+valeur_inf_n_x_borne_inf+";"+liste_valeur_checked;
-	if (chaine_requete_code==';;;;;;;') {
-		chaine_requete_code='';
-	}
-	jQuery('#id_input_chaine_requete_code_'+num_filtre).val(chaine_requete_code);
+	jQuery('#id_input_chaine_requete_code_'+num_filtre).val(chaine_requete_code_final);
 	
 	if (chaine_requete_code_preced!=chaine_requete_code) {
-		calcul_nb_resultat_filtre(num_filtre,true);
+		//calcul_nb_resultat_filtre(num_filtre,true);
 	
 	}
 }
 
 
 var verif_script_lance_2='';
-function verif_chaine_modifiee_avant_creer_chaine(num_filtre,id,val) {
+function verif_chaine_modifiee_avant_creer_chaine(num_filtre,id,val,num_filtre_thesaurus_data_num) {
 	valeur=document.getElementById(id).value;
 	if (valeur==val) {
 		verif_script_lance_2='';
@@ -1454,7 +1649,7 @@ function verif_chaine_modifiee_avant_creer_chaine(num_filtre,id,val) {
 	} else {
 		if (verif_script_lance_2=='') {
 			verif_script_lance_2='ok';
-			setTimeout("verif_chaine_modifiee_avant_creer_chaine('"+num_filtre+"','"+id+"','"+valeur+"')",1000);
+			setTimeout("verif_chaine_modifiee_avant_creer_chaine('"+num_filtre+"','"+id+"','"+valeur+"','"+num_filtre_thesaurus_data_num+"')",1000);
 		} else {
 			verif_script_lance_2='';
 		}
@@ -1466,7 +1661,7 @@ function verif_chaine_modifiee_avant_calcul (num_filtre,id,val) {
 	valeur=document.getElementById(id).value;
 	if (valeur==val) {
 		verif_script_lance_1='';
-		calcul_nb_resultat_filtre (num_filtre,true);
+		//calcul_nb_resultat_filtre (num_filtre,true);
 	} else {
 		if (verif_script_lance_1=='') {
 			verif_script_lance_1='ok';
@@ -1500,37 +1695,6 @@ function verif_chaine_texte_modifiee_avant_calcul (num_filtre,id,val) {
 function afficher_modifier_service(department_num) {
 	document.getElementById('id_div_libelle_service_'+department_num).style.display='none';
 	document.getElementById('id_div_libelle_service_modifier_'+department_num).style.display='block';
-}
-
-function modifier_libelle_service(department_num) {
-	department_str=jQuery('#id_input_libelle_service_'+department_num).val();
-	department_code=jQuery('#id_input_code_service_'+department_num).val();
-	jQuery.ajax({
-		type:"POST",
-		url:"ajax.php",
-		async:true,
-		data: { action:'modifier_libelle_service',department_str:escape(department_str),department_code:escape(department_code),department_num:department_num},
-		beforeSend: function(requester){
-		},
-		success: function(requester){
-			contenu=requester;
-			if (contenu=='deconnexion') {
-				afficher_connexion("modifier_libelle_service("+department_num+")");
-			} else {
-				if (contenu=='erreur') {
-					alert(get_translation('JS_UNE_ERREUR_EST_SURVENUE','Une erreur est survenue'));
-				} else {
-					jQuery('#id_div_libelle_service_'+department_num).html("<strong>"+department_code+" "+department_str+"</strong>");
-					document.getElementById('id_div_libelle_service_'+department_num).style.display='block';
-					document.getElementById('id_div_libelle_service_modifier_'+department_num).style.display='none';
-				}
-			}
-		},
-		complete: function(requester){
-		},
-		error: function(){
-		}
-	});		
 }
 
 
@@ -2618,4 +2782,45 @@ function position_info_new_feature (id,text,j) {
 
 function html_replace_supinf (str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+
+function check_logical_constraint () {
+	logical_constraint=jQuery('#id_logical_constraint').val();
+	if (logical_constraint!='') {
+		// " 2 ("   ou " ) ( "
+		if (logical_constraint.match(/([0-9]|[)]) *[(]/)) {
+			alert("Erreur dans la structure de la contrainte logique");
+			return false;
+		}
+		// " ) 3 "   ou " ) ( "
+		if (logical_constraint.match(/[)] *([0-9]|[(])/)) {
+			alert("Erreur dans la structure de la contrainte logique");
+			return false;
+		}
+		
+		// "and or" or "or or" or "or and" or "and and"
+		if (logical_constraint.match(/(and|or|not) *(and|or|not)/)) {
+			alert("Erreur dans la structure de la contrainte logique");
+			return false;
+		}
+	
+		// tout saug 123456789andornot()
+		if (logical_constraint.match(/[^123456789andornot() ]/)) {
+			alert("Erreur dans la structure de la contrainte logique");
+			return false;
+		}
+		
+		// no spaces between number
+		if (logical_constraint.match(/[0-9] +[0-9]/)) {
+			alert("Erreur dans la structure de la contrainte logique");
+			return false;
+		}
+		nb_a=logical_constraint.match(/[(]/g).length;
+		nb_b=logical_constraint.match(/[)]/g).length;
+		if (nb_a!=nb_b) {
+			alert("Erreur dans la structure de la contrainte logique : nb de parenthèses ouvertes != nb arenthèses fermées");
+			return false;
+		}
+	}
 }

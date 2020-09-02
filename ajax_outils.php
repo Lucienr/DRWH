@@ -40,7 +40,7 @@ if ($_POST['action']=='connexion') {
 	exit;
 }
 
-if ($_SESSION['dwh_login']=='') {
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']=='') {
 	print "deconnexion";
 	exit;
 } else {
@@ -490,15 +490,16 @@ if ($_POST['action']=='mapper_patient' ) {
 	$process_num=$_POST['process_num'];
 	$liste_patient=urldecode($_POST['liste_patient']);
 	$option_limite=$_POST['option_limite'];
+	$option_patient_num=$_POST['option_patient_num'];
   	update_process ($process_num,"0","traitement en cours","$liste_patient",$user_num_session,"");
-	passthru( "php exec_mapping_patient.php \"$user_num_session\" \"$process_num\" \"$option_limite\"> $CHEMIN_GLOBAL_LOG/log_mapper_patient_$process_num.txt 2>$CHEMIN_GLOBAL_LOG/log_mapper_patient_$process_num.txt &");
+	passthru( "php exec_mapping_patient.php \"$user_num_session\" \"$process_num\" \"$option_limite\" \"$option_patient_num\"> $CHEMIN_GLOBAL_LOG/log_mapper_patient_$process_num.txt 2>$CHEMIN_GLOBAL_LOG/log_mapper_patient_$process_num.txt &");
 	save_log_page($user_num_session,"mapper_patient");
 }
 
 if ($_POST['action']=='display_mapper_patient' ) {
 	$i=0;
 	$process_num=$_POST['process_num'];
-	$process=get_process ($process_num);
+	$process=get_process ($process_num,'get_result');
 	$status=$process['STATUS'];	
 	$resultat_mapping=$process['RESULT'];	
 	if ($status==1) {
@@ -513,9 +514,9 @@ if ($_POST['action']=='display_mapper_patient' ) {
 
 
 
-if ($_POST['action']=='display_thesaurus_table' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='display_thesaurus_table' ) {
 	$data_search=supprimer_apost(trim(urldecode($_POST['data_search'])));
-	$thesaurus_code=$_POST['thesaurus_code'];
+	$thesaurus_code=$_POST['thesaurus_code'];	
 	if ($data_search!='' || $thesaurus_code!='') {
 		$thesaurus_data_concept=get_thesaurus_data_concept ($data_search,$thesaurus_code,'');
 		print "<table class=tablefin id=\"id_table_list_thesaurus_data\">
@@ -574,7 +575,7 @@ if ($_POST['action']=='display_thesaurus_table' && $_SESSION['dwh_droit_admin']=
 
 
 
-if ($_POST['action']=='display_thesaurus_tree' && $_SESSION['dwh_droit_admin']=='ok') {
+if ($_POST['action']=='display_thesaurus_tree') {
 	$data_search=supprimer_apost(trim(urldecode($_POST['data_search'])));
 	$thesaurus_code=$_POST['thesaurus_code'];
 	$thesaurus_data_num=$_POST['thesaurus_data_num'];

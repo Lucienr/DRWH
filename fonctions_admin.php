@@ -73,7 +73,6 @@ function count_departement_and_unit() {
         global $dbh;
         
 	$tab_count_departement=array();
-	
 	$sel=oci_parse($dbh,"select  department_num,count(*) nb from dwh_patient_department where department_num is not null group by department_num");
 	oci_execute($sel);
 	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
@@ -81,38 +80,62 @@ function count_departement_and_unit() {
 			$tab_count_departement['nb_patient'][$r['DEPARTMENT_NUM']]=$r['NB'];
 		}
 	}
-	
-	$sel=oci_parse($dbh,"select  department_num,count(*) nb from dwh_document where department_num is not null group by department_num");
+		
+	$sel=oci_parse($dbh,"select  department_num,unit_num,count(*) nb from dwh_document where department_num is not null group by department_num,unit_num");
 	oci_execute($sel);
 	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		if ($r['DEPARTMENT_NUM']!='') {
-			$tab_count_departement['nb_document'][$r['DEPARTMENT_NUM']]=$r['NB'];
+			$tab_count_departement['nb_document'][$r['DEPARTMENT_NUM']]+=$r['NB'];
 		}
-	}
-	
-	$sel=oci_parse($dbh,"select  department_num,count(*) nb from dwh_patient_mvt where department_num is not null group by department_num");
-	oci_execute($sel);
-	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
-		if ($r['DEPARTMENT_NUM']!='') {
-			$tab_count_departement['nb_mvt'][$r['DEPARTMENT_NUM']]=$r['NB'];
-		}
-	}
-	
-	$sel=oci_parse($dbh,"select  unit_num,count(*) nb from dwh_document where unit_num is not null group by unit_num");
-	oci_execute($sel);
-	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		if ($r['UNIT_NUM']!='') {
 			$tab_count_departement['nb_document'][$r['UNIT_NUM']]=$r['NB'];
 		}
 	}
 	
-	$sel=oci_parse($dbh,"select  unit_num,count(*) nb from dwh_patient_mvt where unit_num is not null  group by unit_num");
+	#$sel=oci_parse($dbh,"select  department_num,count(*) nb from dwh_document where department_num is not null group by department_num");
+	#oci_execute($sel);
+	#while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+	#	if ($r['DEPARTMENT_NUM']!='') {
+	#		$tab_count_departement['nb_document'][$r['DEPARTMENT_NUM']]=$r['NB'];
+	#	}
+	#}
+
+	
+	#$sel=oci_parse($dbh,"select  unit_num,count(*) nb from dwh_document where unit_num is not null group by unit_num");
+	#oci_execute($sel);
+	#while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+	#	if ($r['UNIT_NUM']!='') {
+	#		$tab_count_departement['nb_document'][$r['UNIT_NUM']]=$r['NB'];
+	#	}
+	#}
+	
+	
+	$sel=oci_parse($dbh,"select  department_num,unit_num,count(*) nb from dwh_patient_mvt where department_num is not null group by department_num,unit_num");
 	oci_execute($sel);
 	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+		if ($r['DEPARTMENT_NUM']!='') {
+			$tab_count_departement['nb_mvt'][$r['DEPARTMENT_NUM']]+=$r['NB'];
+		}
 		if ($r['UNIT_NUM']!='') {
 			$tab_count_departement['nb_mvt'][$r['UNIT_NUM']]=$r['NB'];
 		}
 	}
+		
+#	$sel=oci_parse($dbh,"select  department_num,count(*) nb from dwh_patient_mvt where department_num is not null group by department_num");
+#	oci_execute($sel);
+#	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+#		if ($r['DEPARTMENT_NUM']!='') {
+#			$tab_count_departement['nb_mvt'][$r['DEPARTMENT_NUM']]=$r['NB'];
+#		}
+#	}
+#	$sel=oci_parse($dbh,"select  unit_num,count(*) nb from dwh_patient_mvt where unit_num is not null  group by unit_num");
+#	oci_execute($sel);
+#	while($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
+#		if ($r['UNIT_NUM']!='') {
+#			$tab_count_departement['nb_mvt'][$r['UNIT_NUM']]=$r['NB'];
+#		}
+#	}
+
 	return $tab_count_departement;
 }
 
@@ -136,14 +159,14 @@ function display_department($department_num,$department_str,$department_code,$de
         //////////////// LE SERVICE
         print "<tr id=\"id_tr_service_$department_num\" >
                         <td valign=\"top\" nowrap=\"nowrap\">";
-        if ($_SESSION['dwh_droit_admin']=='ok') {
+        if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
                 print "<div id=\"id_div_libelle_service_$department_num\" onclick=\"afficher_modifier_service($department_num);\" class=\"admin_libelle_service\"><strong nowrap=\"nowrap\">$department_code $department_str</strong></div>
                         <div id=\"id_div_libelle_service_modifier_$department_num\" style=\"display:none;\">
-                                ".get_translation('HOSPITAL_DEPARTMENT_NAME','Nom du service')." <input type=\"text\" size=\"50\" id=\"id_input_libelle_service_$department_num\" value=\"$department_str\" class=\"admin_input\"><br>
-                                ".get_translation('HOSPITAL_DEPARTMENT_CODE','Code service')." <input type=\"text\" size=\"3\" id=\"id_input_code_service_$department_num\" value=\"$department_code\"><br>
+                                ".get_translation('HOSPITAL_DEPARTMENT_NAME','Nom du service')."<strong style=\"color:red;\">*</strong> <input type=\"text\" size=\"50\" id=\"id_input_libelle_service_$department_num\" value=\"$department_str\" class=\"admin_input\"><br>
+                                ".get_translation('HOSPITAL_DEPARTMENT_CODE','Code service')."<strong style=\"color:red;\">*</strong> <input type=\"text\" size=\"3\" id=\"id_input_code_service_$department_num\" value=\"$department_code\"><br>
                                 <input type=\"button\" onclick=\"modifier_libelle_service('$department_num');\" value=\"".get_translation('MODIFY','modifier')."\" class=\"admin_button\">
                         </div>
-                        ".get_translation('MASTER_DEPARTMENT',"Departement maitre")." <input onclick=\"set_department_master('$department_code','$department_num');\" type=\"checkbox\" value=\"1\" id=\"id_checbox_".$department_code."_".$department_num."\" $check_department_master>
+                        ".get_translation('DEPARTMENT_DISPLAYED',"Service affiché")." <input onclick=\"set_department_master('$department_code','$department_num');\" type=\"checkbox\" value=\"1\" id=\"id_checbox_".$department_code."_".$department_num."\" $check_department_master>
                 ";
         } else {
                 print "<strong>$department_str</strong>";
@@ -178,7 +201,7 @@ function display_department($department_num,$department_str,$department_code,$de
                 print "<tr id=\"id_tr_uf_".$department_num."_".$unit_num."\" onmouseover=\"this.style.backgroundColor='#B9C2C8';\" onmouseout=\"this.style.backgroundColor='#ffffff';\" class=\"admin_texte\">
                         <td>$unit_code ".ucfirst(strtolower($unit_str))." </td><td>$nb_doc docs</td><td>$nb_mvt mvt</td><td> $unit_start_date</td><td>$unit_end_date</td>";
                 
-                if ($_SESSION['dwh_droit_admin']=='ok') {
+                if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
                         print "<td><a onclick=\"supprimer_uf('$unit_num','$department_num');return false;\" href=\"#\" class=\"admin_lien\">X</a></td>";
                 } else {
                         print "<td></td>";
@@ -188,14 +211,14 @@ function display_department($department_num,$department_str,$department_code,$de
         print "</table></div><br>";
         
         
-        if ($_SESSION['dwh_droit_admin']=='ok') {
+        if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
                 print "
                         <a onclick=\"plier_deplier('id_div_ajouter_uf_$department_num');return false;\"  href=\"#\" class=\"admin_lien\"><span id=\"plus_id_div_ajouter_uf_$department_num\">+</span> ".get_translation('ADD_HOSPITAL_UNIT','Ajouter une UF')."</a><br><br>
                         <div id=\"id_div_ajouter_uf_$department_num\" style=\"display:none;\" onmouseover=\"autocomplete_service($department_num);\">
-                                <span class=\"admin_texte\">".get_translation('HOSPITAL_DEPARTMENT_CODE','Code service')." </span><input type=\"text\" size=\"3\" id=\"id_input_unit_code_$department_num\" value=\"\" class=\"admin_input\"><br>
-                                <span class=\"admin_texte\">".get_translation('HOSPITAL_DEPARTMENT_NAME','Nom du service')." </span> <input type=\"text\" size=\"50\" id=\"id_input_unit_str_$department_num\" value=\"\" class=\"admin_input\" class=\"admin_input\"><br>
-                                <span class=\"admin_texte\">".get_translation('DATE_START','Date debut')." </span><input type=\"text\" size=\"11\" id=\"id_input_date_deb_uf_$department_num\" value=\"\" class=\"admin_input\"><br>
-                                <span class=\"admin_texte\">".get_translation('DATE_END','Date fin')." </span><input type=\"text\" size=\"11\" id=\"id_input_date_fin_uf_$department_num\" value=\"01/01/3000\" class=\"admin_input\"><br>
+                                <span class=\"admin_texte\">".get_translation('HOSPITAL_DEPARTMENT_CODE','Code service')."<strong style=\"color:red;\">*</strong> </span><input type=\"text\" size=\"3\" id=\"id_input_unit_code_$department_num\" value=\"\" class=\"admin_input\"><br>
+                                <span class=\"admin_texte\">".get_translation('HOSPITAL_DEPARTMENT_NAME','Nom du service')."<strong style=\"color:red;\">*</strong> </span> <input type=\"text\" size=\"50\" id=\"id_input_unit_str_$department_num\" value=\"\" class=\"admin_input\" class=\"admin_input\"><br>
+                                <span class=\"admin_texte\">".get_translation('DATE_START','Date debut')."<strong style=\"color:red;\">*</strong> </span><input type=\"text\" size=\"11\" id=\"id_input_date_deb_uf_$department_num\" value=\"\" class=\"admin_input\"><br>
+                                <span class=\"admin_texte\">".get_translation('DATE_END','Date fin')."<strong style=\"color:red;\">*</strong> </span><input type=\"text\" size=\"11\" id=\"id_input_date_fin_uf_$department_num\" value=\"01/01/3000\" class=\"admin_input\"><br>
                                 <input type=\"button\" onclick=\"ajouter_uf('$department_num');\" value=\"".get_translation('ADD','ajouter')."\">
                                 <br>
                                 <br>
@@ -228,7 +251,7 @@ function display_department($department_num,$department_str,$department_code,$de
                         <td>".strtoupper($lastname)." ".ucfirst(strtolower($firstname))." 
                  <span  id=\"id_span_user_".$department_num."_".$user_num."\"  style=\"color:#990000;font-size:18px;font-weight:bold;\">$texte_manager_department</span> </td>";
                 
-                if ($_SESSION['dwh_droit_admin']=='ok' || $verif_manager_department==1) {
+                if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok' || $verif_manager_department==1) {
                         print "<td><a onclick=\"supprimer_user('$user_num','$department_num');return false;\" href=\"#\" class=\"admin_lien\">X</a></td>";
                 } else {
                         print "<td></td>";
@@ -237,7 +260,7 @@ function display_department($department_num,$department_str,$department_code,$de
         }
         print "</table></div><br>";
         /*
-        if ($_SESSION['dwh_droit_admin']=='ok' || $verif_manager_department==1) {
+        if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok' || $verif_manager_department==1) {
                 print "
                         <a onclick=\"plier_deplier('id_div_ajouter_user_$department_num');return false;\"  href=\"#\" class=\"admin_lien\"><span id=\"plus_id_div_ajouter_user_$department_num\">+</span> ".get_translation('ADD_USERS','Ajouter des utilisateurs')."</a><br><br>
                         <div id=\"id_div_ajouter_user_$department_num\" style=\"display:none;\" onmouseover=\"autocomplete_service($department_num);\">
@@ -268,7 +291,7 @@ function display_department($department_num,$department_str,$department_code,$de
         }
         */
         print "</td>";
-        if ($_SESSION['dwh_droit_admin']=='ok') {
+        if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_admin']=='ok') {
                 print "
                         <td valign=\"top\" >
                                 <input type=\"button\" onclick=\"supprimer_service('$department_num');\" value='S'>

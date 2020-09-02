@@ -1,6 +1,6 @@
 <?
 /*
-    Dr Warehouse is a document oriented data warehouse for clinicians. 
+    Dr Warehouse is a document oriented data warehouse for clinicians.
     Copyright (C) 2017  Nicolas Garcelon
 
     This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 include "head.php";
 ?>
 <style>
-.div_connexion { 
+.div_connexion {
 border-radius: 5px;
     margin: 1em 0;
     padding: 1em 0 3.5em;
@@ -41,9 +41,9 @@ border-radius: 5px;
 <?
 include "JWTforDWH/generate_jwt.php";
 
-$_SESSION['dwh_login']='';
+$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']='';
 foreach ($_SESSION as $lib => $val) {
-	if (preg_match("/^dwh/",$lib)) {
+	if (preg_match("/^".$GLOBALS['PREFIX_INSTANCE_DWH']."/",$lib)) {
 		$_SESSION[$lib]='';
 	}
 }
@@ -57,28 +57,32 @@ if ($_POST['action']=='connexion' && $_POST['passwd']!='' && $_POST['login']!=''
 		} else {
 			$script_appel=preg_replace('/ETCOMMERCIAL/','&',$_POST['script_appel']);
 		}
-		$_SESSION['dwh_jwt_key_session']=generate_jwt($_SESSION['dwh_user_num'], 18000);
+		$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_jwt_key_session']=generate_jwt($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_num'], 18000);
 
-		save_log_page($_SESSION['dwh_user_num'],'connexion');
+    $post = [
+        'token' => $_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_jwt_key_session']
+    ];
+
+		save_log_page($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_num'],'connexion');
 		header("Location: $script_appel");
 		exit;
-	} 
+	}
 
 	if ($verif_connexion=='modify') {
-		save_log_page($_SESSION['dwh_user_num'],'modify_passwd');
+		save_log_page($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_user_num'],'modify_passwd');
 		header("Location: modify_passwd.php");
 		exit;
-	} 
+	}
 }
 session_write_close();
 include "menu.php";
 ?>
 
 <div class="div_connexion" >
-	<h1>Welcome on Dr Warehouse</h1> 
+	<h1>Welcome on Dr Warehouse</h1>
 	<p>
 	Dr Warehouse is an open source biomedical data warehouse.<br>
-	Please visit this website for more information : <a href="https://imagine-plateforme-bdd.fr/dwh" target="_blank">https://imagine-plateforme-bdd.fr/dwh</a><br><br>
+	Please visit this website for more information : <a href="http://www.drwarehouse.org/" target="_blank">http://www.drwarehouse.org/</a><br><br>
 	</p>
 </div>
 
@@ -97,6 +101,14 @@ include "menu.php";
 			<br>
 </div>
 
+
+<script>
+  var token = <?php echo json_encode($post['token']); ?>;
+  console.log(token)
+  if (token != null) {
+    localStorage.setItem('access_token_drwh', token)
+  }
+</script>
+
+
 <? include "foot.php"; ?>
-
-

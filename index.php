@@ -32,8 +32,8 @@ session_write_close();
 <!-- Mon profil -->
 <div class="div_accueil">
 	<div class="actu">
-	<? 
-	$tab_actu=get_list_actu ("and alert=0 and published=1"); 
+	<?
+	$tab_actu=get_list_actu ("and alert=0 and published=1");
 	if (count($tab_actu)>0) {
 		foreach ($tab_actu as $actu) {
 			$actu_text=$actu['actu_text'];
@@ -42,52 +42,58 @@ session_write_close();
 			<div class=\"actu_alert\">
 			$actu_text<br>
 			</div>";
-		} 
+		}
 	}
 	?>
 	</div>
 	<h1><img src="images/health7.png" style="vertical-align: middle"> <? print get_translation('MY_PROFILE','Mon profil'); ?></h1>
+	<div style="max-height: 400px;overflow: auto;">
+		<? 
+		$info_user=get_user_info ($user_num_session); 
+		$expiration_date=$info_user['expiration_date'];
+		if ($expiration_date!='') {
+			print get_translation('ACCESS_LIMIT_THE_DATE','Expiration de votre accès le')." $expiration_date<br><br>";
+		}
+		?>
 		<? last_connexion ($user_num_session); ?>
-		
 		<? afficher_mes_droits ($user_num_session); ?>
-		
+	</div>
 	<h1><? print get_translation('USER_GUIDE','Guide utilisateur'); ?></h1>
 	<a href="users_guide.pdf" target="_blank"><? print get_translation('DOWNLOAD_USER_GUIDE','Télécharger le guide utilisateur en cliquant ici'); ?></a>
-	
+
 	<h1><? print get_translation('TO_CITE_FOR_PUBLICATION','A citer pour une publication'); ?></h1>
 	<p>"We recruited patients from this study using the data warehouse at XXX Hospital, Dr Warehouse (ref). It allows to search for patients from structured data (biology) and free text (hospital reports). It contains xxxx patients and x millions health reports."</p><br>
-	<i>Garcelon N, Neuraz A, Salomon R, Faour H, Benoit V, Delapalme A, Munnich A, Burgun A, Rance B.</i> 
+	<i>Garcelon N, Neuraz A, Salomon R, Faour H, Benoit V, Delapalme A, Munnich A, Burgun A, Rance B.</i>
 	A clinician friendly data warehouse oriented toward narrative reports: Dr. Warehouse. J Biomed Inform. 2018 Apr;80:52-63. doi: 10.1016/j.jbi.2018.02.019. Epub 2018 Mar 1. PubMed PMID: 29501921
 	<a href="https://doi.org/10.1016/j.jbi.2018.02.019" target="_blank">https://doi.org/10.1016/j.jbi.2018.02.019</a> <a href="https://www.ncbi.nlm.nih.gov/pubmed/29501921" target="_blank">pubmed</a>.<br><br>
 	<h1><? print get_translation('LAST_DATA_LOAD','Derniers chargements'); ?></h1>
 	<? afficher_etat_entrepot('last_chargement','600px','','',''); ?>
-	
-		
+
+
 </div>
-
-
 
 <!-- MES COHORTES -->
 <div class="div_accueil" style="width:400px;font-size:12px;">
 	<h1><img src="images/mine2.png" style="vertical-align: middle"> <? print get_translation('MY_COHORTS','Mes Cohortes'); ?></h1>
-	<? afficher_cohorte_ligne_accueil();
-	 ?>
+	<div class="cohorts">
+	<? afficher_cohorte_ligne_accueil(); ?>
+        </div>
 </div>
-
-
-
 
 <!-- MES REQUETES SAUVES -->
 <div class="div_accueil">
 	<h1><? print get_translation('MY_SAVED_SEARCH_QUERIES','Mes Requêtes Sauvegardées'); ?></h1>
+	<div class="saved_queries">
 	<? lister_requete_sauve_accueil(); ?>
+        </div>
 </div>
-
 
 <!-- MES PROCESS  -->
 <div class="div_accueil">
 	<h1><? print get_translation('MY_PROCESSES','Mes Process en cours et finis'); ?></h1>
+	<div class="process">
 	<? display_my_process($user_num_session); ?>
+        </div>
 </div>
 
 
@@ -95,7 +101,7 @@ session_write_close();
 <!-- ETAT ENTREPOT -->
 <div class="div_accueil">
 	<h1><? print get_translation('DATAWAREHOUSE_DATA_LOADED',"Etat de l'entrepôt"); ?></h1>
-	<a href="etat_etl.php"><? print get_translation('DISPLAY_DETAILS_AFTER_CLICK','Afficher le détail en cliquand ici'); ?></a><br>
+	<a href="etat_etl.php"><? print get_translation('DISPLAY_DETAILS_AFTER_CLICK','Afficher le détail en cliquant ici'); ?></a><br>
 	<? afficher_etat_entrepot('document_origin_code','600px','','',''); ?>
 </div>
 <div class="div_accueil" style="max-width:800px">
@@ -115,14 +121,14 @@ session_write_close();
 <span style="clear:left;display:block"></span>
 
 
-<? 
-$tab_alert=get_list_actu ("and alert=1"); 
+<?
+$tab_alert=get_list_actu ("and alert=1");
 if (count($tab_alert)>0) {
 ?>
 <div style="display:block;position:fixed;background-color:pink;border:1px black solid;  padding:0px;top:150px;left:300px;width:500px" id="id_div_alert_info">
 	<table width="100%" border="0"><tbody><tr><td></td><td onclick="plier('id_div_alert_info');" style="text-align:right;cursor:pointer;vertical-align:top;">X</td></tr></tbody></table>
 	<div class="actu_alert" id="id_message_info_alerte" style="font-size:15px;padding:0px 15px;">
-<? 
+<?
 foreach ($tab_alert as $alert) {
 	$actu_text=$alert['actu_text'];
 	print "$actu_text<br><hr>";

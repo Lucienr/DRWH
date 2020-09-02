@@ -38,7 +38,7 @@ if ($_POST['action']=='connexion') {
 	print "$erreur";
 	exit;
 }
-if ($_SESSION['dwh_login']=='') {
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']=='') {
 	print "deconnexion";
 	exit;
 } else {
@@ -49,7 +49,7 @@ if ($_SESSION['dwh_login']=='') {
 	}
 }
 
-$dwh_droit_all_departments=$_SESSION['dwh_droit_all_departments'.$datamart_num];
+$dwh_droit_all_departments=$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num];
 session_write_close();
 
 
@@ -68,7 +68,7 @@ if ($document_num!='') {
 }
 
 if ($tmpresult_num!='') {
-	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
    
         $document='';
         $patient_num_before='';

@@ -334,7 +334,7 @@ function repartition_concepts_general_json ($tmpresult_num,$phenotype_genotype,$
 			$pourc_res_entrepot=str_replace(",",".",$pourc_res_entrepot);
 			$code_libelle_sans_apostrophe=str_replace("'"," ",$concept_str);
 			if ($tableau==1) {
-				if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]) {
+				if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_detailed'.$datamart_num]) {
 					$onclick=" onclick=\"ajouter_filtre('$code_libelle_sans_apostrophe');\"";
 				}
 				
@@ -571,7 +571,7 @@ function repartition_concepts_general_json_php ($tmpresult_num,$phenotype_genoty
 			$pourc_res_entrepot=str_replace(",",".",$pourc_res_entrepot);
 			$code_libelle_sans_apostrophe=str_replace("'"," ",$concept_str);
 			if ($tableau==1) {
-				if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]) {
+				if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_detailed'.$datamart_num]) {
 					$onclick=" onclick=\"ajouter_filtre('$code_libelle_sans_apostrophe');\"";
 				}
 				
@@ -888,7 +888,7 @@ function repartition_concepts_json ($tmpresult_num,$phenotype_genotype,$tableau,
 			$pourc_res_entrepot=str_replace(",",".",$pourc_res_entrepot);
 			$code_libelle_sans_apostrophe=str_replace("'"," ",$concept_str);
 			if ($tableau==1) {
-				if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]) {
+				if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_detailed'.$datamart_num]) {
 					$onclick=" onclick=\"ajouter_filtre('$code_libelle_sans_apostrophe');\"";
 				}
 				
@@ -961,7 +961,7 @@ function repartition_data_json ($tmpresult_num,$thesaurus_code) {
 		if ($i<=500) {
 			$nb_c++;
 			$pourc_local=str_replace(",",".",$pourc_local);
-			//if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]) {
+			//if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_detailed'.$datamart_num]) {
 			//	$onclick=" onclick=\"ajouter_filtre('$code_libelle_sans_apostrophe');\"";
 			//}
 			$concept_str=str_replace("\\","/",$concept_str);

@@ -35,7 +35,7 @@ ecrf_item_num int,
 ecrf_num int,
 item_str varchar(4000),
 item_type varchar(200), // unique, multiple, date, number, text //
-item_list varchar(4000),
+document_search varchar(4000),
 primary key (ecrf_item_num),
 foreign key ( ecrf_num) references dwh_ecrf (ecrf_num) on delete cascade) ;
 
@@ -61,33 +61,58 @@ session_write_close();
 
 
 if ($_POST['action']=='ajouter_ecrf' ) {
-	$title_ecrf=nettoyer_pour_insert(urldecode(trim($_POST['title_ecrf'])));
-	$description_ecrf=nettoyer_pour_insert(urldecode(trim($_POST['description_ecrf'])));
-	$token_ecrf=nettoyer_pour_insert(urldecode(trim($_POST['token_ecrf'])));
-	$ecrf_url=nettoyer_pour_insert(urldecode(trim($_POST['ecrf_url'])));
+	$title_ecrf=nettoyer_pour_insert(trim($_POST['title_ecrf']));
+	$description_ecrf=nettoyer_pour_insert(trim($_POST['description_ecrf']));
+	$token_ecrf=nettoyer_pour_insert(trim($_POST['token_ecrf']));
+	$ecrf_url=nettoyer_pour_insert(trim($_POST['ecrf_url']));
+	$ecrf_num_duplicate=$_POST['ecrf_num_duplicate'];
+	
 	if ($title_ecrf!='') {
-		print("--".$ecrf_url."--");
 		$ecrf_num_ajout=insert_ecrf ($ecrf_num_ajout,$title_ecrf,$description_ecrf,$ecrf_url,$user_num_session);
 		insert_ecrf_user_right ($ecrf_num_ajout,$user_num_session,'modifier');
 		insert_ecrf_user_right ($ecrf_num_ajout,$user_num_session,'utiliser');
 		
 		insert_ecrf_token ($user_num_session, $ecrf_num_ajout,$token_ecrf);
 		
+		if ($ecrf_num_duplicate!='') {
+			insert_ecrf_item_from_other_ecrf ($user_num_session, $ecrf_num_ajout,$ecrf_num_duplicate);
+		}
+		
 		$_GET['ecrf_num_voir']=$ecrf_num_ajout;
 		echo "<script type='text/javascript'>document.location.replace('mes_ecrf.php?ecrf_num_voir=$ecrf_num_ajout');</script>";
 	}
 }
 ?>
-<h1><? print get_translation('MY_ECRF','Mes Questionnaires'); ?></h1>
+<h1><? print get_translation('MY_ECRF','Mes Ecrf'); ?></h1>
 
+<style>
+table.form_ecrf td {
+border:0px;
+font-size:12px;
+vertical-align:top;}
+
+td.ecrf_list_item  {
+	vertical-align:top;
+	cursor:pointer;
+}
+
+tr.ecrf_list_item  {
+	background-color:#ffffff;
+}
+
+tr.ecrf_list_item:hover  {
+	background-color:#cccccc;
+}
+
+</style>
 <script type="text/javascript" src="javascript_ecrf.js?v=<? print $date_today_unique; ?>"></script>
 
 <table border="0">
 
 <tr>
 	<td style="vertical-align:top;width:400px;">
-		<h2 onclick="plier_deplier('id_div_creer_ecrf');plier_deplier('id_div_mon_ecrf');" style="cursor:pointer;"><span id="plus_id_div_creer_ecrf">+</span> <? print get_translation('CREATE_ECRF','Créer un Questionnaire'); ?></h2>
-		<h2><? print get_translation('MY_ECRF','Mes Questionnaires'); ?> :</h2>
+		<h2 onclick="plier_deplier('id_div_creer_ecrf');plier_deplier('id_div_mon_ecrf');" style="cursor:pointer;"><span id="plus_id_div_creer_ecrf">+</span> <? print get_translation('CREATE_ECRF','Créer un Ecrf'); ?></h2>
+		<h2><? print get_translation('MY_ECRF','Mes Ecrf'); ?> :</h2>
 		<div id="id_div_liste_ecrf">
 		<?
 		
@@ -106,7 +131,22 @@ if ($_POST['action']=='ajouter_ecrf' ) {
 						<textarea id="id_ajouter_description_ecrf" cols="50" rows="6" class="form" name="description_ecrf"></textarea>
 					</td></tr>
 					<tr><td class="question_user"><? print get_translation('TOKEN','Token'); ?> : </td><td><input type="text" size="50"  name="token_ecrf" id="id_ajouter_token_ecrf" class="form"></td></tr>
-					<tr><td class="question_user"><? print get_translation('URL_ECRF','URL de l\'eCRF'); ?> : </td><td><input type="text" size="50"  name="ecrf_url" id="id_ajouter_ecrf_url" class="form" value="http://redcap.nck.aphp.fr/api/"></input></td></tr>
+					<tr><td class="question_user"><? print get_translation('URL_ECRF',"URL de l'eCRF"); ?> : </td><td><input type="text" size="50"  name="ecrf_url" id="id_ajouter_ecrf_url" class="form" value="http://redcap.nck.aphp.fr/api/"></input></td></tr>
+					<tr><td class="question_user"><? print get_translation('IMPORT_ECRF',"Importer les items de cet eCRF"); ?> : </td><td>
+					<?
+						$tableau_list_ecrf=get_list_ecrf ($user_num_session);
+						print "<select name=\"ecrf_num_duplicate\" id=\"id_select_ecrf\" class=\"form chosen-select\"  data-placeholder=\"".get_translation('SECLECT_AN_ECRF','Sélectionnez un ecrf ')."\" >";
+					        print "<option value=\"\"></option>";
+						foreach ($tableau_list_ecrf as $tab_ecrf) {
+					                $ecrf_num=$tab_ecrf['ecrf_num'];
+					                $title_ecrf=$tab_ecrf['title_ecrf'];
+					                $description_ecrf=$tab_ecrf['description_ecrf'];
+						        $nb_patients=$tab_ecrf['nb_patients'];
+						        $user_num=$tab_ecrf['user_num'];
+					         	print "<option value=\"$ecrf_num\">$title_ecrf</option>";
+						}
+						print "</select>";
+					?></td></tr>
 				</table>
 				<input type="button"  class="form" value="<? print get_translation('ADD','ajouter'); ?>" onclick="valider_formulaire_ajouter_ecrf();">
 				<input type="hidden" name="action" value="ajouter_ecrf">
@@ -231,7 +271,7 @@ if ($_POST['action']=='ajouter_ecrf' ) {
 					
 					
 					print "<div id=\"id_div_ecrf_item\" class=\"div_result\" style=\"display:none;width:100%;\" >";
-  						$list_ecrf_item=list_ecrf_item($ecrf_num_voir,$user_num_session);
+  						$list_ecrf_item=list_ecrf_item($ecrf_num_voir,"",$user_num_session,'display_ecrf_all_items');
   						$ecrf_redcap_items = "";
   						// Ajout Bastien - lien avec l'API REDCap
   						// Si un token est sauvé, le lien est établis.
@@ -317,9 +357,9 @@ if ($_POST['action']=='ajouter_ecrf' ) {
 						<a href=\"#\" onclick=\"plier_deplier('id_bloc_ecrf_item');return false;\">+ ".get_translation('ADD_ECRF_LIST_ITEMS',"Ajouter les items par bloc")."</a>
 						<div id=\"id_bloc_ecrf_item\" style=\"display:none\">";
 							print get_translation('MANUAL_IMPORT_ITEM',"Pour importer des items")."<br>";
-							print get_translation('MANUAL_IMPORT_PATIENTS_ECRF_COPY_PAST_LIST_OF_ITEMS',"Copier coller une liste de questions, leurs types et les valeurs attendues")."<br>";
+							print get_translation('MANUAL_IMPORT_PATIENTS_ECRF_COPY_PAST_LIST_OF_ITEMS',"Copier coller une liste d'items, leurs types et les valeurs attendues")."<br>";
 							print get_translation('MANUAL_IMPORT_PATIENTS_ECRF_RESPECT_ORDER_COLUMNS',"Respecter l'ordre des colonnes")." :<br>";
-							print get_translation('MANUAL_IMPORT_PATIENTS_ECRF_LIST_COLONNE',"QUESTION [tabulation] TYPE [Tabulation] LISTE DE VALEURS (séparateur ;)")."<br>";
+							print get_translation('MANUAL_IMPORT_PATIENTS_ECRF_LIST_COLONNE',"LIBELLE [tabulation] TYPE [Tabulation] LISTE DE VALEURS (séparateur ;)")."<br>";
 							print "<pre>";
 							print "Diabète	list	oui;non\n";
 							print "Date intervention	date	\n";
@@ -345,7 +385,15 @@ if ($_POST['action']=='ajouter_ecrf' ) {
 						<div id=\"id_list_item\" style=\"font-size:10px;\">$list_ecrf_item</div>
 						<a href=\"#\" onclick=\"add_new_item($ecrf_num_voir);return false;\">+ ".get_translation('ADD_AN_ITEM',"Ajouter un item")."</a>
 						<br>
-						";
+						Importer un item existant : <select id=\"id_select_ecrf_item_import\" class=\"chosen-select\"><option value=''></option>";
+						$list_ecrf_item_share=get_list_ecrf_item_share($user_num_session);
+						foreach ($list_ecrf_item_share as $ecrf_item) {
+							$title_ecrf=$ecrf_item['title_ecrf'];
+							$ecrf_item_num=$ecrf_item['ecrf_item_num'];
+							$item_str_type=$ecrf_item['item_str_type'];
+							print "<option value=\"$ecrf_item_num\">$title_ecrf - $item_str_type</option>";
+						}
+						print "</select> <input type=\"button\" onclick=\"import_ecrf_item($ecrf_num_voir);\" value=\"Importer\">";
 						
 					print "</div>";
 					
@@ -362,6 +410,38 @@ if ($_POST['action']=='ajouter_ecrf' ) {
 	</td>
 </tr>
 </table>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
 
 <script language="javascript">
 
@@ -374,7 +454,9 @@ $(document).ready( function () {
 	} );
 	list_patient_ecrf(<? print $ecrf_num_voir;?>);
 });
-	
+
+<? print get_automatic_javascript_ecrf_functions (); ?>
+
 </script>
 
 

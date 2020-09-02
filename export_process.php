@@ -37,7 +37,7 @@ include_once("fonctions_droit.php");
 include_once("verif_droit.php");
 include_once("fonctions_stat.php");
 
-$dwh_droit_all_departments=$_SESSION['dwh_droit_all_departments'.$datamart_num];
+$dwh_droit_all_departments=$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num];
 
 session_write_close();
 
@@ -47,7 +47,7 @@ $process_num=$_GET['process_num'];
 $style= "<style>.num {  mso-number-format:General;} .text{  mso-number-format:\"\@\";/*force text*/ } </style> ";
 
 if ( $process_num!='') {
-	$tableau_process=get_process($process_num);
+	$tableau_process=get_process($process_num,'get_result');
 	if ($user_num_session==$tableau_process['USER_NUM']) {
 		$result=$tableau_process['RESULT'];
 		$type_result=$tableau_process['TYPE_RESULT'];

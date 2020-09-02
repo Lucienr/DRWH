@@ -11,24 +11,24 @@ jQuery(function() {
 			firstname=tableau_user[1];
 			mail=tableau_user[2];
 			
-			document.getElementById('id_ajouter_login_user').value=login;
-			document.getElementById('id_ajouter_lastname_user').value=lastname;
-			document.getElementById('id_ajouter_firstname_user').value=firstname;
-			document.getElementById('id_ajouter_mail_user').value=mail;
+			jQuery('#id_ajouter_login_user').val(login);
+			jQuery('#id_ajouter_lastname_user').val(lastname);
+			jQuery('#id_ajouter_firstname_user').val(firstname);
+			jQuery('#id_ajouter_mail_user').val(mail);
 			return false;
 		}
 	});
 });
 
 function ajouter_user_admin () {
-	document.getElementById('id_div_resultat_ajouter_user').innerHTML='';
+	jQuery('#id_div_resultat_ajouter_user').html('');
 	
-	login=document.getElementById('id_ajouter_login_user').value;
-	passwd=document.getElementById('id_ajouter_passwd_user').value;
-	lastname=document.getElementById('id_ajouter_lastname_user').value;
-	firstname=document.getElementById('id_ajouter_firstname_user').value;
-	expiration_date=document.getElementById('id_ajouter_expiration_date_user').value;
-	mail=document.getElementById('id_ajouter_mail_user').value;
+	login=jQuery('#id_ajouter_login_user').val();
+	passwd=jQuery('#id_ajouter_passwd_user').val();
+	lastname=jQuery('#id_ajouter_lastname_user').val();
+	firstname=jQuery('#id_ajouter_firstname_user').val();
+	expiration_date=jQuery('#id_ajouter_expiration_date_user').val();
+	mail=jQuery('#id_ajouter_mail_user').val();
 	
 	liste_profils='';
 	$('.input_ajouter_user_profile:checked').each(function(){
@@ -51,13 +51,13 @@ function ajouter_user_admin () {
 			if (requester=='deconnexion') {
 				afficher_connexion();
 			} else {
-				document.getElementById('id_div_resultat_ajouter_user').innerHTML=requester;
-				document.getElementById('id_ajouter_login_user').value='';
-				document.getElementById('id_ajouter_lastname_user').value='';
-				document.getElementById('id_ajouter_firstname_user').value='';
-				document.getElementById('id_ajouter_expiration_date_user').value='';
-				document.getElementById('id_ajouter_mail_user').value='';
-				document.getElementById('id_ajouter_passwd_user').value='';
+				jQuery('#id_div_resultat_ajouter_user').html(requester);
+				jQuery('#id_ajouter_login_user').val('');
+				jQuery('#id_ajouter_lastname_user').val('');
+				jQuery('#id_ajouter_firstname_user').val('');
+				jQuery('#id_ajouter_expiration_date_user').val('');
+				jQuery('#id_ajouter_mail_user').val('');
+				jQuery('#id_ajouter_passwd_user').val('');
 				rafraichir_tableau_users();
 			}
 		},
@@ -71,9 +71,9 @@ function ajouter_user_admin () {
 
 
 function ajouter_liste_user_admin() {
-	document.getElementById('id_div_resultat_ajouter_liste_user').innerHTML='';
+	jQuery('#id_div_resultat_ajouter_liste_user').html('');
 	
-	list_user=document.getElementById('id_textarea_list_user').value;
+	list_user=jQuery('#id_textarea_list_user').val();
 	list_user=list_user.replace(/\+/g,';plus;');
 	
 	liste_profils='';
@@ -81,7 +81,7 @@ function ajouter_liste_user_admin() {
 		liste_profils=liste_profils+','+$(this).val();
 	});
 	
-	department_num=document.getElementById('id_select_service').value;
+	department_num=jQuery('#id_select_service').val();
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_admin.php",
@@ -93,7 +93,7 @@ function ajouter_liste_user_admin() {
 			if (requester=='deconnexion') {
 				afficher_connexion();
 			} else {
-				document.getElementById('id_div_resultat_ajouter_liste_user').innerHTML=requester;
+				jQuery('#id_div_resultat_ajouter_liste_user').html(requester);
 				rafraichir_tableau_users();
 			}
 		},
@@ -107,9 +107,9 @@ function ajouter_liste_user_admin() {
 
 
 function add_expiration_date_group_admin() {
-	document.getElementById('id_div_resultat_add_expiration_date_group').innerHTML='';
-	list_user=document.getElementById('id_textarea_list_user_expiration_date_group').value;
-	expiration_date=document.getElementById('id_modifier_expiration_date_group').value;
+	jQuery('#id_div_resultat_add_expiration_date_group').html('');
+	list_user=jQuery('#id_textarea_list_user_expiration_date_group').val();
+	expiration_date=jQuery('#id_modifier_expiration_date_group').val();
 	
 	jQuery.ajax({
 		type:"POST",
@@ -122,7 +122,7 @@ function add_expiration_date_group_admin() {
 			if (requester=='deconnexion') {
 				afficher_connexion();
 			} else {
-				document.getElementById('id_div_resultat_add_expiration_date_group').innerHTML=requester;
+				jQuery('#id_div_resultat_add_expiration_date_group').html(requester);
 				rafraichir_tableau_users();
 			}
 		},
@@ -146,17 +146,19 @@ jQuery(function() {
 			firstname=tableau_user[1];
 			mail=tableau_user[2];
 			user_num=tableau_user[3];
+			expiration_date=tableau_user[4];
 
 			
-			
-			document.getElementById('id_modifier_login_user').value=login;
-			document.getElementById('id_modifier_lastname_user').value=lastname;
-			document.getElementById('id_modifier_firstname_user').value=firstname;
-			document.getElementById('id_modifier_mail_user').value=mail;
-			document.getElementById('id_modifier_num_user').value=user_num;
+			jQuery('#id_delete_passwd_user').prop('checked',false);
+			jQuery('#id_modifier_login_user').val(login);
+			jQuery('#id_modifier_lastname_user').val(lastname);
+			jQuery('#id_modifier_firstname_user').val(firstname);
+			jQuery('#id_modifier_mail_user').val(mail);
+			jQuery('#id_modifier_num_user').val(user_num);
+			jQuery('#id_modifier_expiration_date_user').val(expiration_date);
 			recup_profils(user_num);
 			recup_services(user_num);
-			document.getElementById('id_champs_recherche_annuaire_interne').value='';
+			jQuery('#id_champs_recherche_annuaire_interne').val('');
 			
 			return false;
 		}
@@ -166,17 +168,16 @@ jQuery(function() {
 
 function modifier_user_admin() {
 	$(".chosen-select").trigger("chosen:updated");
-	document.getElementById('id_div_resultat_modifier_user').innerHTML='';
+	jQuery('#id_div_resultat_modifier_user').html('');
 	
-	user_num=document.getElementById('id_modifier_num_user').value;
-	login=document.getElementById('id_modifier_login_user').value;
-	lastname=document.getElementById('id_modifier_lastname_user').value;
-	firstname=document.getElementById('id_modifier_firstname_user').value;
-	mail=document.getElementById('id_modifier_mail_user').value;
-	expiration_date=document.getElementById('id_modifier_expiration_date_user').value;
-	passwd=document.getElementById('id_modifier_passwd_user').value;
-	
-	
+	user_num=jQuery('#id_modifier_num_user').val();
+	login=jQuery('#id_modifier_login_user').val();
+	lastname=jQuery('#id_modifier_lastname_user').val();
+	firstname=jQuery('#id_modifier_firstname_user').val();
+	mail=jQuery('#id_modifier_mail_user').val();
+	expiration_date=jQuery('#id_modifier_expiration_date_user').val();
+	passwd=jQuery('#id_modifier_passwd_user').val();
+		
 	
 	liste_profils='';
 	$('.input_modifier_user_profile:checked').each(function(){
@@ -188,35 +189,38 @@ function modifier_user_admin() {
 		liste_services=liste_services+','+$(this).val();
 	});
 	
+	option_delete_passwd_user='';
+	if (jQuery('#id_delete_passwd_user').prop('checked')==true) {
+		option_delete_passwd_user='ok';
+	}
 	
-	
-	
+
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_admin.php",
 		async:true,
-		data: { action:'modifier_user_admin',passwd:passwd,user_num:user_num,login:login,lastname:escape(lastname),firstname:escape(firstname),mail:escape(mail),expiration_date:escape(expiration_date),liste_profils:escape(liste_profils),liste_services:escape(liste_services)},
+		data: { action:'modifier_user_admin',passwd:passwd,option_delete_passwd_user:option_delete_passwd_user,user_num:user_num,login:login,lastname:escape(lastname),firstname:escape(firstname),mail:escape(mail),expiration_date:escape(expiration_date),liste_profils:escape(liste_profils),liste_services:escape(liste_services)},
 		beforeSend: function(requester){
 		},
 		success: function(requester){
 			if (requester=='deconnexion') {
 				afficher_connexion();
 			} else {
-				document.getElementById('id_div_resultat_modifier_user').innerHTML=requester;
-				document.getElementById('id_modifier_login_user').value='';
-				document.getElementById('id_modifier_lastname_user').value='';
-				document.getElementById('id_modifier_firstname_user').value='';
-				document.getElementById('id_modifier_mail_user').value='';
-				document.getElementById('id_modifier_expiration_date_user').value='';
-				document.getElementById('id_modifier_num_user').value='';
-				document.getElementById('id_modifier_passwd_user').value='';
+				jQuery('#id_div_resultat_modifier_user').html(requester);
+				jQuery('#id_modifier_login_user').val('');
+				jQuery('#id_modifier_lastname_user').val('');
+				jQuery('#id_modifier_firstname_user').val('');
+				jQuery('#id_modifier_mail_user').val('');
+				jQuery('#id_modifier_expiration_date_user').val('');
+				jQuery('#id_modifier_num_user').val('');
+				jQuery('#id_modifier_passwd_user').val('');
 				$('.input_modifier_user_profile').each(function(){
-					document.getElementById('id_modifier_user_profile_'+$(this).val()).checked=false;
+					jQuery('#id_modifier_user_profile_'+$(this).val()).prop('checked',false);
 				});
 				$('.select_modifier_select_department_num_multiple').each(function(){
-					document.getElementById('id_modifier_select_department_num_multiple_'+$(this).val()).selected=false;
+					jQuery('#id_modifier_select_department_num_multiple_'+$(this).val()).prop('selected',false);
 				});
-				
+				jQuery('#id_delete_passwd_user').prop('checked',false);
 				$(".chosen-select").trigger("chosen:updated");
 				rafraichir_tableau_users();
 			}
@@ -297,23 +301,30 @@ function check_all_patient_features(patient_features) {
 	});		
 }
 function ajouter_nouveau_profil() {
-	user_profile=document.getElementById('id_input_new_profil').value;
-	jQuery.ajax({
-		type:"POST",
-		url:"ajax_admin.php",
-		async:true,
-		data: { action:'ajouter_nouveau_profil',user_profile:escape(user_profile)},
-		beforeSend: function(requester){
-		},
-		success: function(requester){
-			document.getElementById('id_input_new_profil').value='';
-			add_table_line_profil(user_profile);
-		},
-		complete: function(requester){
-		},
-		error: function(){
-		}
-	});		
+	user_profile=jQuery('#id_input_new_profil').val();
+	if (user_profile.match(/[^a-z0-9_]/i)) {
+		alert("Le nom du profil ne doit pas contenir d'espace ou de caractère non alphanumérique excepté le '_'");
+		return false;
+	}
+	
+	if (user_profile!='') {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_admin.php",
+			async:true,
+			data: { action:'ajouter_nouveau_profil',user_profile:escape(user_profile)},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				jQuery('#id_input_new_profil').val('');
+				add_table_line_profil(user_profile);
+			},
+			complete: function(requester){
+			},
+			error: function(){
+			}
+		});	
+	}	
 }
 function rafraichir_tableau_users() {
 	jQuery.ajax({
@@ -392,15 +403,15 @@ function supprimer_user_admin(user_num) {
 
 	
 function afficher_modif_user (user_num) {
-				recup_profils(user_num);
-				recup_services(user_num);
+	recup_profils(user_num);
+	recup_services(user_num);
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_admin.php",
 		async:true,
 		data: { action:'afficher_modif_user',user_num:user_num},
 		beforeSend: function(requester){
-				document.getElementById('id_div_resultat_modifier_user').innerHTML='';
+				jQuery('#id_div_resultat_modifier_user').html('');
 		},
 		success: function(requester){
 			if (requester=='deconnexion') {
@@ -412,12 +423,13 @@ function afficher_modif_user (user_num) {
 				mail=tableau_user[2];
 				login=tableau_user[3];
 				expiration_date=tableau_user[4];
-				document.getElementById('id_modifier_login_user').value=login;
-				document.getElementById('id_modifier_lastname_user').value=lastname;
-				document.getElementById('id_modifier_firstname_user').value=firstname;
-				document.getElementById('id_modifier_mail_user').value=mail;
-				document.getElementById('id_modifier_expiration_date_user').value=expiration_date;
-				document.getElementById('id_modifier_num_user').value=user_num;
+				jQuery('#id_modifier_login_user').val(login);
+				jQuery('#id_modifier_lastname_user').val(lastname);
+				jQuery('#id_modifier_firstname_user').val(firstname);
+				jQuery('#id_modifier_mail_user').val(mail);
+				jQuery('#id_modifier_expiration_date_user').val(expiration_date);
+				jQuery('#id_modifier_num_user').val(user_num);
+				jQuery('#id_delete_passwd_user').prop('checked',false);
 			}
 		},
 		complete: function(requester){
@@ -440,6 +452,7 @@ function recup_profils(user_num) {
 				afficher_connexion();
 			} else {
 				eval(requester);
+				$(".chosen-select").trigger("chosen:updated");
 			}
 		},
 		complete: function(requester){
@@ -614,7 +627,7 @@ function supprimer_service(department_num) {
 				if (contenu=='erreur') {
 					alert(get_translation('JS_UNE_ERREUR_EST_SURVENUE','Une erreur est survenue'));
 				} else {
-					$("tr#id_tr_groupe_"+department_num).remove();
+					$("tr#id_tr_service_"+department_num).remove();
 				}
 			}
 		},
@@ -628,10 +641,10 @@ function supprimer_service(department_num) {
 }
 
 function ajouter_uf(department_num) {
-	unit_code=document.getElementById('id_input_unit_code_'+department_num).value;
-	unit_str=document.getElementById('id_input_unit_str_'+department_num).value;
-	unit_start_date=document.getElementById('id_input_date_deb_uf_'+department_num).value;
-	unit_end_date=document.getElementById('id_input_date_fin_uf_'+department_num).value;
+	unit_code=jQuery('#id_input_unit_code_'+department_num).val();
+	unit_str=jQuery('#id_input_unit_str_'+department_num).val();
+	unit_start_date=jQuery('#id_input_date_deb_uf_'+department_num).val();
+	unit_end_date=jQuery('#id_input_date_fin_uf_'+department_num).val();
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_admin.php",
@@ -648,8 +661,8 @@ function ajouter_uf(department_num) {
 					alert(get_translation('JS_UNE_ERREUR_EST_SURVENUE','Une erreur est survenue'));
 				} else {
 					$('#id_tableau_uf_'+department_num).append(contenu);
-					document.getElementById('id_input_unit_code_'+department_num).value='';
-					document.getElementById('id_input_unit_str_'+department_num).value='';
+					jQuery('#id_input_unit_code_'+department_num).val('');
+					jQuery('#id_input_unit_str_'+department_num).val('');
 				}
 			}
 		},
@@ -661,12 +674,21 @@ function ajouter_uf(department_num) {
 }
 
 function ajouter_service() {
-	department_str=document.getElementById('id_service_ajouter').value;
+	department_str=jQuery('#id_service_ajouter').val();
+	department_code=jQuery('#id_service_code_ajouter').val();
+	if (department_str=='' || department_code=='') {
+		alert(get_translation('DEPARTMENT_STR_AND_CODE_MANDATORY','Le code et le libellé sont obligatoires'));
+		return false;
+	}
+	if (department_code.length>5) {
+		alert(get_translation('DEPARTMENT_CODE_LESS5CAR','Le code doit faire maximum 5 caractères'));
+		return false;
+	}
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_admin.php",
 		async:true,
-		data: { action:'ajouter_service',department_str:escape(department_str)},
+		data: { action:'ajouter_service',department_str:escape(department_str),department_code:escape(department_code)},
 		beforeSend: function(requester){
 		},
 		success: function(requester){
@@ -674,11 +696,51 @@ function ajouter_service() {
 			if (contenu=='deconnexion') {
 				afficher_connexion("ajouter_service()");
 			} else {
-				if (contenu=='erreur') {
-					alert(get_translation('JS_UNE_ERREUR_EST_SURVENUE','Une erreur est survenue'));
+				if (contenu.match(/^err(or|eur)/ig)) {
+					alert(get_translation('JS_CODE_DEPARTMENT_ALREADY_EXIST','Le code du service existe déjà'));
 				} else {
-					$('#id_table_groupe_utilisateur').append(contenu);
-					document.getElementById('id_service_ajouter').value='';
+					$('#id_table_admin_department').append(contenu);
+					jQuery('#id_service_ajouter').val('');
+					jQuery('#id_service_code_ajouter').val('');
+				}
+			}
+		},
+		complete: function(requester){
+		},
+		error: function(){
+		}
+	});		
+}
+
+function modifier_libelle_service(department_num) {
+	department_str=jQuery('#id_input_libelle_service_'+department_num).val();
+	department_code=jQuery('#id_input_code_service_'+department_num).val();
+	if (department_str=='' || department_code=='') {
+		alert(get_translation('DEPARTMENT_STR_AND_CODE_MANDATORY','Le code et le libellé sont obligatoires'));
+		return false;
+	}
+	if (department_code.length>5) {
+		alert(get_translation('DEPARTMENT_CODE_LESS5CAR','Le code doit faire maximum 5 caractères'));
+		return false;
+	}
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_admin.php",
+		async:true,
+		data: { action:'modifier_libelle_service',department_str:escape(department_str),department_code:escape(department_code),department_num:department_num},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			contenu=requester;
+			if (contenu=='deconnexion') {
+				afficher_connexion("modifier_libelle_service("+department_num+")");
+			} else {
+				if (contenu.match(/^err(or|eur)/ig)) {
+					alert(contenu);
+				} else {
+					jQuery('#id_div_libelle_service_'+department_num).html("<strong>"+department_code+" "+department_str+"</strong>");
+					document.getElementById('id_div_libelle_service_'+department_num).style.display='block';
+					document.getElementById('id_div_libelle_service_modifier_'+department_num).style.display='none';
 				}
 			}
 		},

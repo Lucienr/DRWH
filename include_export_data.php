@@ -372,12 +372,25 @@ function verif_process_execute_process_export_data (process_num) {
 		beforeSend: function(requester){
 		},
 		success: function(requester){
+			var dwh_droit_export_anonymized = <? 
+				if($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_export_anonymized'] == 'ok') {
+					print "true";
+				} else {
+					print "false";
+				}  
+			?>;
 			var contenu=requester;
 			tab=contenu.split(';');
 			status=tab[0];
 			message=tab[1];
+			anonymous_export_url=tab[2];
+			export_anonymous="";
+			if(dwh_droit_export_anonymized) {
+				export_anonymous = '<form accept-charset="utf-8" target="_blank" action=' + anonymous_export_url + ' method="post">' +
+				'<button type="submit" class="btn btn-link pl-0"> Anonymiser ' + message + '</button> </form>'
+			}
 			if (status=='1') { // end
-				jQuery("#id_div_export_data_chargement").html("<a href='export_process.php?process_num="+process_num+"' target='_blank'>Telecharger "+message+"</a>"); 
+				jQuery("#id_div_export_data_chargement").html("<a href='export_process.php?process_num="+process_num+"' target='_blank'>Telecharger "+message+"</a>" + export_anonymous); 
 				get_all_export_data();
 			} else {
 				if (status=='erreur') {

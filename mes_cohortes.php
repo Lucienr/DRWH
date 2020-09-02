@@ -43,7 +43,7 @@ if ($_POST['action']=='ajouter_cohorte' ) {
 		
 		if ($num_datamart_cohorte==0) {
 			foreach ($tableau_cohorte_droit as $right) {
-				if ($_SESSION['dwh_droit_'.$right.'0']=='ok') {
+				if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_'.$right.'0']=='ok') {
 					$req="insert into dwh_cohort_user_right  (cohort_num , user_num ,right) values ($cohort_num_ajout,$user_num_session,'$right')";
 					$sel_var1=oci_parse($dbh,$req);
 					oci_execute($sel_var1) || die ("<strong style=\"color:red\">".get_translation('ERROR','erreur')." : ".get_translation('USER_AND_RIGHTS_NOT_SAVED','user et droit non sauvé')."</strong><br>");
@@ -82,7 +82,7 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 		
 		if ($num_datamart_cohorte==0) {
 			foreach ($tableau_cohorte_droit as $right) {
-				if ($_SESSION['dwh_droit_'.$right.'0']=='ok') {
+				if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_'.$right.'0']=='ok') {
 					$req="insert into dwh_cohort_user_right  (cohort_num , user_num ,right) values ($cohort_num_ajout,$user_num_session,'$right')";
 					$sel_var1=oci_parse($dbh,$req);
 					oci_execute($sel_var1) || die ("<strong style=\"color:red\">".get_translation('ERROR','erreur')." : ".get_translation('USER_AND_RIGHTS_NOT_SAVED','user et right non sauvé')."</strong><br>");
@@ -398,6 +398,8 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 					print "<div id=\"id_div_cohorte_patient_inclu\" class=\"div_result\" style=\"display:none;width:100%;\" >
 						<br><br>
 						<div id=\"id_liste_patient_cohorte_encours1\" style=\"width:100%;\" ></div>";
+						print "<input type=\"hidden\" id=\"id_input_nb_patient_displayed_1\" value=\"0\">
+						<div id=\"id_liste_patient_cohorte_encours1_loading\"></div>";
 					print "</div>";
 					
 					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -407,6 +409,8 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 					
 					print "<div id=\"id_div_cohorte_patient_exclu\" class=\"div_result\" style=\"display:none;width:100%;\" >";
 						print "<br><br><div id=\"id_liste_patient_cohorte_encours0\" style=\"width:100%;\" ></div>";
+						print "<input type=\"hidden\" id=\"id_input_nb_patient_displayed_0\" value=\"0\">
+						<div id=\"id_liste_patient_cohorte_encours0_loading\"></div>";
 					print "</div>";
 					
 					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -415,6 +419,8 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 					print "<div id=\"id_div_cohorte_patient_doute\" class=\"div_result\" style=\"display:none;width:100%;\" >";
 						print "<br><br><div id=\"id_liste_patient_cohorte_encours2\" style=\"width:100%;\" ></div>";
+						print "<input type=\"hidden\" id=\"id_input_nb_patient_displayed_2\" value=\"0\">
+						<div id=\"id_liste_patient_cohorte_encours2_loading\"></div>";
 					print "</div>";
 					
 					
@@ -442,6 +448,8 @@ if ($_POST['action']=='fusionner_cohorte' ) {
 						<input type=\"button\" value=\"Exclure ces patients\" onclick=\"importer_patient_cohorte($cohort_num_voir,'exclure');\">";
 						
 						print "<br><br><div id=\"id_liste_patient_cohorte_encours3\" style=\"width:100%;\" ></div>";
+						print "<input type=\"hidden\" id=\"id_input_nb_patient_displayed_3\" value=\"0\">
+						<div id=\"id_liste_patient_cohorte_encours3_loading\"></div>";
 					print "</div>";
 					
 					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

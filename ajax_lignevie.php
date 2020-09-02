@@ -38,7 +38,7 @@ if ($_POST['action']=='connexion') {
 	exit;
 }
 
-if ($_SESSION['dwh_login']=='') {
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']=='') {
 	print "deconnexion";
 	exit;
 } else {
@@ -96,6 +96,14 @@ $sysdatejour=$res['SYSDATEJOUR'];
 $sysdatean=$res['SYSDATEAN'];
 $sysdateheure='00:00:00 GMT';
 $sysdate="$sysdatemois $sysdatejour $sysdatean $sysdateheure";
+
+$req_document_origin_code_labo="";
+if ($document_origin_code_labo!='') {
+	$list_document_origin_code_labo=detect_list_query($document_origin_code_labo);
+	if ($list_document_origin_code_labo!='') {
+		 $req_document_origin_code_labo="and document_origin_code not in ($list_document_origin_code_labo) ";
+	}
+}
 
 $xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>
 <data>
@@ -215,8 +223,7 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 						where 
 							patient_num=$patient_num and
 							document_date>=to_date('$date_entree_uf_char','DD/MM/YYYY') and 
-							document_date<=to_date('$date_sortie_uf_char','DD/MM/YYYY')  and 
-							document_origin_code !='$document_origin_code_labo'  and 
+							document_date<=to_date('$date_sortie_uf_char','DD/MM/YYYY')  $req_document_origin_code_labo  and 
 							document_date is not null 
 						");//document_date>=to_date('$date_entree_uf_char','DD/MM/YYYY') and document_date<=to_date('$date_sortie_uf_char','DD/MM/YYYY') 
 			oci_execute($selvaldoc);
@@ -290,7 +297,7 @@ while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 		$liste_class_id_doc='';
 		$contenu_sejour='';
 		$unit_code_avant='';
-		$selvaldoc=oci_parse($dbh,"select document_num, title, document_origin_code,to_char (document_date, 'DD/MM/YYYY') as tdocument_date, document_date,unit_code,unit_num,department_num from dwh_document where patient_num=$patient_num and  encounter_num='$encounter_num'  and document_date is not null  and document_date>=to_date('$date_entree_char','DD/MM/YYYY') and document_date<=to_date('$date_sortie_char','DD/MM/YYYY') and document_origin_code !='$document_origin_code_labo'   order by document_date asc ");
+		$selvaldoc=oci_parse($dbh,"select document_num, title, document_origin_code,to_char (document_date, 'DD/MM/YYYY') as tdocument_date, document_date,unit_code,unit_num,department_num from dwh_document where patient_num=$patient_num and  encounter_num='$encounter_num'  and document_date is not null  and document_date>=to_date('$date_entree_char','DD/MM/YYYY') and document_date<=to_date('$date_sortie_char','DD/MM/YYYY') $req_document_origin_code_labo  order by document_date asc ");
 		oci_execute($selvaldoc);
 		while ($resdoc=oci_fetch_array($selvaldoc,OCI_RETURN_NULLS+OCI_ASSOC)) {
 			$document_date=$resdoc['TDOCUMENT_DATE'];
@@ -443,8 +450,7 @@ while ($resuf=oci_fetch_array($requf,OCI_ASSOC)) {
 				where 
 					patient_num=$patient_num and
 					document_date>=to_date('$date_entree_uf_char','DD/MM/YYYY') and 
-					document_date<=to_date('$date_sortie_uf_char','DD/MM/YYYY')  and 
-					document_origin_code !='$document_origin_code_labo'  and 
+					document_date<=to_date('$date_sortie_uf_char','DD/MM/YYYY')  $req_document_origin_code_labo and 
 					document_date is not null 
 				");//document_date>=to_date('$date_entree_uf_char','DD/MM/YYYY') and document_date<=to_date('$date_sortie_uf_char','DD/MM/YYYY') 
 	oci_execute($selvaldoc);
@@ -506,7 +512,7 @@ if ($liste_id_doc!='') {
 }
 
 $selval=oci_parse($dbh,"select document_num, to_char (document_date,  'yyyy') as an_deb,to_char (document_date,  'mm') as mois_deb,to_char (document_date,  'dd') as jour_deb,document_date,unit_num,department_num,to_char (document_date, 'DD/MM/YYYY') as tdocument_date,
-title,document_origin_code from dwh_document where  patient_num=$patient_num and  unit_code is not null and document_origin_code !='$document_origin_code_labo'  and document_date is not null $req_id_doc order by document_date asc ");
+title,document_origin_code from dwh_document where  patient_num=$patient_num and  unit_code is not null $req_document_origin_code_labo and document_date is not null $req_id_doc order by document_date asc ");
 oci_execute($selval);
 while ($res=oci_fetch_array($selval,OCI_RETURN_NULLS+OCI_ASSOC)) {
 	$document_num=$res['DOCUMENT_NUM'];

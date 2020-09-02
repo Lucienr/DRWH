@@ -42,7 +42,7 @@ if ($_POST['action']=='connexion') {
 	exit;
 }
 
-if ($_SESSION['dwh_login']=='') {
+if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_login']=='') {
 	print "deconnexion";
 	exit;
 } else {
@@ -73,7 +73,7 @@ if ($_POST['action']=='verifier_process_fini_executer_clustering') {
 	$process_num=$_POST['process_num'];
 	$tmpresult_num=$_POST['tmpresult_num'];
 	if ($process_num!='') {
-		$tableau_process=get_process ($process_num);
+		$tableau_process=get_process ($process_num,'dontget_result');
 		$status=$tableau_process['STATUS'];
 		$commentary=$tableau_process['COMMENTARY'];
 		$res="$status;$commentary";
@@ -95,10 +95,13 @@ if ($_POST['action']=='afficher_resultat_clustering') {
 	$process_num=$_POST['process_num'];
 	$tmpresult_num=$_POST['tmpresult_num'];
 	if ($process_num!='') {
-		print "<img src=\"$URL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.png?$process_num\" usemap=\"#cluster_patient\" border=0>";
+		//print "<img src=\"$URL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.png?$process_num\" usemap=\"#cluster_patient\" border=0>";
+		$tmp_graphviz_cluster_tfidf_png = join('',file("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.png")); 
+		print "<img src=\"data: image/x-png;base64,".base64_encode($tmp_graphviz_cluster_tfidf_png)."\" usemap=\"#cluster_patient\" border=0>";
+		
 		$map=join('',file("$CHEMIN_GLOBAL_UPLOAD/tmp_graphviz_cluster_tfidf_$tmpresult_num.$process_num.map"));
 		print $map;
-		$tableau_html_liste_clusters = join('',file("$URL_UPLOAD/tableau_html_liste_clusters_$tmpresult_num.$process_num.html")); 
+		$tableau_html_liste_clusters = join('',file("$CHEMIN_GLOBAL_UPLOAD/tableau_html_liste_clusters_$tmpresult_num.$process_num.html")); 
 		print $tableau_html_liste_clusters;
 	}
 }

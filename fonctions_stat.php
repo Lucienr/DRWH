@@ -724,7 +724,7 @@ function nb_nouveau_patients_service_hors_mespatients ($tmpresult_num,$id_div) {
 	$tableau_nb_patient=array();
 	$tableau_service_patient=array();
 	$filtre_sql_service="";
-        if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='') {
+        if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num]=='') {
                 if ($liste_service_session!='') {
                         $filtre_sql_service=" and patient_num not in (select patient_num from dwh_patient_department where department_num in ($liste_service_session) ) ";
                 }

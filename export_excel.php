@@ -37,7 +37,7 @@ include_once("fonctions_dwh.php");
 include_once("verif_droit.php");
 include_once("fonctions_stat.php");
 
-$dwh_droit_all_departments=$_SESSION['dwh_droit_all_departments'.$datamart_num];
+$dwh_droit_all_departments=$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num];
 
 session_write_close();
 
@@ -59,14 +59,16 @@ $style= "<style>.num {  mso-number-format:General;} .text{  mso-number-format:\"
 if ( $cohort_num!='' && $status!='') {
         $autorisation_voir_patient_cohorte=verif_autorisation_voir_patient_cohorte($cohort_num,$user_num_session);
         if ( $autorisation_voir_patient_cohorte=='ok') {
+	        $tab_hospital_patient_id=get_list_master_patient_id_query("select patient_num from dwh_cohort_result where cohort_num=$cohort_num");
+	        $tab_list_user_information=get_list_user_information ("select user_num_add from dwh_cohort_result where cohort_num=$cohort_num",'pn');
         	print "$style";
 	        print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
 	        print "<tr>
 	        <th>".get_translation('HOSPITAL_PATIENT_UNIQUE_IDENTIFIER_ACRONYM','IPP')."</th>
-	        <th>".get_translation('INITIALS','Initials')."</th>
 	        <th>".get_translation('LASTNAME','Lastname')."</th>
 	        <th>".get_translation('FIRSTNAME','Prénom')."</th>
 	        <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
+	        <th>".get_translation('SEX','Sexe')."</th>
 	        <th>".get_translation('DEATH','Décés')."</th>
 	        <th>".get_translation('ZIP_CODE','Code postal')."</th>
 	        <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
@@ -74,15 +76,9 @@ if ( $cohort_num!='' && $status!='') {
 	        <th>".get_translation('INVESTIGATOR','Investigateur')."</th>
 	        <th>".get_translation('COMMENT','Commentaire')."</th>
 	        </tr>";
-	        $sel=oci_parse($dbh,"select distinct patient_num from dwh_cohort_result where cohort_num=$cohort_num and status=$status");
-	        oci_execute($sel);
-	        while ($r=oci_fetch_array($sel,OCI_RETURN_NULLS+OCI_ASSOC)) {
-			$patient_num=$r['PATIENT_NUM'];
-			$comment=lister_commentaire_patient_cohorte ($cohort_num,$patient_num,'excel');
-			$patient=afficher_patient($patient_num,'cohorte_excel','',$cohort_num);
-			print "<tr>$patient<td>$comment</td></tr>";
-	        }
-	        print "</table>";
+	        $list_patient_in_cohort=display_list_patient_in_cohort($cohort_num,$status,"","","cohort_excel");
+	       
+	        print "$list_patient_in_cohort</table>";
 	}
 	save_log_page($user_num_session,'export_patient_cohort');
 }
@@ -99,6 +95,7 @@ if ( $request_access_num!='') {
 	        <th>".get_translation('LASTNAME','Lastname')."</th>
 	        <th>".get_translation('FIRSTNAME','Prénom')."</th>
 	        <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
+	        <th>".get_translation('SEX','Sexe')."</th>
 	        <th>".get_translation('DEATH','Décés')."</th>
 	        <th>".get_translation('ZIP_CODE','Code postal')."</th>
 	        </tr>";
@@ -108,12 +105,13 @@ if ( $request_access_num!='') {
 	                $patient_num=$r['PATIENT_NUM'];
 			$patient=get_patient($patient_num);
 			print "<tr>";
-			print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
-			print "<td>".$patient['LASTNAME']."</td>";
-			print "<td>".$patient['FIRSTNAME']."</td>";
-			print "<td>".$patient['BIRTH_DATE']."</td>";
-			print "<td>".$patient['DEATH_DATE']."</td>";
-			print "<td>".$patient['ZIP_CODE']."</td>";
+			print "<td class='text'>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+			print "<td class='text'>".$patient['LASTNAME']."</td>";
+			print "<td class='text'>".$patient['FIRSTNAME']."</td>";
+			print "<td class='text'>".$patient['BIRTH_DATE']."</td>";
+			print "<td class='text'>".$patient['SEX']."</td>";
+			print "<td class='text'>".$patient['DEATH_DATE']."</td>";
+			print "<td class='text'>".$patient['ZIP_CODE']."</td>";
 			print "</tr>";
 	        }
 	        print "</table>";
@@ -125,7 +123,7 @@ if ( $request_access_num!='') {
 if ( $tmpresult_num!='' && $option=='patient') {
      
         //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
-	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
       
 
         print "$style";
@@ -136,6 +134,7 @@ if ( $tmpresult_num!='' && $option=='patient') {
         <th>".get_translation('LASTNAME','Lastname')."</th>
         <th>".get_translation('FIRSTNAME','Prénom')."</th>
         <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
+	<th>".get_translation('SEX','Sexe')."</th>
         <th>".get_translation('DEATH','Décés')."</th>
         <th>".get_translation('ZIP_CODE','Code postal')."</th>
         <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
@@ -146,13 +145,14 @@ if ( $tmpresult_num!='' && $option=='patient') {
                 $patient_num=$r['PATIENT_NUM'];
 		$patient=get_patient($patient_num);
 		print "<tr>";
-		print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
-		print "<td>".$patient['LASTNAME']."</td>";
-		print "<td>".$patient['FIRSTNAME']."</td>";
-		print "<td>".$patient['BIRTH_DATE']."</td>";
-		print "<td>".$patient['DEATH_DATE']."</td>";
-		print "<td>".$patient['ZIP_CODE']."</td>";
-		print "<td>".$patient['PHONE_NUMBER']."</td>";
+		print "<td class='text'>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+		print "<td class='text'>".$patient['LASTNAME']."</td>";
+		print "<td class='text'>".$patient['FIRSTNAME']."</td>";
+		print "<td class='text'>".$patient['BIRTH_DATE']."</td>";
+		print "<td class='text'>".$patient['SEX']."</td>";
+		print "<td class='text'>".$patient['DEATH_DATE']."</td>";
+		print "<td class='text'>".$patient['ZIP_CODE']."</td>";
+		print "<td class='text'>".$patient['PHONE_NUMBER']."</td>";
 		print "</tr>";
         }
         print "</table>";
@@ -163,7 +163,7 @@ if ( $tmpresult_num!='' && $option=='patient') {
 if ( $tmpresult_num!='' && $option=='patient_document') {
      
         //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
-	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
       
 
         print "$style";
@@ -174,6 +174,7 @@ if ( $tmpresult_num!='' && $option=='patient_document') {
         <th>".get_translation('LASTNAME','Lastname')."</th>
         <th>".get_translation('FIRSTNAME','Prénom')."</th>
         <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
+	<th>".get_translation('SEX','Sexe')."</th>
         <th>".get_translation('DEATH','Décés')."</th>
         <th>".get_translation('ZIP_CODE','Code postal')."</th>
         <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
@@ -189,16 +190,17 @@ if ( $tmpresult_num!='' && $option=='patient_document') {
 		$patient=get_patient($patient_num);
 		$document=get_document($document_num,'');
 		print "<tr>";
-		print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
-		print "<td>".$patient['LASTNAME']."</td>";
-		print "<td>".$patient['FIRSTNAME']."</td>";
-		print "<td>".$patient['BIRTH_DATE']."</td>";
-		print "<td>".$patient['DEATH_DATE']."</td>";
-		print "<td>".$patient['ZIP_CODE']."</td>";
-		print "<td>".$patient['PHONE_NUMBER']."</td>";
-		print "<td>".$document['document_date']."</td>";
-		print "<td>".$document['title']."</td>";
-		print "<td>".$document['author']."</td>";
+		print "<td class='text'>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+		print "<td class='text'>".$patient['LASTNAME']."</td>";
+		print "<td class='text'>".$patient['FIRSTNAME']."</td>";
+		print "<td class='text'>".$patient['BIRTH_DATE']."</td>";
+		print "<td class='text'>".$patient['SEX']."</td>";
+		print "<td class='text'>".$patient['DEATH_DATE']."</td>";
+		print "<td class='text'>".$patient['ZIP_CODE']."</td>";
+		print "<td class='text'>".$patient['PHONE_NUMBER']."</td>";
+		print "<td class='text'>".$document['document_date']."</td>";
+		print "<td class='text'>".$document['title']."</td>";
+		print "<td class='text'>".$document['author']."</td>";
 		print "</tr>";
         }
         print "</table>";
@@ -208,7 +210,7 @@ if ( $tmpresult_num!='' && $option=='patient_document') {
 if ( $tmpresult_num!='' && $option=='encounter_result') {
      
         //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
-	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
 
         print "$style";
         print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
@@ -217,6 +219,7 @@ if ( $tmpresult_num!='' && $option=='encounter_result') {
         <th>".get_translation('LASTNAME','Lastname')."</th>
         <th>".get_translation('FIRSTNAME','Prénom')."</th>
         <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
+	<th>".get_translation('SEX','Sexe')."</th>
         <th>".get_translation('DEATH','Décés')."</th>
         <th>".get_translation('ZIP_CODE','Code postal')."</th>
         <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
@@ -247,17 +250,18 @@ if ( $tmpresult_num!='' && $option=='encounter_result') {
 			$type=$list_mvt[0]['TYPE_MVT'];
 		}
 		print "<tr>";
-		print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
-		print "<td>".$patient['LASTNAME']."</td>";
-		print "<td>".$patient['FIRSTNAME']."</td>";
-		print "<td>".$patient['BIRTH_DATE']."</td>";
-		print "<td>".$patient['DEATH_DATE']."</td>";
-		print "<td>".$patient['ZIP_CODE']."</td>";
-		print "<td>".$patient['PHONE_NUMBER']."</td>";
-		print "<td>$encounter_num</td>";
-		print "<td>$type</td>";
-		print "<td>$entry_date</td>";
-		print "<td>$out_date</td>";
+		print "<td class='text'>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+		print "<td class='text'>".$patient['LASTNAME']."</td>";
+		print "<td class='text'>".$patient['FIRSTNAME']."</td>";
+		print "<td class='text'>".$patient['BIRTH_DATE']."</td>";
+		print "<td class='text'>".$patient['SEX']."</td>";
+		print "<td class='text'>".$patient['DEATH_DATE']."</td>";
+		print "<td class='text'>".$patient['ZIP_CODE']."</td>";
+		print "<td class='text'>".$patient['PHONE_NUMBER']."</td>";
+		print "<td class='text'>$encounter_num</td>";
+		print "<td class='text'>$type</td>";
+		print "<td class='text'>$entry_date</td>";
+		print "<td class='text'>$out_date</td>";
 		print "</tr>";
         }
         print "</table>";
@@ -266,16 +270,17 @@ if ( $tmpresult_num!='' && $option=='encounter_result') {
 if ( $tmpresult_num!='' && $option=='encounter_all') {
      
         //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
-	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
 
 
         print "$style";
         print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
         print "<tr>
-        <th>IPP</th>
+        <th>".get_translation('HOSPITAL_PATIENT_ID','IPP')."</th>
         <th>".get_translation('LASTNAME','Lastname')."</th>
         <th>".get_translation('FIRSTNAME','Prénom')."</th>
         <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
+	<th>".get_translation('SEX','Sexe')."</th>
         <th>".get_translation('DEATH','Décés')."</th>
         <th>".get_translation('ZIP_CODE','Code postal')."</th>
         <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
@@ -299,19 +304,20 @@ if ( $tmpresult_num!='' && $option=='encounter_all') {
 	                $entry_date=$encounter['ENTRY_DATE_YMDH24'];
 	                $out_date=$encounter['OUT_DATE_YMDH24'];
 			print "<tr>";
-			print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
-			print "<td>".$patient['LASTNAME']."</td>";
-			print "<td>".$patient['FIRSTNAME']."</td>";
-			print "<td>".$patient['BIRTH_DATE']."</td>";
-			print "<td>".$patient['DEATH_DATE']."</td>";
-			print "<td>".$patient['ZIP_CODE']."</td>";
-			print "<td>".$patient['PHONE_NUMBER']."</td>";
-			print "<td>$encounter_num</td>";
-			print "<td>H</td>";
-			print "<td></td>";
-			print "<td></td>";
-			print "<td>$entry_date</td>";
-			print "<td>$out_date</td>";
+			print "<td class='text'>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+			print "<td class='text'>".$patient['LASTNAME']."</td>";
+			print "<td class='text'>".$patient['FIRSTNAME']."</td>";
+			print "<td class='text'>".$patient['BIRTH_DATE']."</td>";
+			print "<td class='text'>".$patient['SEX']."</td>";
+			print "<td class='text'>".$patient['DEATH_DATE']."</td>";
+			print "<td class='text'>".$patient['ZIP_CODE']."</td>";
+			print "<td class='text'>".$patient['PHONE_NUMBER']."</td>";
+			print "<td class='text'>$encounter_num</td>";
+			print "<td class='text'>H</td>";
+			print "<td class='text'></td>";
+			print "<td class='text'></td>";
+			print "<td class='text'>$entry_date</td>";
+			print "<td class='text'>$out_date</td>";
 			print "</tr>";
 		}
                 
@@ -327,19 +333,20 @@ if ( $tmpresult_num!='' && $option=='encounter_all') {
 	                $department_str=get_department_str ($department_num);
 	                if ($type_mvt!='H') {
 				print "<tr>";
-				print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
-				print "<td>".$patient['LASTNAME']."</td>";
-				print "<td>".$patient['FIRSTNAME']."</td>";
-				print "<td>".$patient['BIRTH_DATE']."</td>";
-				print "<td>".$patient['DEATH_DATE']."</td>";
-				print "<td>".$patient['ZIP_CODE']."</td>";
-				print "<td>".$patient['PHONE_NUMBER']."</td>";
-				print "<td>$encounter_num</td>";
-				print "<td>$type_mvt</td>";
-				print "<td>$unit_str</td>";
-				print "<td>$department_str</td>";
-				print "<td>$entry_date</td>";
-				print "<td>$out_date</td>";
+				print "<td class='text'>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+				print "<td class='text'>".$patient['LASTNAME']."</td>";
+				print "<td class='text'>".$patient['FIRSTNAME']."</td>";
+				print "<td class='text'>".$patient['BIRTH_DATE']."</td>";
+				print "<td class='text'>".$patient['SEX']."</td>";
+				print "<td class='text'>".$patient['DEATH_DATE']."</td>";
+				print "<td class='text'>".$patient['ZIP_CODE']."</td>";
+				print "<td class='text'>".$patient['PHONE_NUMBER']."</td>";
+				print "<td class='text'>$encounter_num</td>";
+				print "<td class='text'>$type_mvt</td>";
+				print "<td class='text'>$unit_str</td>";
+				print "<td class='text'>$department_str</td>";
+				print "<td class='text'>$entry_date</td>";
+				print "<td class='text'>$out_date</td>";
 				print "</tr>";
 			}
 		}
@@ -352,17 +359,18 @@ if ( $tmpresult_num!='' && $option=='encounter_all') {
 if ( $tmpresult_num!='' && $option=='encounter_all_ancien') {
      
         //pour les datamart, les droits sont sur tous les services , cf verif_droit.php// 
-	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION['dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
+	$filtre_sql_resultat=filter_query_user_right("dwh_tmp_result_$user_num_session",$user_num_session,$_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num],$liste_service_session,$liste_document_origin_code_session);
 
 
         print "$style";
         print "<table id=\"id_tableau_patient_cohorte_encours$status\" class=\"tableau_cohorte\">";
         print "<tr>
         <th>IPP</th>
-        <th>".get_translation('INITIALS','Initials')."</th>
+        <th>".get_translation('HOSPITAL_PATIENT_ID','Patient ID')."</th>
         <th>".get_translation('LASTNAME','Lastname')."</th>
         <th>".get_translation('FIRSTNAME','Prénom')."</th>
         <th>".get_translation('DATE_OF_BIRTH_SHORT','DDN')."</th>
+	<th>".get_translation('SEX','Sexe')."</th>
         <th>".get_translation('DEATH','Décés')."</th>
         <th>".get_translation('ZIP_CODE','Code postal')."</th>
         <th>".get_translation('TELEPHONE_SHORT','Tel')."</th>
@@ -388,13 +396,14 @@ if ( $tmpresult_num!='' && $option=='encounter_all_ancien') {
                 $out_date=$r['OUT_DATE'];
 		$patient=get_patient($patient_num);
 		print "<tr>";
-		print "<td>".$patient['HOSPITAL_PATIENT_ID']."</td>";
-		print "<td>".$patient['LASTNAME']."</td>";
-		print "<td>".$patient['FIRSTNAME']."</td>";
-		print "<td>".$patient['BIRTH_DATE']."</td>";
-		print "<td>".$patient['DEATH_DATE']."</td>";
-		print "<td>".$patient['ZIP_CODE']."</td>";
-		print "<td>".$patient['PHONE_NUMBER']."</td>";
+		print "<td class='text'>".$patient['HOSPITAL_PATIENT_ID']."</td>";
+		print "<td class='text'>".$patient['LASTNAME']."</td>";
+		print "<td class='text'>".$patient['FIRSTNAME']."</td>";
+		print "<td class='text'>".$patient['BIRTH_DATE']."</td>";
+		print "<td class='text'>".$patient['SEX']."</td>";
+		print "<td class='text'>".$patient['DEATH_DATE']."</td>";
+		print "<td class='text'>".$patient['ZIP_CODE']."</td>";
+		print "<td class='text'>".$patient['PHONE_NUMBER']."</td>";
 		print "<td class=\"text\">$encounter_num</td><td class=\"text\">$entry_date</td><td class=\"text\">$out_date</td>";
 		print "</tr>";
         }
@@ -413,7 +422,7 @@ if ( $tmpresult_num!='' && $option=='stat_movment') {
 
 if ( $process_num!='' &&  $option=='similarity_cohort') {
         print "$style";
-	$tableau_process=get_process($process_num);
+	$tableau_process=get_process($process_num,'get_result');
 	$result=$tableau_process['RESULT'];
 	$tab_patient=explode(";",$result);
 	print "<table border=0 id=\"id_tableau_similarite_cohorte\" class=\"tablefin\" width=\"800\">";
@@ -436,9 +445,9 @@ if ($_GET['ecrf_num']!='' &&  $option=='ecrf_patient_answer') {
 	include_once("fonctions_ecrf.php");
 	$ecrf_num=$_GET['ecrf_num'];
 	$autorisation_ecrf_voir=autorisation_ecrf_voir ($ecrf_num,$user_num_session);
+	$option_ecrf=$_GET['option_ecrf'];
 	if ($autorisation_ecrf_voir=='ok') {
-		display_table_ecrf_patient_answer ($ecrf_num,$user_num_session,'excel');
-
+		display_table_ecrf_patient_answer ($ecrf_num,$user_num_session,$option_ecrf);
 	}
 	save_log_page($user_num_session,"export_list_patient_ecrf");
 }

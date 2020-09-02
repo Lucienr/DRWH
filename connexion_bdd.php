@@ -22,6 +22,7 @@
     France
 */
 // connexion aux bases de donnees
+
 $dbh = oci_connect($GLOBALS['USER_DB_DBH'],$GLOBALS['PASSWD_DB_DBH'],$GLOBALS['SID_DB_DBH'],'WE8MSWIN1252') ;
 if (!$dbh) {
     $e = oci_error();  
@@ -31,6 +32,9 @@ if (!$dbh) {
 
 $dbh_etl = oci_connect($GLOBALS['USER_DB_DBH_ETL'],$GLOBALS['PASSWD_DB_DBH_ETL'],$GLOBALS['SID_DB_DBH'],'WE8MSWIN1252') ;
 
+if ($GLOBALS['PREFIX_INSTANCE_DWH']=='') {
+	$GLOBALS['PREFIX_INSTANCE_DWH']=$GLOBALS['USER_DB_DBH'];
+}
 
 $set=oci_parse($dbh,"alter session set NLS_NUMERIC_CHARACTERS = ', '"); // parameter for float number, separator is comma. and space for thousands
 oci_execute($set);

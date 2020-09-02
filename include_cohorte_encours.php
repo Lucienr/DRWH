@@ -22,7 +22,7 @@
     France
 */
 ?>
-<? if ($_SESSION['dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
+<? if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_see_detailed'.$datamart_num]=='ok') { ?>
 	<style>
 		.sous_onglet_cohorte {
 			border:1px black solid;
@@ -63,15 +63,22 @@
 	<br>
 	<br>
 	<div id="id_liste_patient_cohorte_encours1" class="div_cohorte" style="display:block;">
-		<? //print liste_patient_cohorte_encours($cohort_num_encours,'1'); ?>
 	</div>
+	<input type="hidden" id="id_input_nb_patient_displayed_1" value="0">
+	<div id="id_liste_patient_cohorte_encours1_loading" style="display:block;"></div>
+	
 	<div id="id_liste_patient_cohorte_encours0" class="div_cohorte" style="display:none;">
-		<? //print liste_patient_cohorte_encours($cohort_num_encours,'0'); ?>
 	</div>
+	<input type="hidden" id="id_input_nb_patient_displayed_0" value="0">
+	<div id="id_liste_patient_cohorte_encours0_loading" style="display:none;"></div>
+	
 	<div id="id_liste_patient_cohorte_encours2" class="div_cohorte" style="display:none;">
-		<? //print liste_patient_cohorte_encours($cohort_num_encours,'2'); ?>
 	</div>
+	<input type="hidden" id="id_input_nb_patient_displayed_2" value="0">
+	<div id="id_liste_patient_cohorte_encours2_loading" style="display:none;"></div>
+	
 	<div id="id_liste_patient_cohorte_encours3" class="div_cohorte" style="display:none;">
-		<? //print liste_patient_cohorte_encours($cohort_num_encours,'3'); ?>
 	</div>
+	<input type="hidden" id="id_input_nb_patient_displayed_3" value="0">
+	<div id="id_liste_patient_cohorte_encours3_loading" style="display:none;"></div>
 <? } ?>

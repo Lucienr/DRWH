@@ -248,7 +248,9 @@ function calcul_similarite_tfidf ($distance,$limite_count_concept_par_patient_nu
 		if ($i<=$nbpatient_limite) {
 			$similarite_normalise=$tableau_similarite_normalise_patient_num_principal[$patient_num];
 			$weight=$similarite/100;
-			$jpgraph_connexion.="$patient_num_principal -- $patient_num  [weight=".$tableau_weight[$patient_num].",len=".$tableau_length[$patient_num].", penwidth=$similarite_normalise, label=\"".$tableau_similarite_label[$patient_num]."\",fontcolor=\"black\",URL=\"javascript:affiche_intersect('$patient_num_principal','$patient_num','','".$tableau_similarite_label[$patient_num]."');\"] ;\n";
+			if ($patient_num_principal!='VIRTUAL') {
+				$jpgraph_connexion.="$patient_num_principal -- $patient_num  [weight=".$tableau_weight[$patient_num].",len=".$tableau_length[$patient_num].", penwidth=$similarite_normalise, label=\"".$tableau_similarite_label[$patient_num]."\",fontcolor=\"black\",URL=\"javascript:affiche_intersect('$patient_num_principal','$patient_num','','".$tableau_similarite_label[$patient_num]."');\"] ;\n";
+			}
 			$tableau_patient_num_temporaire[$patient_num]=$tableau_longueur_vecteur[$patient_num];
 			$tableau_patient_num_final[$patient_num_principal]='ok';
 			$tableau_patient_num_final[$patient_num]='ok';

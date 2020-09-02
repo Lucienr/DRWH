@@ -193,7 +193,7 @@ function voir_patient_onglet (onglet,patient_num) {
 	}
 	
 	if (onglet=='ecrf_patient'  && tableau_onglet_deja_ouvert[onglet]!='ok') {
-		afficher_onglet_ecrf_patient(patient_num,'');
+		afficher_onglet_ecrf_patient(patient_num,'','','');
 	}
 	
 	tableau_onglet_deja_ouvert[onglet]='ok';

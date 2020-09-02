@@ -1,11 +1,25 @@
 # DRWH
 Dr Warehouse - document oriented biomedical data warehouse
 
-All the documentation is available in the wiki  : https://github.com/imagine-bdd/DRWH/wiki
+Pre requisite :
 
-A user's guide is available in the documentation folder : https://github.com/imagine-bdd/DRWH/blob/master/documentation/user_guide_en.pdf
+Oracle 11g or more, with Oracle text
+PHP 5.3 and + with modules :
+- OCI8
+- LDAP
+- CURL
 
-The SQL installation scripts  are available in the documentation/database folder : https://github.com/imagine-bdd/DRWH/tree/master/documentation/database
+You will need highstock (There is Non-commercial licence on their website)
+	https://www.highcharts.com/products/highstock/
+	Version tested in Dr Warehouse is Highstock JS v2.0.4.
+The directory highstock must be in the dwh directory
+
+Some directories must be writable for the www-user :
+- json_map
+- upload
+- timeline/xml
+
+The SQL scripts for database creation are in the database directory.
 
 
 Please contact Nicolas Garcelon :
@@ -15,5 +29,7 @@ Imagine Institute
 75015 Paris
 France
 
-Demonstration available : https://imagine-plateforme-bdd.fr/dwh_pubmed/
+Demonstration available : http://www.drwarehouse.org/
 
+VERSION=3.0.5-DEV
+Edited the 20200831131919

@@ -103,7 +103,7 @@ if ($limite_min_nb_patient_par_code=='.') {
 }
 
 
-$tableau_process=get_process($process_num);
+$tableau_process=get_process($process_num,'dontget_result');
 $user_num_session=$tableau_process['USER_NUM'];
 
 

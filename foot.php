@@ -33,11 +33,19 @@
 	<a href="etat_etl.php"><? print get_translation('ETL','ETL');?></a> | 
 	<a href="credit.php"><? print get_translation('CREDITS','Credits');?></a> | 
 	<a href="#" onclick="return false;"><? print get_translation('Lang','Langue');?> : </a><a href="#" onclick="choose_lang('fr');return false;">FR</a> <a href="#" onclick="choose_lang('en');return false;">EN</a> | 
-	<? 
+	<?
+	$version='';
+	if (is_file('README.md')){
+		$readme=file_get_contents('README.md');
+		//$tab_readme=explode("\n",$readme);
+		if (preg_match("/VERSION=([0-9]+\.[0-9]+\.[0-9]+[-A-Z0-9]*)\n/",$readme,$matches)) {
+			$version=$matches[1];
+		}
+	}
 	// pour afficher la version de l'application : il somme le nb de caractères pour tous les scripts php, css et js sauf pour parametrage.php et style_local.css 
 	$last_line = exec("wc -c `find $CHEMIN_GLOBAL -maxdepth 1 -type f \\( -iname \"*.php\" ! -iname \"parametrage.php\" -or -iname \"*.css\" ! -iname \"style_local.css\" -or -iname \"*.js\" \\) ` | tail -1"); 
 	$last_line=str_replace(" total","",$last_line);
-	print "v2.5-$last_line";
+	print "v".$version."-$last_line";
 	?>
 </div>
 	<div style="display:none;position:fixed;background-color:white;border:1px black solid;  padding:30px;top:300px;left:400px;" id="id_div_connexion">

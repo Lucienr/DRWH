@@ -1,5 +1,5 @@
 /*
-    Dr Warehouse is a document oriented data warehouse for clinicians. 
+    Dr Warehouse is a document oriented data warehouse for clinicians.
     Copyright (C) 2017  Nicolas Garcelon
 
     This program is free software: you can redistribute it and/or modify
@@ -236,6 +236,33 @@ a {
     background-color:#00b2d7;
 }
 
+
+
+.form_cancel {
+    background: none repeat scroll 0 0 padding-box #a474a8;
+    border: medium none;
+    border-radius: 5px;
+    box-shadow: 1px 1px 2px 0 rgba(0, 0, 0, 0.26);
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 15px;
+    margin: 0 2px 2px 0;
+    padding: 9px 14px;
+    position: relative;
+    text-decoration: none;
+    text-transform: uppercase;
+    background-color:rgb(0, 29, 38);
+}
+.form_cancel:hover {
+    background: none repeat scroll 0 0 padding-box #d6b6d7;
+    background-color:#d6b6d7;
+}
+
+
+
 .form {
     font-size: 11px;
 }
@@ -284,7 +311,7 @@ pre {
 
 .afficher_document {
 	display:block;
-	 overflow: auto;  
+	 overflow: auto;
 	 width: 100%;
 	 height: 300px;
 	 font-size:12px;
@@ -341,8 +368,8 @@ a.lien_afficher_suite:hover {
 	border-bottom:1px black solid;
 }
 
-table.noborder,table.noborder td,table.noborder  tr,table.noborder  th { 
-	border: 0px black solid;  
+table.noborder,table.noborder td,table.noborder  tr,table.noborder  th {
+	border: 0px black solid;
 	border-collapse: collapse;
 }
 
@@ -409,7 +436,7 @@ position:relative;float:left;padding-top:20px;padding-left:20px;text-align:left;
 }
 
 
-.span_alerte_ancien {   
+.span_alerte_ancien {
    background-color: white;
     border: 1px solid black;
     color: #db24bb;
@@ -421,7 +448,7 @@ position:relative;float:left;padding-top:20px;padding-left:20px;text-align:left;
     position: relative;
     top: -10px;
 }
-.span_alerte {   
+.span_alerte {
  background-color: RED;
     border: 0 none;
     color: #ffffff;
@@ -435,8 +462,8 @@ position:relative;float:left;padding-top:20px;padding-left:20px;text-align:left;
 }
 
 
-table.tablefin,table.tablefin td,table.tablefin  tr,table.tablefin  th { 
-	border: 1px black solid;  
+table.tablefin,table.tablefin td,table.tablefin  tr,table.tablefin  th {
+	border: 1px black solid;
 	border-collapse: collapse;
 }
 .tablefin td,.tablefin   th{
@@ -445,11 +472,21 @@ table.tablefin,table.tablefin td,table.tablefin  tr,table.tablefin  th {
 }
 
 
-table.tablefin_small,table.tablefin_small td,table.tablefin_small  tr,table.tablefin_small  th { 
-    border: 1px black solid;  
+table.tablefin_ecrf,table.tablefin_ecrf td,table.tablefin_ecrf  tr,table.tablefin_ecrf  th {
+	border: 1px black solid;
+	border-collapse: collapse;
+}
+.tablefin_ecrf td,.tablefin_ecrf   th{
+	font-size:12px;
+	 padding: 1px 4px 1px 4px;
+}
+
+
+table.tablefin_small,table.tablefin_small td,table.tablefin_small  tr,table.tablefin_small  th {
+    border: 1px black solid;
     border-collapse: collapse;
 }
-.tablefin td,.tablefin_small   th{
+.tablefin_small td,.tablefin_small   th{
     font-size:10px;
      padding: 1px 1px 1px 1px;
 }
@@ -562,11 +599,11 @@ ul#tab-links li a
     text-decoration:none;
     color:#000000;
 }
- 
+
 ul#tab-links li a:hover
 {
     border: none;
-    
+
     font-family:'Trebuchet MS',Arial,Helvetica,sans-serif;
     font-size: 18px;
     font-weight: normal;
@@ -650,14 +687,14 @@ textarea.input_texte {
 	position: absolute;
 	z-index: 10000;
  }
- 
+
 
 thead th {
 	background-color: #b3b6ca;
 	font-weight: bold;
 	font-size: 11px;
 }
- 
+
 table.dataTable tbody th, table.dataTable tbody td {
     padding: 2px 10px;
 }
@@ -689,8 +726,8 @@ table.dataTable tbody th, table.dataTable tbody td {
 }
 
 
-table.tableheatmap,table.tableheatmap td,table.tableheatmap  tr,table.tableheatmap  th { 
-	border: 1px black solid;  
+table.tableheatmap,table.tableheatmap td,table.tableheatmap  tr,table.tableheatmap  th {
+	border: 1px black solid;
 	border-collapse: collapse;
 }
 
@@ -736,7 +773,7 @@ table.tableheatmap,table.tableheatmap td,table.tableheatmap  tr,table.tableheatm
 	color: grey;
 	display:inline;
 	font-size:11px;
-    
+
 }
 
 .erreur {
@@ -881,21 +918,21 @@ display : list-item;
  list-style-image : url(images/mini_ecrf.png);
 }
 
-.tableau_solid_black { 
+.tableau_solid_black {
 	border:1px solid black;
 	border-collapse: collapse;
 	cellspacing:0px;
 	cellpadding:2px;
 }
 
-table.tableau_solid_black td { 
-	border:1px solid black; 
+table.tableau_solid_black td {
+	border:1px solid black;
 	border-collapse: collapse;
 	font-size: 12px;
 }
 
-table.tableau_solid_black th { 
-	border:1px solid black; 
+table.tableau_solid_black th {
+	border:1px solid black;
 	border-collapse: collapse;
 	font-size: 12px;
 }
@@ -1001,12 +1038,51 @@ background-color:lavender;
  display:none;
  position:absolute;
  background-color:white;
- border:1px red solid;  
+ border:1px red solid;
  width:120px;
  font-size:10px;
  padding:2px;
  } 
- 
+
+ .clickable:hover {
+    cursor: pointer;
+    background-color: #D3D3D3;
+}
+
+.clicked {
+   background-color: #D3D3D3;
+}
+
  .view_document_in_ecrf {
  	background-color: #f3f6fd;
+ 	max-height: 600px;
+	overflow-y: auto;
  }
+
+ .class_div_ecrf_item_modify {
+	 display:none;
+	 position:absolute;
+	 z-index:99;
+	 background-color:#d1dfee;
+	 border:solid 1px black;
+ }
+
+.div_accueil div.actu {
+	max-height:600px;
+	overflow:auto;
+}
+
+.div_accueil div.process {
+	max-height:600px;
+	overflow:auto;
+}
+
+.div_accueil div.saved_queries {
+	max-height:600px;
+	overflow:auto;
+}
+
+.div_accueil div.cohorts {
+	max-height:600px;
+	overflow:auto;
+}

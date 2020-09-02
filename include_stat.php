@@ -26,7 +26,7 @@
 <script type="text/javascript" src="javascript_stat.js?v=<? print $date_today_unique; ?>"></script>
 <?
 
-	if ($_SESSION['dwh_droit_all_departments'.$datamart_num]=='') {
+	if ($_SESSION[$GLOBALS['PREFIX_INSTANCE_DWH'].'_dwh_droit_all_departments'.$datamart_num]=='') {
 		print "
 		<h1 onclick=\"plier_deplier('id_div_stat_patient_out_user_department');\" style=\"cursor:pointer\">
 			<span id=\"plus_id_div_stat_patient_out_user_department\">+</span> ".get_translation('INFORMATION_ON_PATIENTS_NOT_IN_SERVICE',"Informations sur les patients éligibles n'étant pas passés par votre service")."

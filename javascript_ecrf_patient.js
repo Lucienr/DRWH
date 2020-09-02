@@ -20,17 +20,17 @@
     75015 Paris
     France
 */
-function open_ecrf (patient_num,ecrf_num) {
+function open_ecrf (patient_num,ecrf_num,ecrf_patient_event_num,donotexecute_extract_ecrf) {
 	if (ecrf_num!='') {
 		jQuery(".div_result").css("display","none");
 		jQuery(".color-bullet").removeClass("current");
 		jQuery('#id_div_patient_ecrf_patient').css('display','inline');
 		jQuery("#id_bouton_ecrf_patient").addClass("current");
-		afficher_onglet_ecrf_patient (patient_num,ecrf_num);
+		afficher_onglet_ecrf_patient (patient_num,ecrf_num,ecrf_patient_event_num,donotexecute_extract_ecrf);
 	}
 }
 
-function afficher_onglet_ecrf_patient (patient_num,ecrf_num) {
+function afficher_onglet_ecrf_patient (patient_num,ecrf_num,ecrf_patient_event_num,donotexecute_extract_ecrf) {
 	if (tableau_onglet_deja_ouvert['ecrf_patient']!='ok') {
 		tableau_onglet_deja_ouvert['ecrf_patient']='ok';
 		jQuery.ajax({
@@ -45,12 +45,15 @@ function afficher_onglet_ecrf_patient (patient_num,ecrf_num) {
 			success: function(requester){	
 				var contenu=requester;
 				if (contenu=='deconnexion') {
-					afficher_connexion("afficher_onglet_ecrf_patient('"+patient_num+"')");
+					afficher_connexion("afficher_onglet_ecrf_patient('"+patient_num+"','"+ecrf_num+"','"+ecrf_patient_event_num+"','"+donotexecute_extract_ecrf+"')");
 				} else {
 					jQuery("#id_div_patient_ecrf_extract").html(contenu);
 					if (ecrf_num!='') {
 						jQuery("#id_select_ecrf").val(ecrf_num);
-						start_process_extract_information_ecrf (patient_num);
+						get_ecrf_patient_event(patient_num,ecrf_patient_event_num);
+						if (donotexecute_extract_ecrf=='') {
+							start_process_extract_information_ecrf (patient_num);
+						}
 					}
 					$('.chosen-select').chosen({width: '250px',max_selected_options: 50,allow_single_deselect: true,search_contains:true}); 
 					$('.autosizejs').autosize();   
@@ -63,7 +66,12 @@ function afficher_onglet_ecrf_patient (patient_num,ecrf_num) {
 	}
 }
 
-function start_process_extract_information_ecrf (patient_num) {
+function start_process_extract_information_ecrf (patient_num,refresh) {
+	ecrf_num=jQuery("#id_select_ecrf").val();
+	if (ecrf_num=='') {
+		alert("selectionnez un ecrf");
+		return false;
+	}
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_ecrf.php",
@@ -75,12 +83,12 @@ function start_process_extract_information_ecrf (patient_num) {
 		success: function(requester){
 			var contenu=requester;
 			if (contenu=='deconnexion') {
-				afficher_connexion("start_process_extract_information_ecrf ('"+patient_num+"')");
+				afficher_connexion("start_process_extract_information_ecrf ('"+patient_num+"','"+refresh+"')");
 			} else {
 				process_num=contenu;
 				jQuery('#id_afficher_document_ecrf').html("");
 				get_process_extract_information_ecrf (process_num);
-				extract_information_ecrf (patient_num,process_num);
+				extract_information_ecrf (patient_num,process_num,refresh);
 			}
 		}
 	});
@@ -114,28 +122,46 @@ function get_process_extract_information_ecrf (process_num) {
 	});
 }
 
-function extract_information_ecrf (patient_num,process_num) {
+function extract_information_ecrf (patient_num,process_num,refresh) {
 	ecrf_num=jQuery("#id_select_ecrf").val();
 	next_patient_num=jQuery("#id_next_patient_num").val();
+	prev_patient_num=jQuery("#id_prev_patient_num").val();
+	
 	cohort_num_patient=jQuery("#id_cohort_num_patient").val();
+	ecrf_patient_event_num = jQuery("input[name='ecrf_event_id']:checked").val();
+	
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_ecrf.php",
 		async:true,
 		encoding: 'latin1',
-		data:{ action:'extract_information_ecrf',ecrf_num:ecrf_num,patient_num:patient_num,process_num:process_num,next_patient_num:next_patient_num,cohort_num_patient:cohort_num_patient},
+		data:{ action:'extract_information_ecrf',refresh:refresh,ecrf_num:ecrf_num,patient_num:patient_num,process_num:process_num,next_patient_num:next_patient_num,prev_patient_num:prev_patient_num,cohort_num_patient:cohort_num_patient,ecrf_patient_event_num:ecrf_patient_event_num},
 		beforeSend: function(requester){
 			jQuery("#id_div_result_map_ecrf").html("<img src='images/chargement_mac.gif'>"); 
 		},
 		success: function(requester){
 			var contenu=requester;
 			if (contenu=='deconnexion') {
-				afficher_connexion("extract_information_ecrf ('"+patient_num+"')");
+				afficher_connexion("extract_information_ecrf ('"+patient_num+"','"+process_num+"','"+refresh+"')");
 			} else {
 				jQuery("#id_div_result_map_ecrf").html(contenu); 
 			}
 		}
 	});
+	if (next_patient_num!='') {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_ecrf.php",
+			async:true,
+			encoding: 'latin1',
+			data:{ action:'extract_information_ecrf',refresh:'notrefresh',ecrf_num:ecrf_num,patient_num:next_patient_num,process_num:'',cohort_num_patient:cohort_num_patient,ecrf_patient_event_num:ecrf_patient_event_num},
+			beforeSend: function(requester){
+				jQuery("#id_div_result_map_ecrf").html("<img src='images/chargement_mac.gif'>"); 
+			},
+			success: function(requester){
+			}
+		});
+	}
 }
 
 
@@ -170,15 +196,15 @@ function filtre_patient_text_ecrf (patient_num) {
 }
 
 window.onscroll = function() {
-	if ($("#id_afficher_document_ecrf").css('display')=='none' && jQuery('#id_afficher_list_document_ecrf').html()=='') {
-		if (document.getElementById('id_div_ecrf_search_engine')) {
-		    var scroll = (document.documentElement.scrollTop || document.body.scrollTop);
-		    if(scroll>304)
-			document.getElementById('id_div_ecrf_search_engine').style.top = eval(scroll-304)+'px';
-		    else if(scroll<304 || scroll == 304)
-			document.getElementById('id_div_ecrf_search_engine').style.top = '0px';
-		}
-	} 
+//	if ($("#id_afficher_document_ecrf").css('display')=='none' && jQuery('#id_afficher_list_document_ecrf').html()=='') {
+//		if (document.getElementById('id_div_ecrf_search_engine')) {
+//		    var scroll = (document.documentElement.scrollTop || document.body.scrollTop);
+//		    if(scroll>304)
+//			document.getElementById('id_div_ecrf_search_engine').style.top = eval(scroll-304)+'px';
+//		    else if(scroll<304 || scroll == 304)
+//			document.getElementById('id_div_ecrf_search_engine').style.top = '0px';
+//		}
+//	} 
 }
 
 function afficher_document_patient_ecrf(ecrf_item_num,document_num,id_voir,requete,k) {
@@ -212,23 +238,23 @@ function afficher_document_patient_ecrf(ecrf_item_num,document_num,id_voir,reque
 				jQuery("#"+id_voir).html(""); 
 			} else {
 				jQuery("#"+id_voir).html("<img src='images/arrow_right_bottom.png'><br><div class='view_document_in_ecrf'><div width='100%' style='text-align:right'><img src='images/close.gif' width='15px' onclick=\"plier('"+id_voir+"')\"></div>"+contenu+"</div>"); 
-				val_scrollTop=jQuery('#id_ecrf_list_doc_found_'+ecrf_item_num).scrollTop();
-				
-				val_top_capsule_search_engine=getTop(document.getElementById("id_div_capsule_search_engine"))  ;
-				
-				val_top=eval(getTop(document.getElementById("id_ancre_document_"+k))-val_scrollTop-val_top_capsule_search_engine);
-				if (val_top<43) { 
-					jQuery('#id_div_ecrf_search_engine').css('top',val_top);
-				}else {
-					jQuery('#id_div_ecrf_search_engine').css('top',val_top-43);
-				}
-				
+				position_ecrf_search_engine (ecrf_item_num);
 			}
 			
 		}
 	});
 }
 
+function position_ecrf_search_engine (ecrf_item_num) {
+	val_scrollTop=jQuery('#id_td_ecrf_list_doc_found_'+ecrf_item_num).scrollTop();
+	val_top_capsule_search_engine=getTop(document.getElementById("id_div_capsule_search_engine"))  ;
+	val_top=eval(getTop(document.getElementById("id_td_ecrf_list_doc_found_"+ecrf_item_num))-val_scrollTop-val_top_capsule_search_engine);
+	if (val_top<43) { 
+		jQuery('#id_div_ecrf_search_engine').css('top',val_top);
+	}else {
+		jQuery('#id_div_ecrf_search_engine').css('top',val_top-43);
+	}
+}
 
 function getFormData($form){
     //console.log($form);
@@ -295,25 +321,27 @@ function ecrf_justify_my_choice () {
 }
 
 
-function validate_ecrf_item (ecrf_num, patient_num,ecrf_item_num) {
+function validate_ecrf_item (ecrf_answer_num,ecrf_item_num) {
 	var json = "[" + JSON.stringify(getFormData(jQuery("#id_ecrf_form"))) + "]";
 	jQuery.ajax({
 		type:"POST",
 		url:"ajax_ecrf.php",
 		async:true,
 		encoding: 'latin1',
-		data:{ action:'validate_ecrf_item',ecrf_num:ecrf_num,patient_num:patient_num,ecrf_item_num:ecrf_item_num,json:escape(json)},
+		data:{ action:'validate_ecrf_item',ecrf_answer_num:ecrf_answer_num,ecrf_item_num:ecrf_item_num,json:escape(json)},
 		beforeSend: function(requester){
 		},
 		success: function(requester){
 			var contenu=requester;
 			if (contenu=='deconnexion') {
-				afficher_connexion("validate_ecrf_item ("+ecrf_num+","+ patient_num+","+ecrf_item_num+")");
+				afficher_connexion("validate_ecrf_item ("+ecrf_answer_num+","+ecrf_item_num+")");
 			} else {
 				if (contenu=='validate') {
 					jQuery("#id_tr_ecrf_item_"+ecrf_item_num).css( "background-color","#bfe6bf");
+					jQuery("#id_td_ecrf_item_"+ecrf_item_num).css( "pointer-events","none");
 				} else {
 					jQuery("#id_tr_ecrf_item_"+ecrf_item_num).css( "background-color","white");
+					jQuery("#id_td_ecrf_item_"+ecrf_item_num).css( "pointer-events","auto");
 				}
 			}
 			
@@ -321,6 +349,105 @@ function validate_ecrf_item (ecrf_num, patient_num,ecrf_item_num) {
 	});
 }
 
+function get_ecrf_patient_event(patient_num,ecrf_patient_event_num) {
+	ecrf_num=jQuery('#id_select_ecrf').val();
+	if (ecrf_num!='') {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_ecrf.php",
+			async:true,
+			encoding: 'latin1',
+			data:{ action:'get_ecrf_patient_event',ecrf_num:ecrf_num,patient_num:patient_num},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				var contenu=requester;
+				if (contenu=='deconnexion') {
+					afficher_connexion("get_ecrf_patient_event ("+ patient_num+")");
+				} else {
+					jQuery('#id_div_ecrf_patient_event').html(contenu);
+					if (ecrf_patient_event_num!='') {
+						jQuery('#id_ecrf_event_id_'+ecrf_patient_event_num).prop("checked",true);
+					}
+				}
+				
+			}
+		});
+	}
+}
+
+function add_ecrf_patient_event(patient_num) {
+	ecrf_num=jQuery('#id_select_ecrf').val();
+	    
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_ecrf.php",
+		async:true,
+		encoding: 'latin1',
+		data:{ action:'add_ecrf_patient_event',ecrf_num:ecrf_num,patient_num:patient_num},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			var contenu=requester;
+			if (contenu=='deconnexion') {
+				afficher_connexion("add_ecrf_patient_event ("+ patient_num+")");
+			} else {
+				get_ecrf_patient_event(patient_num,contenu);
+			}
+			
+		}
+	});
+}
+function save_evrf_patient_event (patient_num,ecrf_patient_event_num) {
+
+	event_id=jQuery('#id_input_event_id_'+ecrf_patient_event_num).val();
+	date_patient_ecrf=jQuery('#id_input_date_patient_ecrf_'+ecrf_patient_event_num).val();
+	nb_days_before=jQuery('#id_input_nb_days_before_'+ecrf_patient_event_num).val();
+	nb_days_after=jQuery('#id_input_nb_days_after_'+ecrf_patient_event_num).val();
+	jQuery.ajax({
+		type:"POST",
+		url:"ajax_ecrf.php",
+		async:true,
+		encoding: 'latin1',
+		data:{ action:'save_evrf_patient_event',ecrf_patient_event_num:ecrf_patient_event_num,event_id:event_id,date_patient_ecrf:date_patient_ecrf,nb_days_before:nb_days_before,nb_days_after:nb_days_after},
+		beforeSend: function(requester){
+		},
+		success: function(requester){
+			var contenu=requester;
+			if (contenu=='deconnexion') {
+				afficher_connexion("save_evrf_patient_event ("+patient_num+","+ ecrf_patient_event_num+")");
+			} else {
+				get_ecrf_patient_event(patient_num,ecrf_patient_event_num);
+				
+			}
+			
+		}
+	});
+}
+
+function delete_evrf_patient_event (patient_num,ecrf_patient_event_num) {
+	if (confirm ("Etes vous sûr de vouloir supprimer ce suivi ?")) {
+		jQuery.ajax({
+			type:"POST",
+			url:"ajax_ecrf.php",
+			async:true,
+			encoding: 'latin1',
+			data:{ action:'delete_evrf_patient_event',ecrf_patient_event_num:ecrf_patient_event_num},
+			beforeSend: function(requester){
+			},
+			success: function(requester){
+				var contenu=requester;
+				if (contenu=='deconnexion') {
+					afficher_connexion("delete_evrf_patient_event ("+patient_num+","+ ecrf_patient_event_num+")");
+				} else {
+					get_ecrf_patient_event(patient_num,'');
+					
+				}
+				
+			}
+		});
+	}
+}
 
 jQuery(document).ready(function(){
   jQuery("#id_afficher_document_ecrf").mouseup(function(){

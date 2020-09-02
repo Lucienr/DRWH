@@ -87,8 +87,16 @@ print "sql : $sql\n\n";
 $nb_doc=0;
 $tableau_final_query_key=array();
 $tableau_patient_num=array();
+
+$req_upd="update  dwh_tmp_query set count_patient=:nb_patient  where query_key='$query_key_arg' and user_num=$user_num and datamart_num=$datamart_num ";
+$upd = oci_parse($dbh,$req_upd);   
+
 $sel = oci_parse($dbh,"$sql");   
 oci_execute($sel);
+print "execute  done\n";
+//$nb=oci_fetch_all($sel,$res, 0, -1, OCI_FETCHSTATEMENT_BY_ROW); 
+//print " oci_fetch_all done\n";
+//foreach ($res as $r) {
 while ( $r = oci_fetch_array($sel, OCI_ASSOC+OCI_RETURN_NULLS)) {
 	$document_num=$r['DOCUMENT_NUM'];
 	$query_key=$r['QUERY_KEY'];
@@ -104,10 +112,8 @@ while ( $r = oci_fetch_array($sel, OCI_ASSOC+OCI_RETURN_NULLS)) {
 	if ($nb_doc==1000) {
 		$nb_doc=0;
 		$nb_patient=count($tableau_patient_num_json);
-		$req_upd="update  dwh_tmp_query set count_patient=$nb_patient  where query_key='$query_key_arg' and user_num=$user_num and datamart_num=$datamart_num ";
-		print "$req_upd\n";
-		$upd = oci_parse($dbh,$req_upd);   
-		oci_execute($upd);
+		oci_bind_by_name($upd, ':nb_patient', $nb_patient);
+		$res = oci_execute($upd);  
 	}
 }
 
@@ -130,20 +136,42 @@ oci_execute($upd);
 #        oci_execute($ins);
 #}
 
+$nb_doc=0;
+$ins = oci_parse($dbh, " insert /*+ APPEND NOLOGGING */ into DWH_TMP_PRERESULT_$user_num  (document_num ,query_key , tmpresult_date,patient_num,user_num,datamart_num,document_origin_code,document_date,object_type) values (:document_num,:query_key,sysdate,:patient_num,:user_num,:datamart_num,:document_origin_code,to_date(:document_date,'DD/MM/YYYY HH24:MI'),:object_type) ");   
+
 foreach ($tableau_patient_num_json as $patient_num => $json) {
 	$json="{\"list_documents\":[".substr($json,0,-1)."]}";
 	$parsed_json = json_decode($json);
 	foreach ($parsed_json->{'list_documents'} as $document) {
+		$nb_doc++;
 		$document_num= $document->{'document_num'};
 		$document_origin_code= $document->{'document_origin_code'};
 		$document_date= $document->{'document_date'};
 		$query_key= $document->{'query_key'};
 		$object_type= $document->{'object_type'};
-		$query_key=str_replace("'","''",$query_key);
-	        $ins = oci_parse($dbh, " insert into DWH_TMP_PRERESULT_$user_num  (document_num ,query_key , tmpresult_date,patient_num,user_num,datamart_num,document_origin_code,document_date,object_type) values ($document_num,'$query_key',sysdate,'$patient_num','$user_num','$datamart_num','$document_origin_code',to_date('$document_date','DD/MM/YYYY HH24:MI'),'$object_type') ");   
-	        oci_execute($ins);
+		//$query_key=str_replace("'","''",$query_key);
+	        //$ins = oci_parse($dbh, " insert into DWH_TMP_PRERESULT_$user_num  (document_num ,query_key , tmpresult_date,patient_num,user_num,datamart_num,document_origin_code,document_date,object_type) values ($document_num,'$query_key',sysdate,'$patient_num','$user_num','$datamart_num','$document_origin_code',to_date('$document_date','DD/MM/YYYY HH24:MI'),'$object_type') ");   
+	        //oci_execute($ins);
+	        
+		oci_bind_by_name($ins, ':document_num', $document_num);
+		oci_bind_by_name($ins, ':query_key', $query_key, 4000, SQLT_LNG);
+		oci_bind_by_name($ins, ':patient_num', $patient_num);
+		oci_bind_by_name($ins, ':user_num', $user_num);
+		oci_bind_by_name($ins, ':datamart_num', $datamart_num);
+		oci_bind_by_name($ins, ':document_origin_code', $document_origin_code, 500, SQLT_LNG);
+		oci_bind_by_name($ins, ':document_date', $document_date, 500, SQLT_LNG);
+		oci_bind_by_name($ins, ':object_type', $object_type, 500, SQLT_LNG);
+		$res = oci_execute($ins, OCI_NO_AUTO_COMMIT);  
+		
+		if ($nb_doc==1000) {
+			$nb_doc=0;
+			oci_commit($dbh);
+		
+		}
 	}
 }
+//, OCI_NO_AUTO_COMMIT
+oci_commit($dbh);
 
 
 

@@ -57,7 +57,29 @@ function bindLdapAdmin($conLdap){
 		die(get_translation('LDAP_AUTH_DENIED','Authentification impossible au serveur ldap'));
 	}
 }
+
+
 function bindLdap($conLdap,$sUser,$sPwd){
+	$sDnUser = "";
+	if(1==2 && @ldap_bind($conLdap,utf8_encode($sUser."@".SUFFIXE_MAIL),utf8_encode($sPwd))){
+		return $sUser;
+	}else{
+		if(1==2 && @ldap_bind($conLdap,utf8_encode($sUser),utf8_encode($sPwd))){
+			return $sUser;
+		} else{
+			$r=ldap_user_name_new($sUser);
+			$dn=$r['dn'];
+			if($dn!='' && @ldap_bind($conLdap,$dn,utf8_encode($sPwd))){
+				return $sUser;
+			}else{
+				return "nothing";
+			}
+		}
+	}
+}
+
+
+function bindLdap_old($conLdap,$sUser,$sPwd){
 	$sDnUser = "";
 	if(@ldap_bind($conLdap,utf8_encode($sUser."@".SUFFIXE_MAIL),utf8_encode($sPwd))){
 		return $sUser;
@@ -82,12 +104,32 @@ function ldap_user_name($sUser) {
 	if(ldap_count_entries($conLdap,$objRes) == 1){
 		$aResult = ldap_get_entries($conLdap,$objRes);
 		$sUtiConnecte = $aResult[0]["cn"][0];
-		$res[lastname] = $aResult[0]["sn"][0];
-		$res[firstname] = $aResult[0]["givenname"][0];
-	 	$res[mail]=$aResult[0]["mail"][0];
+		$res['lastname'] = $aResult[0]["sn"][0];
+		$res['firstname'] = $aResult[0]["givenname"][0];
+	 	$res['mail']=$aResult[0]["mail"][0];
 	} else {
 	}
 	return($res['lastname'].",".$res['firstname'].",".$res['mail']);
+}
+
+function ldap_user_name_new($sUser) {
+	$res=array();
+	$conLdap = connectLdap();
+
+	bindLdapAdmin($conLdap);
+
+	$objRes = ldap_search($conLdap,LDAP_BASE,"(&(sAMAccountName=".$sUser.")(objectCategory=User))");
+
+	if(ldap_count_entries($conLdap,$objRes) == 1){
+		$aResult = ldap_get_entries($conLdap,$objRes);
+		$sUtiConnecte = $aResult[0]["cn"][0];
+		$res['lastname'] = $aResult[0]["sn"][0];
+		$res['firstname'] = $aResult[0]["givenname"][0];
+	 	$res['mail']=$aResult[0]["mail"][0];
+	 	$res['dn']=$aResult[0]["dn"];
+	} else {
+	}
+	return $res;
 }
 
 
@@ -140,7 +182,7 @@ function rechercher_ldap_user_name($sUser,$grp) {
 
 function rechercher_ldap_user_name_tableau($sUser,$grp) {
 	global $LDAP_USER,$LDAP_PASSWD,$LDAP_BASE;
-	$res=array();
+	$resultat=array();
 	$conLdap = connectLdap();
 	$sUser=trim ($sUser);
 	ldap_bind($conLdap,$LDAP_USER,$LDAP_PASSWD);
@@ -150,14 +192,13 @@ function rechercher_ldap_user_name_tableau($sUser,$grp) {
 	if($nbresult == 1){
 		$aResult = ldap_get_entries($conLdap,$objRes);
 		$sUtiConnecte = $aResult[0]["cn"][0];
-		$res[lastname] = $aResult[0]["sn"][0];
-		$res[firstname] = $aResult[0]["givenname"][0];
 	 	$lastname=utf8_decode($aResult[0]["sn"][0]);
 	 	$firstname=utf8_decode($aResult[0]["givenname"][0]);
 	 	$mail=$aResult[0]["mail"][0];
 		$login_ldap=$aResult[0]["samaccountname"][0];
 		if ($login_ldap!='') {
-			$resultat.=  "$login_ldap;$firstname $lastname $login_ldap;$lastname,$firstname,$mail-separateur-";
+			//$resultat.=  "$login_ldap;$firstname $lastname $login_ldap;$lastname,$firstname,$mail-separateur-";
+			$resultat[]=array("login"=>$login_ldap,"firstname"=> $firstname,"lastname"=> $lastname ,"mail"=> $mail);
 		}
 	} else if  ($nbresult>0) {
 		if ($nbresult<50 && $nbresult>0) {
@@ -168,7 +209,8 @@ function rechercher_ldap_user_name_tableau($sUser,$grp) {
 			 	$mail=$aResult[$i]["mail"][0];
 			 	$login_ldap=$aResult[$i]["samaccountname"][0];
 			 	if ($login_ldap!='') {
-					$resultat.=  "$login_ldap;$firstname $lastname $login_ldap;$lastname,$firstname,$mail-separateur-";
+					//$resultat.=  "$login_ldap;$firstname $lastname $login_ldap;$lastname,$firstname,$mail-separateur-";
+					$resultat[]=array("login"=>$login_ldap,"firstname"=> $firstname,"lastname"=> $lastname ,"mail"=> $mail);
 				}
 			 }
 		}
