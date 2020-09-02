@@ -1,0 +1,55 @@
+table.vgt-table {
+  font-size: 12px;
+  font-weight: 200;
+}
+
+.vgt-table thead th {
+  background: inherit;
+}
+
+.vgt-wrap__footer {
+  padding-left: .5em;
+  padding: .2em;
+  background: white;
+}
+
+.vgt-global-search {
+  border: none;
+  background-color: #f8f9fc;
+  display: contents;
+}
+
+.vgt-global-search__input {
+  padding-left: 0;
+  padding-bottom: 10px;
+  width: 50%;
+}
+
+.input__icon {
+  display: none;
+}
+
+.multiselect__tag {
+  background-color: #233d73;
+}
+
+.multiselect__tag-icon:after {
+  color: white;
+}
+
+.multiselect__tag-icon:hover {
+ background-color: #233d73;
+}
+
+.multiselect__single {
+  font-weight: 200;
+  font-size: .75rem;
+}
+
+.multiselect__option--highlight {
+  background-color: #233d73;
+}
+
+.multiselect__option--highlight::after {
+  background-color: #233d73;
+}
