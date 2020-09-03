@@ -19,6 +19,8 @@ Some directories must be writable for the www-user :
 - upload
 - timeline/xml
 
+and last but no least the Language Options short_open_tag into your php.ini must be 'On'
+
 The SQL scripts for database creation are in the database directory.
 
 
