@@ -5,7 +5,7 @@ Pre requisite :
 
 Oracle 11g or more, with Oracle text
 PHP 5.3 and + with modules :
-- OCI8 - How to install OCI8 on Ubuntu 18.04 and PHP 7.2
+- OCI8 - https://github.com/imagine-bdd/DRWH/wiki/How-to-install-OCI8-on-Ubuntu-18.04-and-PHP-7.2
 - LDAP
 - CURL
 
